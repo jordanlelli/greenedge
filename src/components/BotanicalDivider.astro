@@ -1,30 +1,35 @@
 ---
 interface Props {
   variant?: "hedge" | "leaf";
+  tone?: "default" | "inverse";
   class?: string;
 }
 
-const { variant = "hedge", class: className = "" } = Astro.props;
+const { variant = "hedge", tone = "default", class: className = "" } = Astro.props;
+
+const colorClass = tone === "inverse" ? "text-white" : "text-brand";
+const hedgeOpacity = tone === "inverse" ? ["0.18", "0.28"] : ["0.22", "0.32"];
+const leafOpacity = tone === "inverse" ? ["0.25", "0.35"] : ["0.28", "0.4"];
 ---
 
 {variant === "hedge" ? (
   <div class={`pointer-events-none select-none ${className}`} aria-hidden="true">
-    <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full text-brand" preserveAspectRatio="none">
+    <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" class={`w-full ${colorClass}`} preserveAspectRatio="none">
       <path
         d="M0 60 Q120 20 240 45 T480 35 T720 50 T960 30 T1200 48 T1440 40 L1440 80 L0 80 Z"
         fill="currentColor"
-        opacity="0.08"
+        opacity={hedgeOpacity[0]}
       />
       <path
         d="M0 68 Q180 38 360 58 T720 52 T1080 62 T1440 55 L1440 80 L0 80 Z"
         fill="currentColor"
-        opacity="0.12"
+        opacity={hedgeOpacity[1]}
       />
     </svg>
   </div>
 ) : (
   <svg
-    class={`text-brand ${className}`}
+    class={`${colorClass} ${className}`}
     width="48"
     height="48"
     viewBox="0 0 48 48"
@@ -35,8 +40,8 @@ const { variant = "hedge", class: className = "" } = Astro.props;
     <path
       d="M24 4C24 4 14 16 14 26C14 32 18 36 24 36C30 36 34 32 34 26C34 16 24 4 24 4Z"
       fill="currentColor"
-      opacity="0.12"
+      opacity={leafOpacity[0]}
     />
-    <path d="M24 36V44" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.2" />
+    <path d="M24 36V44" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity={leafOpacity[1]} />
   </svg>
 )}

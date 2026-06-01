@@ -14,7 +14,7 @@ const showField = (name: string) => fields.includes(name);
   eyebrow={data.eyebrow}
   title={data.heading}
   subtitle={data.subhead}
-  variant="light"
+  variant="paper"
 >
   <div class="grid gap-10 lg:grid-cols-5">
     {form.enabled && site.contact?.email && (
@@ -122,29 +122,29 @@ const showField = (name: string) => fields.includes(name);
       {site.contact?.phone && (
         <a
           href={`tel:${formatPhone(site.contact.phone)}`}
-          class="block rounded-2xl border border-brand/10 bg-paper p-5 transition hover:border-brand/25 hover:shadow-sm"
+          class="block rounded-2xl border border-brand/15 bg-tint p-5 transition hover:border-brand/30 hover:shadow-sm"
         >
-          <p class="text-sm font-medium text-accent">Prefer to call?</p>
+          <p class="text-sm font-medium text-highlight">Prefer to call?</p>
           <p class="mt-1 text-xl font-semibold text-brand">{site.contact.phone}</p>
         </a>
       )}
       {site.contact?.email && (
         <a
           href={`mailto:${site.contact.email}`}
-          class="block rounded-2xl border border-brand/10 bg-paper p-5 transition hover:border-brand/25 hover:shadow-sm"
+          class="block rounded-2xl border border-brand/15 bg-tint p-5 transition hover:border-brand/30 hover:shadow-sm"
         >
           <p class="text-sm font-medium text-gray-500">Email</p>
           <p class="mt-1 font-semibold text-brand">{site.contact.email}</p>
         </a>
       )}
       {fullAddress() && (
-        <div class="rounded-2xl border border-brand/10 bg-paper p-5">
+        <div class="rounded-2xl border border-brand/15 bg-tint p-5">
           <p class="text-sm font-medium text-gray-500">Based in</p>
           <p class="mt-1 font-medium text-brand">{fullAddress()}</p>
         </div>
       )}
       {site.contact?.hours && (
-        <div class="rounded-2xl border border-brand/10 bg-paper p-5">
+        <div class="rounded-2xl border border-brand/15 bg-tint p-5">
           <p class="text-sm font-medium text-gray-500">Hours</p>
           <p class="mt-1 text-sm text-gray-700">{site.contact.hours}</p>
         </div>

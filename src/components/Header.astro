@@ -8,7 +8,7 @@ const logoText = site.business?.logoText || businessName;
 const favicon = "/favicon.svg";
 ---
 
-<header class="sticky top-0 z-40 border-b border-brand/10 bg-paper/95 backdrop-blur-sm">
+<header class="sticky top-0 z-40 border-b border-white/10 bg-brand/95 backdrop-blur-sm">
   <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
     <a href="#top" class="flex shrink-0 items-center gap-2 min-w-0" aria-label={businessName}>
       <img
@@ -16,17 +16,17 @@ const favicon = "/favicon.svg";
         alt=""
         width="40"
         height="40"
-        class="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9 lg:h-10 lg:w-10"
+        class="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9 lg:h-10 lg:w-10 brightness-0 invert"
         aria-hidden="true"
       />
-      <span class="truncate font-heading text-lg font-bold text-brand sm:text-xl">
+      <span class="truncate font-heading text-lg font-bold text-white sm:text-xl">
         {logoText}
       </span>
     </a>
 
     <div class="hidden items-center gap-5 lg:flex">
       {navLinks.map((link) => (
-        <a href={link.href} class="text-sm font-medium text-gray-600 transition hover:text-brand">
+        <a href={link.href} class="text-sm font-medium text-white/85 transition hover:text-white">
           {link.label}
         </a>
       ))}
@@ -36,7 +36,7 @@ const favicon = "/favicon.svg";
       {site.contact?.phone && (
         <a
           href={`tel:${formatPhone(site.contact.phone)}`}
-          class="hidden font-semibold text-brand transition hover:text-brand-dark sm:inline"
+          class="hidden font-semibold text-white transition hover:text-highlight sm:inline"
         >
           {site.contact.phone}
         </a>
@@ -44,14 +44,14 @@ const favicon = "/favicon.svg";
       {site.contact?.headerCtaLabel && (
         <a
           href={resolveLinkHref(site.contact.headerCtaHref || "#contact")}
-          class="hidden rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark sm:inline-flex"
+          class="hidden rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent/90 sm:inline-flex"
         >
           {site.contact.headerCtaLabel}
         </a>
       )}
       <button
         id="menu-toggle"
-        class="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-brand/5 lg:hidden"
+        class="flex h-10 w-10 items-center justify-center rounded-lg text-white transition hover:bg-white/10 lg:hidden"
         aria-label="Open menu"
         aria-expanded="false"
       >
@@ -62,17 +62,17 @@ const favicon = "/favicon.svg";
     </div>
   </div>
 
-  <div id="mobile-menu" class="hidden border-t border-brand/10 bg-paper px-4 pb-4 lg:hidden">
+  <div id="mobile-menu" class="hidden border-t border-white/10 bg-brand-dark px-4 pb-4 lg:hidden">
     <div class="flex flex-col gap-1 pt-2">
       {navLinks.map((link) => (
-        <a href={link.href} class="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand/5">
+        <a href={link.href} class="rounded-lg px-3 py-2.5 text-sm font-medium text-white/90 hover:bg-white/10">
           {link.label}
         </a>
       ))}
       {site.contact?.phone && (
         <a
           href={`tel:${formatPhone(site.contact.phone)}`}
-          class="mt-2 rounded-lg bg-brand px-3 py-3 text-center text-sm font-semibold text-white"
+          class="mt-2 rounded-lg bg-accent px-3 py-3 text-center text-sm font-semibold text-white"
         >
           Call {site.contact.phone}
         </a>

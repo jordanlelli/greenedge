@@ -19,15 +19,15 @@ const pageSubhead = services.subhead || "";
 <Layout title={title} description={description} pageType="services">
   <Header />
 
-  <main class="bg-bg text-ink">
-    <section class="border-b border-border bg-bg py-14 lg:py-16">
+  <main class="bg-paper text-ink">
+    <section class="border-b border-white/10 bg-brand py-14 text-white lg:py-16">
       <div class="mx-auto max-w-6xl px-4 lg:px-8">
-        <p class="text-sm font-semibold text-accent">{pageEyebrow}</p>
-        <h1 class="mt-2 max-w-3xl font-heading text-4xl font-semibold tracking-tight text-brand sm:text-5xl">
+        <p class="text-sm font-semibold uppercase tracking-wide text-highlight">{pageEyebrow}</p>
+        <h1 class="mt-2 max-w-3xl font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
           {pageHeading}
         </h1>
         {pageSubhead && (
-          <p class="mt-4 max-w-2xl text-lg leading-relaxed text-muted">{pageSubhead}</p>
+          <p class="mt-4 max-w-2xl text-lg leading-relaxed text-white/75">{pageSubhead}</p>
         )}
       </div>
     </section>
@@ -37,7 +37,7 @@ const pageSubhead = services.subhead || "";
       const body = service.longDescription || service.description || "";
       const paragraphs = body.split(/\n\n+/).filter(Boolean);
       const includes: string[] = service.includes || [];
-      const bgClass = index % 2 === 0 ? "bg-bg" : "bg-card";
+      const bgClass = index % 2 === 0 ? "bg-paper" : "bg-tint";
 
       return (
         <section class={`py-16 lg:py-20 ${bgClass}`}>
@@ -77,7 +77,7 @@ const pageSubhead = services.subhead || "";
                       <li class="flex items-start gap-3 text-sm leading-relaxed text-ink">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="mt-0.5 h-4 w-4 shrink-0 text-brand"
+                          class="mt-0.5 h-4 w-4 shrink-0 text-highlight"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -97,7 +97,7 @@ const pageSubhead = services.subhead || "";
       );
     })}
 
-    <section class="border-t border-border bg-bg py-16 lg:py-20">
+    <section class="border-t border-brand/10 bg-tint py-16 lg:py-20">
       <div class="mx-auto max-w-2xl px-4 text-center lg:px-8">
         <h2 class="font-heading text-2xl font-semibold text-brand sm:text-3xl">
           Want a quote on any of these?
@@ -107,7 +107,7 @@ const pageSubhead = services.subhead || "";
         </p>
         <a
           href="/#contact"
-          class="mt-6 inline-flex rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark"
+          class="mt-6 inline-flex rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent/90"
         >
           Get a free quote
         </a>

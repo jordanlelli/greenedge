@@ -1,5 +1,6 @@
 ---
 import Section from "../Section.astro";
+import BotanicalDivider from "../BotanicalDivider.astro";
 import { site } from "../../config";
 
 const data = site.usage || {};
@@ -11,13 +12,15 @@ const items = data.items || [];
   eyebrow={data.eyebrow}
   title={data.heading}
   subtitle={data.subhead}
-  variant="paper"
+  variant="light"
 >
   <div class="flex flex-wrap justify-center gap-2">
     {items.map((suburb: string) => (
-      <span class="rounded-full border border-brand/15 bg-white px-4 py-2 text-sm font-medium text-brand">
+      <span class="rounded-full border border-brand/20 bg-white px-4 py-2 text-sm font-medium text-brand">
         {suburb}
       </span>
     ))}
   </div>
 </Section>
+
+<BotanicalDivider />

@@ -1,5 +1,6 @@
 ---
 import Section from "../Section.astro";
+import BotanicalDivider from "../BotanicalDivider.astro";
 import { site } from "../../config";
 
 const data = site.services || {};
@@ -24,3 +25,5 @@ const items = data.items || [];
     ))}
   </div>
 </Section>
+
+<BotanicalDivider />

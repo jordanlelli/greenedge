@@ -1,5 +1,8 @@
 import intake from "./client-intake.json";
 
+const brand = intake.style?.brand || "#1F3D2B";
+const paper = "#FAFAF7";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./src/**/*.{astro,html,js,jsx,md,mdx,ts,tsx}"],
@@ -7,7 +10,7 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: intake.style?.brand || "#1F3D2B",
+          DEFAULT: brand,
           dark: intake.style?.brandDark || "#0F2417",
         },
         accent: {
@@ -16,9 +19,12 @@ export default {
         highlight: {
           DEFAULT: intake.style?.highlight || "#65A30D",
         },
-        paper: "#FAFAF7",
+        paper,
+        tint: {
+          DEFAULT: `color-mix(in srgb, ${brand} 5%, ${paper} 95%)`,
+        },
         bg: {
-          DEFAULT: "#FAFAF7",
+          DEFAULT: paper,
         },
         card: {
           DEFAULT: "#FFFFFF",

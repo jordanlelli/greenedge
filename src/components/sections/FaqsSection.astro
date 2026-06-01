@@ -10,7 +10,7 @@ const items = data.items || [];
   id="faqs"
   eyebrow={data.eyebrow}
   title={data.heading}
-  variant="paper"
+  variant="light"
   align="left"
 >
   <div class="mx-auto max-w-3xl divide-y divide-brand/10 rounded-2xl border border-brand/10 bg-white">
@@ -19,7 +19,7 @@ const items = data.items || [];
         <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-brand marker:content-none">
           <span>{item.question}</span>
           <svg
-            class="h-5 w-5 shrink-0 text-accent transition group-open:rotate-180"
+            class="h-5 w-5 shrink-0 text-highlight transition group-open:rotate-180"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

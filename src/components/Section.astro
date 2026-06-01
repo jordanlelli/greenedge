@@ -20,13 +20,16 @@ const {
 const bgClass = {
   light: "bg-white",
   dark: "bg-brand-dark text-white",
-  tinted: "bg-paper",
+  tinted: "bg-tint",
   paper: "bg-paper",
 }[variant];
 
 const alignClass = align === "center" ? "text-center" : "text-left";
 const subtitleColor =
   variant === "dark" ? "text-white/70" : "text-gray-600";
+const eyebrowColor = "text-highlight";
+const titleColor =
+  variant === "dark" ? "text-white" : "text-brand";
 ---
 
 <section id={id} class={`${bgClass} py-20 lg:py-24`}>
@@ -34,10 +37,10 @@ const subtitleColor =
     {(eyebrow || title || subtitle) && (
       <div class={`${alignClass} ${align === "center" ? "mx-auto max-w-2xl" : ""}`}>
         {eyebrow && (
-          <span class="text-sm font-semibold text-accent">{eyebrow}</span>
+          <span class={`text-sm font-semibold uppercase tracking-wide ${eyebrowColor}`}>{eyebrow}</span>
         )}
         {title && (
-          <h2 class="mt-2 font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+          <h2 class={`mt-2 font-heading text-3xl font-semibold tracking-tight sm:text-4xl ${titleColor}`}>
             {title}
           </h2>
         )}
