@@ -1,0 +1,18 @@
+---
+import { site, formatPhone } from "../config";
+
+if (!site.contact?.phone) return null;
+---
+
+<a
+  href={`tel:${formatPhone(site.contact.phone)}`}
+  class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-accent py-3.5 text-center text-base font-semibold text-white shadow-lg md:hidden"
+  data-cta="sticky-phone"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.2 2.2z" />
+  </svg>
+  Call {site.contact.phone}
+</a>
+
+<div class="h-14 md:hidden" aria-hidden="true"></div>

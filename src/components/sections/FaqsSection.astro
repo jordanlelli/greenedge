@@ -1,0 +1,41 @@
+---
+import Section from "../Section.astro";
+import { site } from "../../config";
+
+const data = site.faqs || {};
+const items = data.items || [];
+---
+
+<Section
+  id="faqs"
+  eyebrow={data.eyebrow}
+  title={data.heading}
+  variant="paper"
+  align="left"
+>
+  <div class="mx-auto max-w-3xl divide-y divide-brand/10 rounded-2xl border border-brand/10 bg-white">
+    {items.map((item: any, i: number) => (
+      <details class="group px-6 py-4" open={i === 0}>
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-brand marker:content-none">
+          <span>{item.question}</span>
+          <svg
+            class="h-5 w-5 shrink-0 text-accent transition group-open:rotate-180"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <p class="mt-3 pb-2 text-sm leading-relaxed text-gray-600">{item.answer}</p>
+      </details>
+    ))}
+  </div>
+</Section>
+
+<style>
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

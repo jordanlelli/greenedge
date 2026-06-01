@@ -1,0 +1,73 @@
+---
+import { site, formatPhone } from "../config";
+import BotanicalDivider from "./BotanicalDivider.astro";
+
+const hero = site.hero || {};
+const trustMarks = hero.trustMarks || [];
+const markText = site.business?.logoMarkText || "GE";
+---
+
+<section class="relative overflow-hidden bg-paper">
+  <BotanicalDivider class="absolute bottom-0 left-0 right-0" />
+
+  <div class="pointer-events-none absolute right-8 top-16 hidden opacity-40 lg:block xl:right-16">
+    <div class="flex h-36 w-36 items-center justify-center rounded-full border-2 border-brand/20 bg-white shadow-sm">
+      <span class="font-heading text-4xl font-semibold text-brand">{markText}</span>
+    </div>
+  </div>
+
+  <div class="pointer-events-none absolute left-6 top-24 hidden sm:block">
+    <BotanicalDivider variant="leaf" />
+  </div>
+
+  <div class="relative mx-auto max-w-6xl px-4 py-20 sm:py-28 lg:px-8 lg:py-32">
+    <div class="max-w-2xl">
+      {hero.eyebrow && (
+        <p class="text-sm font-semibold text-accent">{hero.eyebrow}</p>
+      )}
+
+      <h1 class="mt-3 font-heading text-4xl font-semibold leading-[1.1] tracking-tight text-brand sm:text-5xl lg:text-6xl">
+        {hero.heading}
+        {hero.subhead && (
+          <span class="mt-2 block text-brand/80">{hero.subhead}</span>
+        )}
+      </h1>
+
+      {hero.body && (
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-gray-600">{hero.body}</p>
+      )}
+
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+        {hero.primaryCtaLabel && (
+          <a
+            href={hero.primaryCtaHref || "#contact"}
+            class="inline-flex items-center justify-center rounded-xl bg-brand px-7 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-brand-dark"
+          >
+            {hero.primaryCtaLabel}
+          </a>
+        )}
+        {hero.secondaryCtaLabel && (
+          <a
+            href={hero.secondaryCtaHref || "#services"}
+            class="inline-flex items-center justify-center rounded-xl border-2 border-brand/20 bg-white px-7 py-3.5 text-base font-semibold text-brand transition hover:border-brand/40"
+          >
+            {hero.secondaryCtaLabel}
+          </a>
+        )}
+      </div>
+
+      {trustMarks.length > 0 && (
+        <ul class="mt-10 flex flex-wrap gap-x-6 gap-y-2">
+          {trustMarks.map((mark: string) => (
+            <li class="flex items-center gap-2 text-sm text-gray-600">
+              <svg class="h-4 w-4 shrink-0 text-highlight" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              {mark}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</section>

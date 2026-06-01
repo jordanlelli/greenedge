@@ -1,0 +1,38 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Footer from "../components/Footer.astro";
+import ServicesSection from "../components/sections/ServicesSection.astro";
+import TiersSection from "../components/sections/TiersSection.astro";
+import UsageSection from "../components/sections/UsageSection.astro";
+import WhyUsSection from "../components/sections/WhyUsSection.astro";
+import StorySection from "../components/sections/StorySection.astro";
+import TestimonialsSection from "../components/sections/TestimonialsSection.astro";
+import FaqsSection from "../components/sections/FaqsSection.astro";
+import ContactSection from "../components/sections/ContactSection.astro";
+import { site } from "../config";
+
+const sections = site.sections || [];
+
+const sectionComponents: Record<string, any> = {
+  services: ServicesSection,
+  tiers: TiersSection,
+  usage: UsageSection,
+  whyUs: WhyUsSection,
+  story: StorySection,
+  testimonials: TestimonialsSection,
+  faqs: FaqsSection,
+  contact: ContactSection,
+};
+---
+
+<Layout pageType="home">
+  <Header />
+  {sections.includes("hero") && <Hero />}
+  {sections.map((key: string) => {
+    const Component = sectionComponents[key];
+    return Component ? <Component /> : null;
+  })}
+  <Footer />
+</Layout>

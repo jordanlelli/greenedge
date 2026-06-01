@@ -1,0 +1,17 @@
+---
+/* Shows a visible banner in the browser when client-intake.json has unfilled fields.
+   Only shows in dev mode - never appears on the live site. */
+import { missingFields } from "../config";
+
+const isDev = import.meta.env.DEV;
+const hasMissing = missingFields.length > 0;
+---
+
+{isDev && hasMissing && (
+  <div class="fixed bottom-0 left-0 right-0 z-[9999] bg-yellow-400 px-4 py-3 text-sm text-black shadow-2xl">
+    <strong>⚠️ Missing in client-intake.json:</strong>
+    <ul class="mt-1 ml-4 list-disc">
+      {missingFields.map((field) => <li>{field}</li>)}
+    </ul>
+  </div>
+)}

@@ -1,0 +1,40 @@
+---
+import { site } from "../config";
+
+const analytics = site.analytics || { provider: "none" };
+const provider = analytics.provider;
+---
+
+{provider === "plausible" && analytics.plausibleDomain && (
+  <script
+    defer
+    is:inline
+    data-domain={analytics.plausibleDomain}
+    src="https://plausible.io/js/script.js"
+  />
+)}
+
+{provider === "ga4" && analytics.ga4MeasurementId && (
+  <>
+    <script
+      is:inline
+      async
+      src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga4MeasurementId}`}
+    />
+    <script is:inline define:vars={{ id: analytics.ga4MeasurementId }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', id);
+    </script>
+  </>
+)}
+
+{provider === "umami" && analytics.umamiWebsiteId && analytics.umamiSrc && (
+  <script
+    defer
+    is:inline
+    data-website-id={analytics.umamiWebsiteId}
+    src={analytics.umamiSrc}
+  />
+)}

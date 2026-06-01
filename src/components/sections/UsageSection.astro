@@ -1,0 +1,23 @@
+---
+import Section from "../Section.astro";
+import { site } from "../../config";
+
+const data = site.usage || {};
+const items = data.items || [];
+---
+
+<Section
+  id="usage"
+  eyebrow={data.eyebrow}
+  title={data.heading}
+  subtitle={data.subhead}
+  variant="paper"
+>
+  <div class="flex flex-wrap justify-center gap-2">
+    {items.map((suburb: string) => (
+      <span class="rounded-full border border-brand/15 bg-white px-4 py-2 text-sm font-medium text-brand">
+        {suburb}
+      </span>
+    ))}
+  </div>
+</Section>

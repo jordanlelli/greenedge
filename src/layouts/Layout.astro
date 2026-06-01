@@ -1,0 +1,157 @@
+---
+import { site, fullAddress } from "../config";
+import TodoBanner from "../components/TodoBanner.astro";
+import StickyPhoneBar from "../components/StickyPhoneBar.astro";
+import Analytics from "../components/Analytics.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  pageType?: "home" | "about" | "services" | "contact" | "area" | "other";
+  canonicalUrl?: string;
+}
+
+const {
+  title = site.seo?.title || `${site.business?.name} — ${site.business?.tagline}`,
+  description = site.seo?.description || site.business?.shortDescription || site.business?.tagline,
+  ogImage = site.seo?.ogImage || "/favicon.svg",
+  pageType = "other",
+  canonicalUrl,
+} = Astro.props;
+
+const fontHref =
+  "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap";
+
+const siteUrl = Astro.site?.href || "";
+const canonical = canonicalUrl || (siteUrl ? `${siteUrl.replace(/\/$/, "")}${Astro.url.pathname}` : "");
+
+const localBusinessSchema: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: site.business?.name,
+  description: site.business?.shortDescription || site.business?.tagline,
+  telephone: site.contact?.phone,
+  email: site.contact?.email,
+  url: siteUrl,
+  foundingDate: site.business?.established,
+};
+
+if (fullAddress()) {
+  localBusinessSchema.address = {
+    "@type": "PostalAddress",
+    addressLocality: "Adelaide",
+    addressRegion: "SA",
+    addressCountry: "AU",
+    streetAddress: fullAddress(),
+  };
+}
+
+const serviceAreas = site.usage?.items || [];
+if (serviceAreas.length) {
+  localBusinessSchema.areaServed = serviceAreas.map((area: string) => ({
+    "@type": "Place",
+    name: area,
+  }));
+}
+
+if (site.testimonials?.length > 0 && site.testimonials[0]?.quote) {
+  localBusinessSchema.aggregateRating = {
+    "@type": "AggregateRating",
+    ratingValue: "5",
+    reviewCount: site.testimonials.length,
+  };
+  localBusinessSchema.review = site.testimonials.map((t: { name: string; quote: string; location?: string }) => ({
+    "@type": "Review",
+    author: { "@type": "Person", name: t.name },
+    reviewRating: { "@type": "Rating", ratingValue: 5 },
+    reviewBody: t.quote,
+  }));
+}
+
+let faqSchema: Record<string, unknown> | null = null;
+const faqItems = site.faqs?.items || [];
+if (faqItems.length > 0) {
+  faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item: { question: string; answer: string }) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+const serviceItems = site.services?.items || [];
+const servicesSchema =
+  serviceItems.length > 0
+    ? serviceItems.map((service: { title: string; description?: string }) => ({
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: service.title,
+        description: service.description,
+        provider: { "@type": "LocalBusiness", name: site.business?.name },
+        areaServed: serviceAreas,
+      }))
+    : null;
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {site.seo?.keywords?.length > 0 && (
+      <meta name="keywords" content={site.seo.keywords.join(", ")} />
+    )}
+    <meta name="robots" content="index, follow" />
+    {canonical && <link rel="canonical" href={canonical} />}
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_AU" />
+    {canonical && <meta property="og:url" content={canonical} />}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href={fontHref} rel="stylesheet" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
+    {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+    {servicesSchema?.map((s) => (
+      <script type="application/ld+json" set:html={JSON.stringify(s)} />
+    ))}
+
+    <Analytics />
+
+    <style is:global>
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 5rem;
+      }
+    </style>
+  </head>
+
+  <body id="top" class="bg-paper font-body text-gray-800 antialiased">
+    <slot />
+    <StickyPhoneBar />
+    <TodoBanner />
+  </body>
+</html>

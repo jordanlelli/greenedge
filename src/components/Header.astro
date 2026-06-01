@@ -1,0 +1,94 @@
+---
+import { site, formatPhone, headerNavLinks, resolveLinkHref } from "../config";
+
+const navLinks = headerNavLinks();
+
+const businessName = site.business?.name || "";
+const logoText = site.business?.logoText || businessName;
+const favicon = "/favicon.svg";
+---
+
+<header class="sticky top-0 z-40 border-b border-brand/10 bg-paper/95 backdrop-blur-sm">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
+    <a href="#top" class="flex shrink-0 items-center gap-2 min-w-0" aria-label={businessName}>
+      <img
+        src={favicon}
+        alt=""
+        width="40"
+        height="40"
+        class="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9 lg:h-10 lg:w-10"
+        aria-hidden="true"
+      />
+      <span class="truncate font-heading text-lg font-bold text-brand sm:text-xl">
+        {logoText}
+      </span>
+    </a>
+
+    <div class="hidden items-center gap-5 lg:flex">
+      {navLinks.map((link) => (
+        <a href={link.href} class="text-sm font-medium text-gray-600 transition hover:text-brand">
+          {link.label}
+        </a>
+      ))}
+    </div>
+
+    <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+      {site.contact?.phone && (
+        <a
+          href={`tel:${formatPhone(site.contact.phone)}`}
+          class="hidden font-semibold text-brand transition hover:text-brand-dark sm:inline"
+        >
+          {site.contact.phone}
+        </a>
+      )}
+      {site.contact?.headerCtaLabel && (
+        <a
+          href={resolveLinkHref(site.contact.headerCtaHref || "#contact")}
+          class="hidden rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark sm:inline-flex"
+        >
+          {site.contact.headerCtaLabel}
+        </a>
+      )}
+      <button
+        id="menu-toggle"
+        class="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-brand/5 lg:hidden"
+        aria-label="Open menu"
+        aria-expanded="false"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="hidden border-t border-brand/10 bg-paper px-4 pb-4 lg:hidden">
+    <div class="flex flex-col gap-1 pt-2">
+      {navLinks.map((link) => (
+        <a href={link.href} class="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-brand/5">
+          {link.label}
+        </a>
+      ))}
+      {site.contact?.phone && (
+        <a
+          href={`tel:${formatPhone(site.contact.phone)}`}
+          class="mt-2 rounded-lg bg-brand px-3 py-3 text-center text-sm font-semibold text-white"
+        >
+          Call {site.contact.phone}
+        </a>
+      )}
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggle = document.getElementById("menu-toggle");
+  const menu = document.getElementById("mobile-menu");
+  toggle?.addEventListener("click", () => {
+    const isHidden = menu?.classList.toggle("hidden");
+    toggle.setAttribute("aria-expanded", isHidden ? "false" : "true");
+  });
+  menu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => menu?.classList.add("hidden"));
+  });
+</script>

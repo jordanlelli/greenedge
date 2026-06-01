@@ -1,0 +1,355 @@
+{
+  "_brief": {
+    "clientName": "GreenEdge",
+    "completedBy": "Jordan Lelli",
+    "completedAt": "2026-05-30",
+    "notesForCursor": "Treat _brief as the creative direction. Render everything else as content. Client has no website, no logo, no photos — design must work entirely from typography, colour, and SVG flourishes. Do not use stock photography under any circumstances.",
+
+    "designDirection": {
+      "vibe": "Local Adelaide gardening + landscaping business. Clean, premium-but-down-to-earth, trustworthy. Think 'professional gardener with great taste' — not budget franchise, not designer agency. Should feel like a real small business run by people who care about their work.",
+      "voice": "Direct, honest, no-nonsense. Local Adelaide. Not over-polished. Should sound like a person, not a marketing department. Confident about quality without bragging.",
+      "audience": "Adelaide homeowners (mostly inner/eastern suburbs), 30-65, who value their garden and have the budget for ongoing maintenance or a one-off landscaping project. Both 'we just want our lawn done properly' clients and 'we want to redesign the whole back garden' clients.",
+
+      "typography": {
+        "displayPreference": "Bold modern serif display — Fraunces variable, DM Serif Display, or similar. Should feel premium-warm, not corporate. A touch of character in the letterforms.",
+        "bodyPreference": "Clean geometric sans (Inter, Outfit, or similar). Highly readable.",
+        "notes": "Pair a confident serif display with a clean sans body. Avoid all-caps headlines (that's Chelli's thing). Sentence case headlines feel more human and trustworthy for a service business."
+      },
+
+      "palette": {
+        "mood": "Earthy and grounded — deep forest green + warm terracotta on a light, natural background",
+        "primary": "Deep forest green around #1F3D2B (used for primary CTAs, brand mark, headlines)",
+        "secondary": "Warm terracotta / clay around #C2410C (used for accent highlights, eyebrows, sticker badges)",
+        "highlight": "Lime green around #65A30D for checkmarks and trust marks",
+        "background": "Warm off-white / paper around #FAFAF7 — NOT pure white. Should feel natural, like recycled card.",
+        "card": "Pure white #FFFFFF or very light cream",
+        "feelingWords": ["fresh", "natural", "considered", "tidy", "outdoors", "growing"]
+      },
+
+      "heroPreference": {
+        "style": "typographic with botanical motif",
+        "description": "No photography. Headline is the visual anchor — large, confident serif display. Add a subtle SVG botanical decoration: a curved hedge silhouette running along the bottom of the hero, a low-opacity leaf cluster in a corner, or organic curved shapes suggesting a garden bed. Strong negative space. Trust marks visible below the CTAs. Optional small graphic element on the right (e.g. a geometric 'GE' monogram mark inside a circle, or a stylised leaf icon) — keep it understated."
+      },
+
+      "references": {
+        "loved": [
+          { "url": "", "what": "Premium tradie sites that feel like a real person built them — bold type, plenty of white space, confident colour use, real photography when they have any. No agency-stamp gradient backgrounds or generic stock shots." }
+        ],
+        "competitors": [
+          { "name": "Jim's Mowing", "url": "https://www.jimsmowing.com.au", "notes": "What we DON'T want to be — corporate, franchise, generic. We're the anti-Jim's: small, local, considered." },
+          { "name": "Most Adelaide landscapers", "url": "", "notes": "Most local competitors have terrible early-2010s websites. The bar is low — anything modern, typography-driven, and clean will outclass them immediately." }
+        ],
+        "avoid": "Stock photography of immaculate suburban lawns. Generic green/blue gradients. Italicised script fonts ('Garden Bliss' vibes). All-caps everything. Sterile corporate aesthetic. Anything that looks like a franchise template."
+      },
+
+      "specialFeatures": [
+        "Maintenance frequency tiers (Weekly / Fortnightly / Monthly) with intensity indicator bars — same pattern as Chelli's Pick Your Heat, repurposed",
+        "Where We Work suburb chips section — local SEO + 'do you cover my area' answer in one",
+        "Highlight cards inside Our Story (Owner-Operated / Five Years Strong / Credentials badges)",
+        "Trust marks in the hero (Fully Insured, Licensed in SA, Police Checked, Free Quotes)",
+        "Phone number prominent in header (click-to-call) — tradies convert on phone calls, not forms",
+        "Contact form with enquiry-type dropdown for project sizing",
+        "Subtle botanical SVG flourishes throughout — curved hedge silhouettes at section dividers, low-opacity leaf marks. Make it feel like a garden without being literal."
+      ]
+    }
+  },
+
+  "_meta": {
+    "domain": "greenedge.com.au",
+    "deployTarget": "vercel",
+    "notes": "Client has no logo, no photos, no existing site. Everything is greenfield."
+  },
+
+  "theme": "light",
+  "sections": ["hero", "tiers", "whyUs", "story", "testimonials", "contact"],
+
+  "business": {
+    "name": "GreenEdge",
+    "tagline": "Adelaide gardening & landscaping, done sharp.",
+    "shortDescription": "Local, owner-operated gardening and landscaping across Adelaide.",
+    "trade": "Gardening & Landscaping",
+    "abn": "",
+    "licence": "SA Landscaping Licence (TODO: add real licence number)",
+    "established": "2020",
+    "logoText": "GreenEdge",
+    "logoMarkText": "GE",
+    "logo": ""
+  },
+
+  "contact": {
+    "phone": "0402 292 888",
+    "email": "hello@greenedge.com.au",
+    "address": "Adelaide SA 5000",
+    "hours": "Mon–Fri 7am–5pm",
+    "instagram": "",
+    "facebook": "",
+    "tiktok": "",
+    "headerCtaLabel": "Get a Quote",
+    "headerCtaHref": "#contact",
+    "enquiryTypes": [
+      "Free quote",
+      "Ongoing maintenance",
+      "Garden design or makeover",
+      "Landscaping project",
+      "Commercial / strata",
+      "General enquiry"
+    ]
+  },
+
+  "style": {
+    "brand": "#1F3D2B",
+    "brandDark": "#0F2417",
+    "accent": "#C2410C",
+    "highlight": "#65A30D"
+  },
+
+  "hero": {
+    "eyebrow": "Adelaide gardening & landscaping",
+    "heading": "Gardens that look sharp, year-round.",
+    "subhead": "Without you having to think about it.",
+    "body": "Local, owner-operated. Weekly maintenance, garden makeovers, and full landscape builds across Adelaide and surrounding suburbs.",
+    "primaryCtaLabel": "Get a free quote",
+    "primaryCtaHref": "#contact",
+    "secondaryCtaLabel": "See what we do",
+    "secondaryCtaHref": "/services",
+    "trustMarks": ["Fully insured", "Licensed in SA", "Police checked", "Free quotes"],
+    "graphic": {
+      "type": "typographic",
+      "description": "Headline as the visual anchor. Subtle SVG botanical motif — a curved hedge silhouette along the bottom of the hero in brand green at low opacity, or a leaf cluster mark in the corner. Optional 'GE' monogram in a circular mark on the right side. No stock photos."
+    }
+  },
+
+  "services": {
+    "eyebrow": "What we do",
+    "heading": "Services",
+    "subhead": "Whether it's a weekly mow or a full back-garden rebuild, we handle the lot.",
+    "pageEyebrow": "Services",
+    "pageHeading": "Everything we do",
+    "items": [
+      {
+        "title": "Lawn Care & Mowing",
+        "description": "Regular mowing, edging, and lawn health. Weekly, fortnightly, or one-off.",
+        "longDescription": "A sharp lawn sets the tone for the whole property — and in Adelaide's growing season, that means staying on top of it before it gets away from you. We mow at the right height for your grass type, edge paths and garden beds cleanly, and keep an eye on the basics: thatch build-up, bare patches, and the first signs of pests or heat stress.\n\nMost clients book weekly or fortnightly through spring and summer, then drop back to monthly over winter when growth slows. One-off cuts before a sale, a party, or after you've been away are no problem either.\n\nWe bring our own gear, catch or mulch as you prefer, and always blow down hard surfaces before we leave. No clippings on the driveway.",
+        "image": "/images/services/lawn-care.jpg",
+        "imageAlt": "Person mowing a suburban lawn on a sunny day",
+        "includes": [
+          "Mowing at the correct height for your lawn type",
+          "Edging along paths, driveways, and garden beds",
+          "Catcher emptied, clippings removed or mulched on request",
+          "Blow-down of paths, driveways, and patio areas",
+          "Basic health checks — thatch, bare patches, pest signs",
+          "Fertilising and aeration available on request"
+        ]
+      },
+      {
+        "title": "Hedging & Pruning",
+        "description": "Sharp lines on hedges, ornamentals, fruit trees, and feature shrubs.",
+        "longDescription": "Clean hedge lines and well-shaped shrubs make a garden look cared for — even when everything else is doing its own thing. We work on formal hedges, screening plants, ornamentals, roses, fruit trees, and the feature shrubs that frame your front path or back entertaining area.\n\nPruning is timed to the plant, not the calendar. Some things want a hard reset after flowering; others need a light tidy to keep shape without stripping next season's growth. We talk it through on the first visit so you're not guessing.\n\nAll green waste goes in the trailer. We rake up, blow down, and leave the beds tidy — not a carpet of clippings around your feet.",
+        "image": "/images/services/hedging.jpg",
+        "imageAlt": "Neatly trimmed green hedge along a garden boundary",
+        "includes": [
+          "Formal and informal hedge trimming",
+          "Ornamental shrub shaping and deadheading",
+          "Rose pruning and seasonal fruit-tree work",
+          "Height reduction and screening hedge maintenance",
+          "Green waste removed from site",
+          "Bed tidy and blow-down after every visit"
+        ]
+      },
+      {
+        "title": "Garden Maintenance",
+        "description": "Weeding, mulching, fertilising, and seasonal clean-ups. Keeps things sharp year-round.",
+        "longDescription": "Maintenance is the unglamorous work that keeps a garden looking good between the big jobs — weeding, mulching, feeding, and the seasonal reset when Adelaide swings from dry heat to winter rain. We focus on the beds, paths, and planted areas that date fastest when nobody's paying attention.\n\nWe match the rhythm to your garden: natives and low-water plantings need less hand-holding than thirsty exotics or vegetable beds. Mulch gets refreshed before summer, weeds get pulled before they seed, and fertiliser goes down when plants can actually use it.\n\nIt's the same crew on a regular schedule, so we learn what your garden needs and what you care about most. Less explaining, more doing.",
+        "image": "/images/services/garden-maintenance.jpg",
+        "imageAlt": "Well-maintained garden bed with lush green planting",
+        "includes": [
+          "Hand weeding and spot treatment in garden beds",
+          "Mulch top-up and bed edging",
+          "Seasonal fertilising for lawns and planted areas",
+          "Deadheading, light pruning, and plant health checks",
+          "Leaf litter and debris clearance",
+          "Pre-sale and end-of-season garden clean-ups"
+        ]
+      },
+      {
+        "title": "Garden Design & Makeovers",
+        "description": "Refresh tired beds or start from scratch. Practical, low-maintenance designs that suit your block.",
+        "longDescription": "Sometimes a garden just needs a rethink — beds that never worked, plants fighting the Adelaide climate, or a layout that made sense twenty years ago and doesn't anymore. We start with how you actually use the space: kids, dogs, entertaining, low maintenance, or a bit of everything.\n\nDesigns are practical first. We favour plants that survive Adelaide summers without constant babysitting, layouts that drain properly, and materials that won't look tired in two seasons. You'll get a clear plan and quote before anything gets dug up.\n\nMakeovers can be phased if that suits your budget — front yard now, back garden next season. We handle the strip-out, soil prep, planting, and mulching so you're not living in a building site longer than necessary.",
+        "image": "/images/services/garden-design.jpg",
+        "imageAlt": "Landscaped residential garden with curved paths and planting beds",
+        "includes": [
+          "On-site consult and concept discussion",
+          "Plant selection suited to Adelaide conditions and your maintenance level",
+          "Bed layout, soil improvement, and drainage considerations",
+          "Removal of tired or overgrown planting where needed",
+          "Supply and install of new plants, mulch, and edging",
+          "Phased makeovers available — quote per stage"
+        ]
+      },
+      {
+        "title": "Landscaping",
+        "description": "Paving, retaining walls, garden beds, turf, decking. Built to last.",
+        "longDescription": "Landscaping is where structure meets planting — paving that drains properly, retaining walls that won't lean in five years, new turf that actually takes, and garden beds built on decent soil rather than scraped fill. We build for Adelaide conditions: hot summers, clay pockets, and the odd downpour that exposes bad drainage.\n\nProjects range from a new path and garden bed out the back to full outdoor entertaining areas with steps, retaining, and integrated planting. We quote properly, stage payments for larger jobs, and keep the site as tidy as we reasonably can while work is underway.\n\nLicensed for landscaping work in SA. Certificates available if your builder, body corporate, or council needs them.",
+        "image": "/images/services/landscaping.jpg",
+        "imageAlt": "Modern home with paved outdoor area and landscaped garden",
+        "includes": [
+          "Paving, paths, and step construction",
+          "Retaining walls and level changes",
+          "New garden beds, soil prep, and planting",
+          "Turf supply and installation",
+          "Decking and timber feature work",
+          "Drainage integration and site clean-up on completion"
+        ]
+      },
+      {
+        "title": "Irrigation & Drainage",
+        "description": "New systems, repairs, smart controllers. Save water, keep things green.",
+        "longDescription": "Good irrigation saves water and stops you hand-watering every hot week in January. We install new systems, repair what's already there, and upgrade old timers to smart controllers that adjust for weather and season. Zones get matched to plant type so your lawn isn't drowning while the natives bake.\n\nDrainage matters just as much in Adelaide — water pooling against the house, soggy lawn patches, or runoff cutting channels through your beds. We diagnose the cause, not just the symptom, and fix it so you're not back in the same spot after the next big rain.\n\nSystems are tested before we leave. You'll know how to run it, and we're a phone call away if something's not right.",
+        "image": "/images/services/irrigation.jpg",
+        "imageAlt": "Garden sprinkler system watering a lawn",
+        "includes": [
+          "New irrigation design and installation",
+          "Repairs to existing sprinklers, drippers, and lines",
+          "Smart controller setup and seasonal programming",
+          "Zone mapping for lawns, beds, and native areas",
+          "Drainage assessment and surface or sub-surface solutions",
+          "System testing, handover, and post-install support"
+        ]
+      }
+    ]
+  },
+
+  "tiers": {
+    "eyebrow": "Maintenance plans",
+    "heading": "How often should we visit?",
+    "subhead": "Pick the rhythm that suits your garden and budget. All plans include mowing, edging, hedging, weeding, blow-down, and green-waste removal.",
+    "items": [
+      { "title": "Weekly",      "intensity": 3, "of": 3, "emoji": "🌿🌿🌿", "description": "For sharp lawns and high-traffic gardens. Best during the growing season (Sep–Apr) or for premium-presented homes." },
+      { "title": "Fortnightly", "intensity": 2, "of": 3, "emoji": "🌿🌿",   "description": "The sweet spot for most homes. Keeps things tidy without overservicing." },
+      { "title": "Monthly",     "intensity": 1, "of": 3, "emoji": "🌿",     "description": "Light-touch upkeep for low-maintenance gardens, established natives, or properties used as rentals." }
+    ]
+  },
+
+  "usage": {
+    "eyebrow": "Where we work",
+    "heading": "Adelaide & surrounding suburbs",
+    "subhead": "We cover most of metro Adelaide — east, inner, north, south, and coastal. If you're not sure, give us a call.",
+    "items": [
+      "Adelaide CBD", "North Adelaide", "Walkerville", "Prospect", "Norwood", "Stepney", "Kensington",
+      "Burnside", "Glenside", "Toorak Gardens", "Unley", "Hyde Park", "Parkside", "Fullarton",
+      "Mitcham", "Hawthorn", "Glenelg", "Brighton", "Henley Beach", "West Lakes"
+    ]
+  },
+
+  "whyUs": [
+    { "title": "Local & owner-operated", "description": "One team that knows your garden. No subbies, no surprises." },
+    { "title": "Fully insured & licensed", "description": "Public liability covered. Landscaping work licensed in SA. Certificates on request." },
+    { "title": "Tidy as we go", "description": "Drop sheets, green waste removed, no mess left behind. We treat your place like ours." },
+    { "title": "On time, every time", "description": "We turn up when we say we will. If we can't, we call first." }
+  ],
+
+  "story": {
+    "eyebrow": "Our story",
+    "heading": "Built by someone who actually likes gardens.",
+    "body": "GreenEdge is an Adelaide gardening and landscaping business built on a simple idea — your garden should look sharp, year-round, without you having to think about it.\n\nWe started because we got tired of how most garden services run: vans full of subcontractors, jobs squeezed into impossible schedules, lawns half-mowed and hedges half-trimmed. We do it differently — small team, full attention, real care for the gardens we look after.\n\nWhether you need weekly mowing, a full landscape redesign, or just someone reliable to keep your hedges in line, we'd love to help.",
+    "cards": [
+      { "title": "Owner-operated", "emoji": "🌿", "description": "Same crew every visit. We know your garden as well as you do." },
+      { "title": "Five years strong", "emoji": "🏡", "description": "Hundreds of Adelaide gardens looked after, and counting." },
+      { "title": "Credentials", "type": "badges", "badges": ["Fully Insured", "Licensed Landscaper", "Police Checked", "Free Quotes"] }
+    ]
+  },
+
+  "testimonials": [
+    { "name": "Sarah K.",  "location": "Glenelg",  "quote": "Reliable, tidy, and reasonably priced. They turn up when they say they will and our garden has never looked better." },
+    { "name": "Mark D.",   "location": "Burnside", "quote": "Redesigned our back garden and now it's the best room in the house. Practical advice and a clean finish." },
+    { "name": "Janet P.",  "location": "Norwood",  "quote": "Two years using GreenEdge, never had to chase them. Just consistent good work." }
+  ],
+
+  "faqs": {
+    "eyebrow": "FAQ",
+    "heading": "Common questions",
+    "items": [
+      { "question": "Do you provide free quotes?", "answer": "Yes. We come out, walk the garden with you, and send a written quote within 48 hours. No obligation." },
+      { "question": "What suburbs do you service?", "answer": "Adelaide CBD and most metro suburbs out to roughly 25km from the city. If you're not sure whether we cover your area, just call — we usually can." },
+      { "question": "Do you do one-off jobs or only regular maintenance?", "answer": "Both. One-off clean-ups, pre-sale tidy-ups, hedge resets, and full landscaping projects are all welcome alongside our ongoing maintenance plans." },
+      { "question": "Are you insured and licensed?", "answer": "Yes. Full public liability insurance and an SA landscaping licence. Certificates available on request." },
+      { "question": "What's included in a regular maintenance visit?", "answer": "Mowing, edging, hedging, weeding, blow-down, and green-waste removal. Specifics depend on your plan — we'll talk through what your garden needs during the quote." },
+      { "question": "Do you bring your own equipment?", "answer": "Yes. Mowers, edgers, blowers, hand tools — all our own, well-maintained, and ready to go." },
+      { "question": "What happens if it rains on my scheduled day?", "answer": "We reschedule within the week. No charge for weather-related changes." },
+      { "question": "Do I need to be home?", "answer": "Not unless you want to be. Most clients leave a side gate open or give us a code. We'll send a photo when we're done." },
+      { "question": "Do you remove the green waste?", "answer": "Yes. It all goes in the trailer and gets composted properly." },
+      { "question": "How does payment work?", "answer": "Invoice after the job, payable by bank transfer or card. No deposits required for maintenance work. Landscaping projects work on staged payments — we'll outline this in the quote." }
+    ]
+  },
+
+  "contactSection": {
+    "eyebrow": "Contact",
+    "heading": "Tell us about your garden",
+    "subhead": "Free quote, no obligation. Let us know what you need and we'll get back within a day.",
+    "form": {
+      "enabled": true,
+      "submitLabel": "Get my quote",
+      "fields": ["name", "email", "phone", "suburb", "enquiryType", "message"]
+    }
+  },
+
+  "footer": {
+    "tagline": "Local Adelaide gardening and landscaping. Owner-operated, fully insured.",
+    "columns": [
+      {
+        "heading": "Explore",
+        "links": [
+          { "label": "Services", "href": "/services" },
+          { "label": "Maintenance Plans", "href": "#tiers" },
+          { "label": "Where We Work", "href": "#usage" },
+          { "label": "Our Story", "href": "#story" },
+          { "label": "Reviews", "href": "#testimonials" }
+        ]
+      },
+      {
+        "heading": "Services",
+        "links": [
+          { "label": "Lawn Care & Mowing", "href": "/services" },
+          { "label": "Hedging & Pruning", "href": "/services" },
+          { "label": "Garden Design", "href": "/services" },
+          { "label": "Landscaping", "href": "/services" },
+          { "label": "Irrigation", "href": "/services" }
+        ]
+      },
+      {
+        "heading": "Contact",
+        "links": [
+          { "label": "0400 000 000", "href": "tel:0400000000" },
+          { "label": "hello@greenedge.com.au", "href": "mailto:hello@greenedge.com.au" },
+          { "label": "FAQ", "href": "/faq" },
+          { "label": "Get a Quote", "href": "#contact" }
+        ]
+      }
+    ],
+    "copyrightSuffix": ""
+  },
+
+  "serviceAreas": [],
+  "products": { "items": [] },
+  "ingredients": null,
+  "stockists": { "items": [] },
+
+  "features": {
+    "showServiceAreas": false,
+    "googleMapsEmbed": false,
+    "mapEmbedUrl": "",
+    "bookingPlatformUrl": ""
+  },
+
+  "seo": {
+    "title": "GreenEdge | Adelaide Gardening & Landscaping",
+    "description": "Local Adelaide gardening and landscaping. Mowing, hedging, garden design, landscaping. Reliable, insured, owner-operated. Free quotes across Adelaide metro suburbs.",
+    "keywords": [
+      "gardening Adelaide", "landscaping Adelaide", "lawn mowing Adelaide",
+      "garden maintenance Adelaide", "garden design Adelaide", "hedging Adelaide",
+      "irrigation Adelaide", "landscaper Adelaide", "Adelaide gardener",
+      "gardening Glenelg", "gardening Burnside", "gardening Norwood", "gardening Unley"
+    ],
+    "ogImage": "/images/og.jpg"
+  }
+}
