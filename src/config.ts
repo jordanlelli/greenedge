@@ -74,7 +74,7 @@ export const sectionNav: Record<string, { id: string; label: string; path?: stri
   tiers: { id: "tiers", label: "Maintenance" },
   usage: { id: "usage", label: "Areas" },
   whyUs: { id: "why-us", label: "Why us" },
-  story: { id: "story", label: "Our story" },
+  story: { id: "story", label: "About" },
   testimonials: { id: "testimonials", label: "Reviews" },
   faqs: { id: "faqs", label: "FAQ", path: "/faq" },
   contact: { id: "contact", label: "Contact" },
@@ -90,6 +90,8 @@ export const navHref = (key: string): string => {
 };
 
 export const resolveLinkHref = (href: string): string => {
+  const sections = site.sections || [];
+  if (href === "#faqs" && !sections.includes("faqs")) return "/faq";
   if (href.startsWith("#")) return `/${href}`;
   return href;
 };

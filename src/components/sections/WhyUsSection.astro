@@ -3,9 +3,10 @@ import Section from "../Section.astro";
 import { site } from "../../config";
 
 const items = site.whyUs || [];
+const logoText = site.business?.logoText || site.business?.name || "us";
 ---
 
-<Section id="why-us" eyebrow="Why GreenEdge" title="Why choose us" variant="tinted">
+<Section id="why-us" eyebrow={`Why ${logoText}`} title="Why choose us" variant="tinted">
   <div class="grid gap-6 sm:grid-cols-2">
     {items.map((item: any) => (
       <div class="rounded-2xl border border-brand/10 bg-white p-6">

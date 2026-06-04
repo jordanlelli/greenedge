@@ -1,20 +1,13 @@
 ---
-import { site, formatPhone } from "../config";
+import { site } from "../config";
 import BotanicalDivider from "./BotanicalDivider.astro";
 
 const hero = site.hero || {};
 const trustMarks = hero.trustMarks || [];
-const markText = site.business?.logoMarkText || "GE";
 ---
 
 <section class="relative overflow-hidden bg-brand text-white">
   <BotanicalDivider tone="inverse" class="absolute bottom-0 left-0 right-0" />
-
-  <div class="pointer-events-none absolute right-8 top-16 hidden lg:block xl:right-16">
-    <div class="flex h-36 w-36 items-center justify-center rounded-full border-2 border-white/25 bg-white/10 shadow-sm backdrop-blur-sm">
-      <span class="font-heading text-4xl font-semibold text-white">{markText}</span>
-    </div>
-  </div>
 
   <div class="pointer-events-none absolute left-6 top-24 hidden sm:block">
     <BotanicalDivider variant="leaf" tone="inverse" />

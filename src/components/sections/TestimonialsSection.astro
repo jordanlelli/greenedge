@@ -1,8 +1,12 @@
 ---
 import Section from "../Section.astro";
-import { site } from "../../config";
+import { site, hasContent } from "../../config";
 
-const items = site.testimonials || [];
+const items = (site.testimonials || []).filter(
+  (review: { quote?: string }) => review?.quote?.trim()
+);
+
+if (!hasContent(items)) return;
 ---
 
 <Section id="testimonials" eyebrow="Reviews" title="What clients say" variant="tinted">

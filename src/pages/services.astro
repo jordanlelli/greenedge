@@ -6,10 +6,13 @@ import { site } from "../config";
 
 const services = site.services || {};
 const items = services.items || [];
-const businessName = site.business?.name || "GreenEdge";
+const businessName = site.business?.name || "GreenEdge Property Care";
 
 const title = `Services | ${businessName}`;
-const description = `${businessName} offers lawn care, hedging, garden maintenance, design, landscaping, and irrigation across Adelaide metro suburbs. Owner-operated, fully insured, free quotes.`;
+const description =
+  site.business?.shortDescription ||
+  site.seo?.description ||
+  `${businessName} — gardening, pressure washing, and gutter cleaning across Adelaide.`;
 
 const pageEyebrow = services.pageEyebrow || "Services";
 const pageHeading = services.pageHeading || "Everything we do";

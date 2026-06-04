@@ -38,13 +38,26 @@ const localBusinessSchema: Record<string, unknown> = {
 };
 
 if (fullAddress()) {
-  localBusinessSchema.address = {
-    "@type": "PostalAddress",
-    addressLocality: "Adelaide",
-    addressRegion: "SA",
-    addressCountry: "AU",
-    streetAddress: fullAddress(),
-  };
+  const addr = fullAddress();
+  const parsed = addr.match(/^(.+?)\s+(SA)\s+(\d{4})$/i);
+  localBusinessSchema.address = parsed
+    ? {
+        "@type": "PostalAddress",
+        addressLocality: parsed[1].trim(),
+        addressRegion: parsed[2],
+        postalCode: parsed[3],
+        addressCountry: "AU",
+      }
+    : {
+        "@type": "PostalAddress",
+        streetAddress: addr,
+        addressRegion: "SA",
+        addressCountry: "AU",
+      };
+}
+
+if (site.business?.abn) {
+  localBusinessSchema.taxID = site.business.abn;
 }
 
 const serviceAreas = site.usage?.items || [];

@@ -53,6 +53,7 @@ export const GET: APIRoute = () => {
   if (site.contact?.phone) lines.push(`- Phone: ${site.contact.phone}`);
   if (site.contact?.email) lines.push(`- Email: ${site.contact.email}`);
   if (fullAddress()) lines.push(`- Address: ${fullAddress()}`);
+  if (site.business?.abn) lines.push(`- ABN: ${site.business.abn}`);
 
   return new Response(lines.join("\n"), {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
