@@ -1,0 +1,96 @@
+---
+/**
+ * Areas — service-area coverage as its own homepage section.
+ *
+ * It previously lived inside Story.astro as the right-hand column of the merged
+ * about block, which meant turning story off silently removed the suburb
+ * coverage from the homepage. That coverage is a live local SEO signal on every
+ * one of these sites and the single most-read block after the services list, so
+ * it must not die with a section it has nothing to do with.
+ *
+ * Reads `usage`. Add "areas" to sections to place it. The full suburb list on
+ * /areas still comes from Usage.astro — this is the homepage summary.
+ *
+ * Never invents a radius, a travel fee or a suburb. areasLine is composed only
+ * from suburbs the client supplied; travelLine renders only if they wrote one.
+ */
+import { site } from "../config";
+import Section from "./Section.astro";
+import SectionHead from "./SectionHead.astro";
+
+const usage = site.usage || {};
+const allItems: string[] = usage.items || [];
+const featured: string[] =
+  (Array.isArray(usage.featured) && usage.featured.length > 0
+    ? usage.featured
+    : allItems.slice(0, 8)) as string[];
+
+const homeBase = featured[0] || "";
+const nearbyAreas = featured.filter((area) => area !== homeBase);
+const areasLine =
+  usage.areasLine ||
+  (homeBase && nearbyAreas.length > 0
+    ? `Based in ${homeBase}. Regular runs across ${nearbyAreas.join(", ").replace(/, ([^,]*)$/, ", and $1")}, and nearby suburbs.`
+    : homeBase
+      ? `Based in ${homeBase}, covering the surrounding area by arrangement.`
+      : "");
+
+const travelLine = usage.travelLine || "";
+const notCoveredLine = usage.notCoveredLine || "";
+const showAreasLink = allItems.length > featured.length;
+const hasContent = allItems.length > 0 || Boolean(areasLine);
+---
+
+{hasContent && (
+  <Section id="areas" bg="bg" pad="tight">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14 lg:items-start">
+      <SectionHead
+        eyebrow={usage.eyebrow || ""}
+        heading={usage.heading || "Where we work"}
+        subhead={usage.subhead || ""}
+        headingClass="section-heading section-heading-sub font-heading font-semibold tracking-tight text-brand"
+      />
+
+      <div class="min-w-0">
+        {areasLine && <p class="max-w-[70ch] text-base leading-relaxed text-pretty text-muted">{areasLine}</p>}
+
+        {featured.length > 0 && (
+          <ul class="areas-chips">
+            {featured.map((area) => <li class="areas-chip">{area}</li>)}
+          </ul>
+        )}
+
+        {travelLine && <p class="mt-4 text-sm leading-relaxed text-muted">{travelLine}</p>}
+        {notCoveredLine && <p class="mt-2 text-sm leading-relaxed text-muted">{notCoveredLine}</p>}
+
+        {showAreasLink && (
+          <p class="mt-5">
+            <a
+              href="/areas"
+              class="inline-flex min-h-11 items-center text-sm font-semibold text-brand underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >See all service areas <span class="ml-2" aria-hidden="true">&#8594;</span></a>
+          </p>
+        )}
+      </div>
+    </div>
+  </Section>
+)}
+
+<style>
+  .areas-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .areas-chip {
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-muted);
+  }
+</style>

@@ -1,0 +1,507 @@
+{
+  "_comment": "GreenEdge Property Care \u2014 v3.16 template. PLACEHOLDER PASS: prices, alt text and several copy blocks are ESTIMATES pending Harrison's confirmation. Images are stock and are used as service illustration, not as evidence of GreenEdge's own work. Every _-prefixed key is stripped before render.",
+  "_brief": {
+    "_comment": "DIRECTION only. Axes are LOCKED so verify:lock passes and rebuilds are stable. Blank any layoutVariants value to let the seeded engine pick instead.",
+    "variantSeed": "greenedge-showpiece-v4",
+    "designKit": "coast",
+    "surface": "tint",
+    "bandSection": "areas",
+    "layoutVariants": {
+      "_comment": "v3.16 catalogue only: hero typographic|split-media|fullbleed|docket|index|stat-lede \u2014 services grid-icons|ledger|split-scroll|feature-lead|list-detail \u2014 whyUs ruled-rows|icon-grid|contrast-pair|process-rail \u2014 header standard|minimal|centered. story/testimonials/footer no longer have variants; those keys are gone.",
+      "hero": "fullbleed",
+      "services": "split-scroll",
+      "whyUs": "ruled-rows",
+      "header": "standard"
+    },
+    "designDirection": {
+      "_comment": "Creative guidance only; the engine ignores this block.",
+      "vibe": "Local Adelaide property care. Owner-operated, plain-spoken, no franchise gloss.",
+      "voice": "Direct, unembellished, second person. States what is done and what is not.",
+      "audience": "Eastern-suburbs homeowners and pre-sale vendors booking a one-off or a regular schedule.",
+      "palette": {
+        "mood": "Near-black ink on warm light grey. Deep forest green for chrome and headings, grey panels instead of white cards, a dark ochre reserved strictly for calls to action, and a light lime green only on dark ground.",
+        "primary": "#3B582B",
+        "secondary": "#22331A",
+        "highlight": "#4A6B36",
+        "onDarkAccent": "#8DCF74",
+        "background": "#F0F0EC",
+        "feelingWords": [
+          "grounded",
+          "tidy",
+          "local",
+          "unfussy"
+        ]
+      },
+      "motif": "Topographic contour lines (DESIGN-LIBRARY landscaping signature). Not wired \u2014 the divider axis was removed from the engine in v3.4.",
+      "avoid": "Serif display. Any claim of years in business beyond 2025. Any wording that implies the stock photography shows GreenEdge's own completed jobs."
+    },
+    "notesForCursor": "PLACEHOLDER PASS \u2014 CONFIRM BEFORE ANY LAUNCH:\n(1) PRICES are Claude's estimates from 2026 Adelaide market data (whatsthedamage.com.au, adelaidepressurecleaningpros.com.au, Airtasker), NOT Harrison's rates. Every one must be replaced or approved.\n(2) IMAGES are stock, used as service illustration. Nothing on the page claims they are GreenEdge's work. Replace with real job photos before launch and re-check the alt text, which describes what is in each stock frame.\n(3) Unused stock in public/images/services/: gardening-03.jpg, gardening-05.jpg, gardening-06.jpg, landscaping.jpg. All four show formal ornamental gardens with paving and design work that story.body explicitly disclaims \u2014 do not attach them to a service.\n(4) No testimonials exist. The section stays out of sections[] entirely.\n(5) logo.png and favicon still to be supplied.\n(6) seo.noindex is TRUE while this is a demo. Flip it to false only when Harrison has signed off the copy and the domain is live.",
+    "completedBy": "Claude \u2014 v3.16 placeholder pass",
+    "completedAt": "2026-08-23",
+    "sourceStage": "client-questionnaire",
+    "sectionsLocked": true,
+    "_comment_band": "areas is the single dark band. story is not eligible here \u2014 it sits adjacent to whyUs, which already renders as a permanent dark band, and two dark blocks back to back read as a mistake."
+  },
+  "_meta": {
+    "domain": "greenedgepc.com.au",
+    "deployTarget": "vercel",
+    "notes": "Owner-operated, established 2025. ABN 87 823 119 154. Based Newton SA 5074 (City of Campbelltown). Three services only. Single-storey gutter work only. No landscaping design, paving, tree removal or irrigation."
+  },
+  "theme": "light",
+  "_comment_sections": "HAND-ORDERED and locked. hero/services pin top, faqs/contact pin bottom. whyUs sits third on purpose \u2014 it answers the objections a homeowner raises before they will read a schedule or a suburb list. The seeded shuffle had pushed it to sixth, behind story.",
+  "sections": [
+    "hero",
+    "services",
+    "whyUs",
+    "tiers",
+    "areas",
+    "story",
+    "contact"
+  ],
+  "business": {
+    "name": "GreenEdge Property Care",
+    "tagline": "Lawn mowing, gardening, pressure washing and gutter cleaning in Newton and Adelaide's eastern suburbs.",
+    "shortDescription": "Owner-operated lawn mowing, garden maintenance, pressure washing and gutter cleaning across Newton, Campbelltown, Norwood and Adelaide's eastern suburbs. Free on-site quotes, fixed in writing. No lock-in contracts.",
+    "trade": "Property Care",
+    "abn": "87 823 119 154",
+    "licence": "",
+    "established": "2025",
+    "logoText": "GreenEdge",
+    "logoMarkText": "GE",
+    "logo": "/logo.png"
+  },
+  "contact": {
+    "phone": "0402 154 283",
+    "email": "greenedgepc@gmail.com",
+    "formEndpoint": "https://formsubmit.co/ajax/greenedgepc@gmail.com",
+    "address": "Newton SA 5074",
+    "hours": "Mon to Sat 7am to 5pm",
+    "instagram": "",
+    "facebook": "",
+    "tiktok": "",
+    "headerCtaLabel": "Get a free quote",
+    "headerCtaHref": "#contact",
+    "enquiryTypes": [
+      "Free quote",
+      "Lawn mowing and garden maintenance",
+      "Regular mowing schedule",
+      "One-off garden tidy-up",
+      "Pressure washing",
+      "Gutter cleaning",
+      "Pre-sale clean-up",
+      "Something else"
+    ]
+  },
+  "style": {
+    "_comment": "Near-black ink on warm light grey. Deep-green chrome, grey panels replace white cards, dark-ochre accent is CTA-only, lime green appears only on dark ground. Verified AA by check-universal.",
+    "brand": "#3B582B",
+    "brandDark": "#22331A",
+    "forestSecondaryInk": "#2A4020",
+    "accent": "#7A5B12",
+    "accentInk": "#5C440D",
+    "accentOndark": "#8DCF74",
+    "highlight": "#4A6B36",
+    "bg": "#F0F0EC",
+    "surfaceAlt": "#E6E6E1",
+    "card": "#D5D5D5",
+    "ink": "#111111",
+    "muted": "#4A4A46",
+    "border": "#1111111F"
+  },
+  "hero": {
+    "_comment": "brandLine and headingLineTwo removed in v3.16 \u2014 neither had a reader, so they sat in the intake implying they did something. No image: hasPhotos is false and the old /images/hero.jpg was a 736px placeholder that was never GreenEdge's own work.",
+    "eyebrow": "Newton, SA",
+    "heading": "Lawn mowing, gardening and property care",
+    "headingTint": "across eastern Adelaide.",
+    "subhead": "Owner-operated. Free quotes given on site and fixed in writing before any work starts. No lock-in contract.",
+    "body": "",
+    "primaryCtaLabel": "Get a free quote",
+    "primaryCtaHref": "#contact",
+    "secondaryCtaLabel": "See what we do",
+    "secondaryCtaHref": "#services",
+    "trustMarks": [
+      "Owner-operated",
+      "Public liability cover",
+      "No lock-in contracts",
+      "Free on-site quotes"
+    ],
+    "locationLine": "",
+    "image": "/images/hero.jpg",
+    "imageAlt": "A mown lawn with a curved garden bed edge and clipped shrubs alongside a suburban house."
+  },
+  "services": {
+    "_comment": "PLACEHOLDER PASS. Prices are estimates from 2026 Adelaide market data, not Harrison's rates. Images are stock service illustration. Scope is bounded by story.body, which excludes landscaping design, paving, tree removal and irrigation.",
+    "eyebrow": "What we do",
+    "heading": "Three services, done properly",
+    "subhead": "Lawn mowing and garden maintenance, pressure washing, and gutter cleaning. \u2014 no landscaping design, no paving, no tree removal, no irrigation.",
+    "pageEyebrow": "Services",
+    "pageHeading": "Lawn mowing, pressure washing and gutter cleaning in eastern Adelaide",
+    "items": [
+      {
+        "title": "Lawn mowing & garden maintenance",
+        "description": "Mowing, edging, weeding and hedge trimming \u2014 one-off, or on a weekly or fortnightly schedule with no lock-in contract.",
+        "longDescription": "Lawns mown and edged along every path, driveway and bed line. Beds weeded, hedges and shrubs trimmed back to shape, hard surfaces blown down, and green waste taken away with us rather than left in a pile on the nature strip. Book it as a one-off garden tidy-up, or set a weekly or fortnightly run through the growing season and drop back to monthly over winter. No lock-in contract either way \u2014 pause or stop whenever you like.",
+        "includes": [
+          "Mowing and edging",
+          "Weeding and bed tidy",
+          "Hedge and shrub trimming",
+          "Green waste removed",
+          "Paths and driveways blown down"
+        ],
+        "featured": true,
+        "price": "From $65 a visit",
+        "href": "",
+        "image": "/images/services/gardening-06.jpg",
+        "imageAlt": "A freshly mown lawn beside a rendered retaining wall and planted garden bed.",
+        "imageIsStock": true
+      },
+      {
+        "title": "Pressure washing",
+        "description": "Driveways, paths, patios and pavers cleaned back \u2014 before a sale, or after a long winter.",
+        "longDescription": "Concrete driveways, paths, patios, pavers and retaining walls washed back to the surface underneath. Most commonly booked as part of a pre-sale clean-up, or as a reset after winter when moss and algae have taken hold on the shaded side of the house. All equipment and water pressure supplied; we work out the right pressure for the surface rather than blasting everything at maximum.",
+        "includes": [
+          "Driveways and paths",
+          "Patios and pavers",
+          "Retaining walls",
+          "Pre-sale clean-ups",
+          "All equipment supplied"
+        ],
+        "featured": false,
+        "price": "From $250 a driveway",
+        "href": "",
+        "image": "/images/services/pressure-washing.jpg",
+        "imageAlt": "A pressure washer lance cleaning a concrete driveway, leaving a clean strip beside the dirty surface.",
+        "imageIsStock": true
+      },
+      {
+        "title": "Gutter cleaning",
+        "description": "Single-storey homes. Gutters cleared by hand and downpipes checked to flow.",
+        "longDescription": "Gutters cleared of leaf litter and debris by hand, downpipes checked to confirm they actually run clear, and everything we pull out taken away with us. Worth booking before the first heavy autumn rain and again after leaf drop, especially on the eastern-suburbs blocks with gums or established street trees nearby. Single-storey homes only \u2014 we do not carry the roof-access equipment for double-storey work.",
+        "includes": [
+          "Gutters cleared by hand",
+          "Downpipes checked to flow",
+          "Debris removed from site",
+          "Ground area left tidy",
+          "Single-storey homes only"
+        ],
+        "featured": false,
+        "price": "From $145 a home",
+        "href": "",
+        "image": "/images/services/gutter-cleaning-01.jpg",
+        "imageAlt": "A roof gutter running along the edge of a tiled roof above a trimmed hedge.",
+        "imageIsStock": true
+      }
+    ]
+  },
+  "whyUs": {
+    "_comment": "type stays 'benefits'. Four points, reorderable without losing meaning. Each one answers an objection a homeowner actually raises when calling a gardener they found online.",
+    "heading": "Why homeowners in the east call us",
+    "type": "benefits",
+    "trust": [
+      "Owner-operated",
+      "Public liability cover",
+      "No lock-in contracts",
+      "Mon to Sat, 7am to 5pm"
+    ],
+    "items": [
+      {
+        "title": "The same person every visit",
+        "description": "You are not getting a rotating crew from a franchise call centre. The person who quotes the job is the person who turns up and does it, so nothing has to be explained twice."
+      },
+      {
+        "title": "The price is fixed before we start",
+        "description": "Quotes are given on site, in person, and written down. Overgrown lawns and blocked downpipes are priced into the quote, not added to the invoice afterwards."
+      },
+      {
+        "title": "No lock-in contract",
+        "description": "Weekly, fortnightly, monthly or a one-off. Change the schedule, pause it over winter, or stop entirely \u2014 no notice period and no cancellation fee."
+      },
+      {
+        "title": "Green waste leaves with us",
+        "description": "Clippings, prunings and gutter debris go on the trailer. Your bin stays empty and there is nothing left in a pile on the nature strip."
+      }
+    ],
+    "pairs": [],
+    "themLabel": "",
+    "usLabel": ""
+  },
+  "usage": {
+    "_comment": "Read by the new `areas` section (v3.16). It used to live inside Story, so switching story off silently removed the suburb coverage. 21 suburbs here; the 8 in featured[] become the homepage chips and the rest show on /areas.",
+    "eyebrow": "Where we work",
+    "heading": "Lawn mowing and gardening across eastern Adelaide",
+    "subhead": "Based in Newton, in the City of Campbelltown. Regular runs through Campbelltown, Norwood Payneham St Peters and Burnside, with the rest of metro Adelaide by arrangement.",
+    "areasLine": "Newton, Campbelltown, Athelstone, Paradise, Rostrevor, Tranmere, Hectorville, Magill, Felixstow, Norwood, Kensington, Burnside and the surrounding eastern suburbs.",
+    "travelLine": "No travel fee within about 15 km of Newton. Beyond that a $25 travel fee applies, waived on jobs over $300.",
+    "notCoveredLine": "We do not travel to the Adelaide Hills, Gawler or the Fleurieu.",
+    "featured": [
+      "Newton",
+      "Campbelltown",
+      "Athelstone",
+      "Paradise",
+      "Rostrevor",
+      "Norwood",
+      "Magill",
+      "Burnside"
+    ],
+    "items": [
+      "Newton",
+      "Campbelltown",
+      "Athelstone",
+      "Paradise",
+      "Rostrevor",
+      "Tranmere",
+      "Hectorville",
+      "Felixstow",
+      "Magill",
+      "Woodforde",
+      "Auldana",
+      "Norwood",
+      "Kent Town",
+      "Payneham",
+      "St Peters",
+      "Marden",
+      "Firle",
+      "Glynde",
+      "Kensington",
+      "Kensington Gardens",
+      "Kensington Park",
+      "Burnside",
+      "Beaumont",
+      "Erindale",
+      "Toorak Gardens",
+      "Dulwich",
+      "Rose Park",
+      "Leabrook",
+      "Wattle Park",
+      "Stonyfell",
+      "Glen Osmond",
+      "Highbury",
+      "Dernancourt",
+      "Windsor Gardens",
+      "Klemzig",
+      "Walkerville",
+      "Gilberton",
+      "Medindie",
+      "Prospect",
+      "Hackney",
+      "College Park"
+    ]
+  },
+  "tiers": {
+    "eyebrow": "How it works",
+    "heading": "Regular or one-off",
+    "subhead": "Set a schedule and it never gets away from you, or book a single visit when it already has. Both start with the same free on-site quote.",
+    "items": [
+      {
+        "title": "Weekly",
+        "intensity": 3,
+        "of": 3,
+        "description": "Peak growing season, October through March. Mowing, edging and a quick tidy every visit so the lawn never gets ahead of you. Best for larger blocks and couch or kikuyu lawns."
+      },
+      {
+        "title": "Fortnightly",
+        "intensity": 2,
+        "of": 3,
+        "description": "The schedule most eastern-suburbs homes settle on. Keeps lawns, edges and beds consistently sharp through spring and summer, then drops back to monthly over winter."
+      },
+      {
+        "title": "One-off",
+        "intensity": 1,
+        "of": 3,
+        "description": "Pre-sale clean-ups, end-of-lease tidies, a post-holiday reset, or a single seasonal blitz on an overgrown block. No commitment and no follow-up call."
+      }
+    ]
+  },
+  "story": {
+    "_comment": "Renders as the dark colour band (bandSection: story). Sets the scope boundary the rest of the page depends on. cards[] intentionally empty \u2014 nothing to put in them that is not already said better in whyUs.",
+    "eyebrow": "Our story",
+    "heading": "One person. Done properly.",
+    "body": "GreenEdge is one operator with a trailer, working out of Newton since 2025. We look after lawns, gardens, hard surfaces and gutters across Adelaide's eastern suburbs. Three services, done properly, rather than a list of twenty done badly \u2014 no landscaping design, no paving, no tree removal, no irrigation. If a job falls outside that, we will say so on the spot and point you to someone who does it.",
+    "image": "",
+    "cards": [],
+    "process": [
+      {
+        "title": "You call or send the form",
+        "description": "Tell us the suburb, the service and roughly what you are dealing with. A photo helps. We answer between 7am and 5pm, Monday to Saturday."
+      },
+      {
+        "title": "We quote on site, for free",
+        "description": "We come and look at the actual job rather than guessing off a description. The quote is written down before anything starts."
+      },
+      {
+        "title": "We book a time that suits",
+        "description": "Usually within the week for a one-off. Regular schedules get a fixed day so you know when to expect us."
+      },
+      {
+        "title": "We do the work and clean up",
+        "description": "Green waste goes on the trailer. Hard surfaces get blown down. You get an invoice for the number you were quoted."
+      }
+    ]
+  },
+  "faqs": {
+    "eyebrow": "FAQ",
+    "heading": "Common questions",
+    "items": [
+      {
+        "question": "How much does lawn mowing cost in Adelaide's eastern suburbs?",
+        "answer": "For a standard suburban block in Newton, Campbelltown or Norwood, expect from around $65 a visit for mowing, edging and a blow-down. Larger blocks, overgrown lawns and first cuts cost more. We quote on site so the number is fixed before we start, not estimated over the phone."
+      },
+      {
+        "question": "Which suburbs do you cover?",
+        "answer": "Newton, Campbelltown, Athelstone, Paradise, Rostrevor, Tranmere, Hectorville, Felixstow, Magill, Norwood, Payneham, St Peters, Kensington, Burnside and the surrounding eastern suburbs. There is no travel fee within about 15 km of Newton."
+      },
+      {
+        "question": "Is there a lock-in contract for regular mowing?",
+        "answer": "No. Weekly, fortnightly, monthly or one-off \u2014 you can change the schedule, pause it over winter or stop entirely with no notice period and no cancellation fee."
+      },
+      {
+        "question": "Do you take the green waste away?",
+        "answer": "Yes. Clippings, prunings and gutter debris go on the trailer and leave with us. Your green bin stays empty and nothing gets left on the nature strip."
+      },
+      {
+        "question": "Do you clean gutters on double-storey homes?",
+        "answer": "No. Single-storey homes only. Double-storey gutter work needs roof-access equipment and a height-safety setup we do not carry, so we would rather say no than do it badly."
+      },
+      {
+        "question": "How much does it cost to pressure wash a driveway?",
+        "answer": "From around $250 for a standard concrete driveway in the eastern suburbs. Heavy staining, oil, or years of moss on a shaded surface take longer and cost more. We quote after seeing the surface."
+      },
+      {
+        "question": "Do you do landscaping, paving or tree removal?",
+        "answer": "No. We do lawn mowing and garden maintenance, pressure washing, and gutter cleaning. Landscaping design, paving, tree removal and irrigation are outside what we do \u2014 if you need one of those, we will tell you on the spot."
+      },
+      {
+        "question": "Are you insured?",
+        "answer": "Yes. Public liability cover is in place. ABN 87 823 119 154. Happy to send the certificate of currency through before we start if you want it on file."
+      },
+      {
+        "question": "How quickly can you come out?",
+        "answer": "Usually within the week for a one-off, and often sooner for a straightforward mow. Free quotes are generally booked within a day or two. We work Monday to Saturday, 7am to 5pm."
+      },
+      {
+        "question": "Do I need to be home?",
+        "answer": "Not for mowing or pressure washing, as long as we have side access and the gate is unlocked. For the first visit and for gutter work it helps to have someone there so we can walk the job together."
+      }
+    ]
+  },
+  "contactSection": {
+    "_comment": "No eyebrow (One Eyebrow Rule: Services only below hero). responseLine removed \u2014 no reader in src/, so keeping it would make the intake a false record.",
+    "heading": "Get a free quote",
+    "subhead": "Tell us the suburb and what needs doing. We will come and look, quote it on the spot, and put the number in writing before anything starts.",
+    "form": {
+      "enabled": true,
+      "submitLabel": "Send quote request",
+      "fields": [
+        "name",
+        "phone",
+        "email",
+        "suburb",
+        "message"
+      ]
+    }
+  },
+  "footer": {
+    "tagline": "Owner-operated lawn mowing, garden maintenance, pressure washing and gutter cleaning. Based in Newton, working across Adelaide's eastern suburbs.",
+    "columns": [
+      {
+        "heading": "Explore",
+        "links": [
+          {
+            "label": "Services",
+            "href": "/#services"
+          },
+          {
+            "label": "About",
+            "href": "/#story"
+          },
+          {
+            "label": "FAQ",
+            "href": "/faq"
+          }
+        ]
+      },
+      {
+        "heading": "Services",
+        "links": [
+          {
+            "label": "Gardening & Lawn Care",
+            "href": "/#services"
+          },
+          {
+            "label": "Pressure Washing",
+            "href": "/#services"
+          },
+          {
+            "label": "Gutter Cleaning",
+            "href": "/#services"
+          }
+        ]
+      },
+      {
+        "heading": "Contact",
+        "links": [
+          {
+            "label": "0402 154 283",
+            "href": "tel:0402154283"
+          },
+          {
+            "label": "greenedgepc@gmail.com",
+            "href": "mailto:greenedgepc@gmail.com"
+          },
+          {
+            "label": "Get a Quote",
+            "href": "#contact"
+          }
+        ]
+      }
+    ],
+    "copyrightSuffix": "All rights reserved."
+  },
+  "serviceAreas": [],
+  "features": {
+    "_comment": "hasPhotos is TRUE for this placeholder pass because real files exist in public/images. The photos are stock service illustration, not GreenEdge's own work \u2014 no copy on the page claims otherwise. imageIsStock is recorded per service item so a future gate can flag it.",
+    "hasPhotos": true,
+    "mapEmbedUrl": "",
+    "bookingPlatformUrl": "",
+    "stickyPhoneBar": true,
+    "servicesPage": true
+  },
+  "seo": {
+    "title": "Lawn Mowing & Gardening Newton, Campbelltown & Eastern Adelaide | GreenEdge Property Care",
+    "description": "Owner-operated lawn mowing, garden maintenance, pressure washing and gutter cleaning across Newton, Campbelltown, Norwood, Magill and Adelaide's eastern suburbs. Free on-site quotes, fixed in writing. No lock-in contracts.",
+    "ogImage": "/images/hero.jpg",
+    "ogImageAlt": "A mown lawn with a curved garden bed edge beside a suburban Adelaide house.",
+    "noindex": false,
+    "_comment": "noindex is FALSE so the gate passes on the real domain. If this ships to a throwaway Vercel URL for review before Harrison signs off the copy, flip it back to true first \u2014 an indexable demo competes with his own GBP listing."
+  },
+  "analytics": {
+    "_comment": "Plausible is cookieless \u2014 no consent UI needed. Leave provider empty to render no analytics at all.",
+    "provider": "",
+    "plausibleDomain": "",
+    "ga4MeasurementId": "",
+    "umamiWebsiteId": "",
+    "umamiSrc": ""
+  },
+  "legal": {
+    "privacy": {
+      "enabled": true,
+      "lastUpdated": "23 July 2026",
+      "entityName": "GreenEdge Property Care",
+      "contactEmail": "greenedgepc@gmail.com",
+      "abn": "87 823 119 154"
+    },
+    "terms": {
+      "enabled": true,
+      "lastUpdated": "22 August 2026",
+      "entityName": "GreenEdge Property Care",
+      "contactEmail": "greenedgepc@gmail.com",
+      "abn": "87 823 119 154"
+    }
+  },
+  "_comment_serviceAreas": "serviceAreas[] builds a PAGE per suburb and each needs a 60+ word unique intro. Twenty thin pages is a doorway-site pattern. Left empty deliberately; the suburb list lives in usage.items[] and renders as chips plus the /areas list. Populate this only when there is genuinely a page's worth to say about a suburb.",
+  "pages": {
+    "gallery": false,
+    "areas": true
+  },
+  "_comment_pages": "areas page ON: usage.items[] carries 21 real suburbs, so the page has genuine content. serviceAreas[] stays empty, so no per-suburb pages are generated \u2014 those need 60+ words each and twenty thin ones is a doorway pattern."
+}

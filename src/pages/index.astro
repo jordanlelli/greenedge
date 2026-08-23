@@ -1,0 +1,74 @@
+---
+/**
+ * Homepage assembler. Order comes from the engine (sectionsLocked honours the
+ * authored belief ladder in client-intake.json). EVERY section component the
+ * template ships is in MAP — an intake key with no MAP entry is how the
+ * before/after regression happened (critique 2026-07-19, P1).
+ *
+ * Services became its own section in v3.16 — it was previously welded to the
+ * bottom of Hero.astro and so had no variant axis of its own.
+ */
+import { site, layout } from "../config";
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Hero from "../components/Hero.astro";
+import Services from "../components/Services.astro";
+import BeforeAfter from "../components/BeforeAfter.astro";
+import WhyUs from "../components/WhyUs.astro";
+import RecentJobs from "../components/RecentJobs.astro";
+import WorkGallery from "../components/WorkGallery.astro";
+import Story from "../components/Story.astro";
+import Areas from "../components/Areas.astro";
+import Tiers from "../components/Tiers.astro";
+import Testimonials from "../components/Testimonials.astro";
+import FAQ from "../components/FAQ.astro";
+import Contact from "../components/Contact.astro";
+
+const MAP: Record<string, any> = {
+  hero: Hero,
+  services: Services,
+  beforeAfter: BeforeAfter,
+  whyUs: WhyUs,
+  recentJobs: RecentJobs,
+  gallery: WorkGallery,
+  story: Story,
+  areas: Areas,
+  /* Legacy name — intakes written before v3.16 list "usage". */
+  usage: Areas,
+  tiers: Tiers,
+  testimonials: Testimonials,
+  faqs: FAQ,
+  contact: Contact,
+};
+
+const order: string[] = layout.order || site.sections || ["hero", "services", "contact"];
+
+/* The seeded dark band. `layout.bandSection` has been resolved by the engine
+   since v3.0 and written into every client intake, but NOTHING applied it — the
+   .band-dark CSS existed, the WCAG luminance gate existed, and the class was
+   never put on the page. Wiring it here is what makes two clients with the same
+   kit read as different pages: the band lands at a different point in the
+   scroll, so the rhythm changes rather than just the colours.
+   The wrapper remaps tokens for its subtree; components inside need no changes. */
+const bandSection: string | null = layout.bandSection || null;
+---
+
+<Layout pageType="home">
+  <Header />
+  {order.map((sec: string) => {
+    const C = MAP[sec];
+    if (!C) return null;
+    if (sec === bandSection) {
+      return (
+        <div class="band-dark">
+          <C />
+        </div>
+      );
+    }
+    return (
+      <C />
+    );
+  })}
+  <Footer />
+</Layout>

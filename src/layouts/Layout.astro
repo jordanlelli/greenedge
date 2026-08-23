@@ -1,0 +1,290 @@
+---
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import { site, layout, fullAddress } from "../config";
+// @ts-ignore — plain-JS palette engine shared with the Node check scripts
+import { resolvePalette, paletteToStyleAttr } from "../lib/palette.mjs";
+import { services as serviceCatalog } from "../data/services";
+import TodoBanner from "../components/TodoBanner.astro";
+import StickyPhoneBar from "../components/StickyPhoneBar.astro";
+import Analytics from "../components/Analytics.astro";
+import ConsentBanner from "../components/ConsentBanner.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  pageType?: "home" | "about" | "services" | "contact" | "area" | "other";
+  canonicalUrl?: string;
+  robots?: string;
+}
+
+const {
+  title = site.seo?.title || `${site.business?.name} — ${site.business?.tagline}`,
+  description = site.seo?.description || site.business?.shortDescription || site.business?.tagline,
+  ogImage = site.seo?.ogImage || "",
+  pageType = "other",
+  canonicalUrl,
+  robots = "",
+} = Astro.props;
+
+/* ---- CLIENT PALETTE -------------------------------------------------------
+   The kit class drives type/radius/shadow (see global.css); these --c-* vars
+   drive colour, and the semantic tokens in global.css read them.
+
+   All of the derivation lives in src/lib/palette.mjs so it is testable outside
+   a browser and so there is exactly ONE place that answers "where did this
+   colour come from?". The contract: every colour is either stated by the client
+   in intake `style`, or derived from style.brand / style.accent. Nothing here
+   may contain a coloured literal — scripts/check-universal.mjs enforces it.
+   Run `npm run check:palette` to see the resolved palette + contrast report. */
+const cssVars = resolvePalette(site, layout.surface || "flat");
+const styleStr = paletteToStyleAttr(cssVars);
+
+/* ---- SEO + schema (preserved) --------------------------------------------- */
+/* SITE-WIDE NOINDEX.
+   There was no control for this, and `robots` defaulted to "index, follow" — so
+   a cold-outreach demo, built from draft copy for a business that has not been
+   contacted, was fully indexable on its Vercel URL. That is a live page with a
+   real business's name, real reviews and unapproved copy competing with their
+   own listing. seo.noindex flips the whole site (and robots.txt) in one place. */
+const siteNoindex = site.seo?.noindex === true;
+const robotsValue = siteNoindex ? "noindex, nofollow" : robots || "index, follow";
+const siteUrl = Astro.site?.href || "";
+const canonical = canonicalUrl || (siteUrl ? `${siteUrl.replace(/\/$/, "")}${Astro.url.pathname}` : "");
+
+/* ---- SOCIAL SHARE IMAGE ----------------------------------------------------
+   og:image MUST be an absolute URL. Facebook, LinkedIn, WhatsApp and iMessage
+   all refuse to resolve a relative path, so `/favicon.png` produced a share card
+   with no image on every client site ever built from this template. That matters
+   more here than on most sites: pasting the link into Facebook is often the first
+   thing a tradie does with a new site, in front of exactly the audience it was
+   built for.
+
+   Preference order, and the reasoning:
+     1. seo.ogImage      — a purpose-made 1200x630 card, if the client has one.
+     2. hero.image       — a real job photo beats no photo, and it is already
+                           the most considered image on the site. Gated on
+                           features.hasPhotos so a placeholder path can't ship.
+     3. nothing          — deliberately NOT the favicon. A 512px square in a
+                           1.91:1 card renders as a letterboxed smear, and
+                           anything under 200x200 is dropped by Facebook
+                           outright. An unstyled link preview beats a broken one.
+   -------------------------------------------------------------------------- */
+const heroShareImage = site.hero?.image || "";
+const rawShareImage = ogImage || heroShareImage;
+const absoluteUrl = (path: string): string => {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  if (!siteUrl) return "";
+  try {
+    return new URL(path, siteUrl).href;
+  } catch {
+    return "";
+  }
+};
+const shareImage = absoluteUrl(rawShareImage);
+const shareImageAlt = site.seo?.ogImageAlt || site.business?.name || "";
+
+const localBusinessSchema: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: site.business?.name,
+  description: site.business?.shortDescription || site.business?.tagline,
+  telephone: site.contact?.phone,
+  email: site.contact?.email,
+  url: siteUrl,
+  foundingDate: site.business?.established,
+};
+if (fullAddress()) {
+  const addr = fullAddress();
+  const parsed = addr.match(/^(.+?)\s+(SA|NSW|VIC|QLD|WA|TAS|NT|ACT)\s+(\d{4})$/i);
+  localBusinessSchema.address = parsed
+    ? {
+        "@type": "PostalAddress",
+        addressLocality: parsed[1].trim(),
+        addressRegion: parsed[2].toUpperCase(),
+        postalCode: parsed[3],
+        addressCountry: "AU",
+      }
+    : {
+        "@type": "PostalAddress",
+        streetAddress: addr,
+        addressCountry: "AU",
+      };
+}
+if (site.business?.abn) {
+  localBusinessSchema.taxID = site.business.abn;
+}
+const serviceAreas = site.usage?.items || [];
+if (serviceAreas.length) {
+  localBusinessSchema.areaServed = serviceAreas.map((area: string) => ({ "@type": "Place", name: area }));
+}
+// TODO(review-schema): Add Review/AggregateRating JSON-LD only after testimonials.ts
+// contains real reviews and every entry has a verified sourceUrl. Never infer ratings.
+
+let faqSchema: Record<string, unknown> | null = null;
+const faqItems = site.faqs?.items || [];
+if (faqItems.length > 0) {
+  faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item: { question: string; answer: string }) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  };
+}
+
+const servicesSchema =
+  serviceCatalog.length > 0
+    ? serviceCatalog.map((service) => ({
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: service.name,
+        description: service.shortLine,
+        provider: { "@type": "LocalBusiness", name: site.business?.name },
+        areaServed: serviceAreas,
+      }))
+    : null;
+---
+
+<!doctype html>
+<html lang="en-AU" class={`kit-${layout.kit}`} style={styleStr}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {/* <meta name="keywords"> removed in v3.12. Google stopped using it in 2009
+        and has said so publicly; Bing treats stuffing it as a negative signal.
+        It only ever showed competitors the terms you were targeting. The intake
+        key stays — a client's keyword list is still useful input for writing
+        copy and picking service-area pages, it just does not belong in a tag. */}
+    <meta name="robots" content={robotsValue} />
+    {canonical && <link rel="canonical" href={canonical} />}
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {shareImage && (
+      <>
+        <meta property="og:image" content={shareImage} />
+        <meta property="og:image:alt" content={shareImageAlt} />
+      </>
+    )}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_AU" />
+    {canonical && <meta property="og:url" content={canonical} />}
+
+    <meta name="twitter:card" content={shareImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {shareImage && <meta name="twitter:image" content={shareImage} />}
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+
+    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-body" preload />
+
+    <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
+    {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+    {servicesSchema?.map((sc) => (
+      <script type="application/ld+json" set:html={JSON.stringify(sc)} />
+    ))}
+
+    <Analytics />
+  </head>
+
+  <body id="top" class="overflow-x-clip bg-bg font-body text-ink antialiased">
+    <slot />
+    <StickyPhoneBar />
+    <ConsentBanner />
+    <TodoBanner />
+
+    {/* ---- SCROLL REVEAL (motion layer) --------------------------------------
+         Global, dependency-free. The hidden state (.reveal) is applied by JS
+         ONLY — if JS fails or IntersectionObserver is unsupported, nothing is
+         ever hidden. Fully disabled under prefers-reduced-motion. Targets
+         section[id], which matches content sections and excludes the hero
+         (no id) and header/footer. Opt a section out with data-no-reveal. --- */}
+    <style is:global>
+      @media (prefers-reduced-motion: no-preference) {
+        .reveal {
+          opacity: 0;
+          transform: translateY(1.25rem);
+          transition:
+            opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          will-change: opacity, transform;
+        }
+        .reveal.is-visible {
+          opacity: 1;
+          transform: none;
+        }
+
+        /* Opt-in staggered child reveal: a section marked data-reveal="stagger"
+           cascades its [data-reveal-item] children. Inert unless both attributes
+           are present. */
+        .reveal-item {
+          opacity: 0;
+          transform: translateY(1rem);
+          transition:
+            opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+          transition-delay: var(--rvd, 0ms);
+          will-change: opacity, transform;
+        }
+        .reveal-item.is-visible {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+    <script>
+      (() => {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce || !("IntersectionObserver" in window)) return;
+
+        const sections = Array.from(
+          document.querySelectorAll<HTMLElement>("section[id]:not([data-no-reveal])")
+        );
+        if (!sections.length) return;
+
+        const staggerItems = (el: HTMLElement) =>
+          el.dataset.reveal === "stagger"
+            ? Array.from(el.querySelectorAll<HTMLElement>("[data-reveal-item]"))
+            : [];
+
+        const io = new IntersectionObserver(
+          (entries, obs) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              const el = entry.target as HTMLElement;
+              const items = staggerItems(el);
+              if (items.length) items.forEach((c) => c.classList.add("is-visible"));
+              else el.classList.add("is-visible");
+              obs.unobserve(el);
+            });
+          },
+          { rootMargin: "0px 0px -10% 0px", threshold: 0.08 }
+        );
+
+        const STEP = 90, CAP = 8;
+        sections.forEach((el) => {
+          const items = staggerItems(el);
+          if (items.length) {
+            items.forEach((c, i) => {
+              c.classList.add("reveal-item");
+              c.style.setProperty("--rvd", `${Math.min(i, CAP) * STEP}ms`);
+            });
+          } else {
+            el.classList.add("reveal");
+          }
+          io.observe(el);
+        });
+      })();
+    </script>
+  </body>
+</html>

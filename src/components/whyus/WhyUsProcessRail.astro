@@ -1,0 +1,114 @@
+---
+/**
+ * WhyUsProcessRail — numbered steps on a connecting rail.
+ *
+ * GATED ON whyUs.type === "process", not on a styling preference. This is the
+ * only variant in the template that asserts a SEQUENCE, and applying it to a
+ * list of benefits makes a claim the content does not support: "fixed written
+ * quotes" does not come before "site left clean".
+ *
+ * The test is whether the items can be reordered without losing meaning. If
+ * they can, they are a list and this variant is wrong for them.
+ *
+ * Numbers alone never make a sequence — the connective rail and the unbroken
+ * left-to-right direction do. That is why the rail is drawn rather than
+ * implied, and why the grid never wraps mid-sequence on desktop: an item
+ * landing under step 01 reads as a new column, not as the next step.
+ */
+interface Props { items: { title: string; description: string }[]; }
+const { items } = Astro.props;
+const steps = items.slice(0, 5);
+---
+
+<ol class="why-rail" style={`--why-steps:${steps.length}`}>
+  {steps.map((it, i) => (
+    <li class="why-rail-step">
+      <span class="why-rail-dot" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+      <p class="why-rail-title">{it.title}</p>
+      <p class="why-rail-desc">{it.description}</p>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .why-rail {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+
+  .why-rail-step { position: relative; padding-left: 2.75rem; }
+
+  /* Mobile: the rail runs vertically down the left, joining each dot to the
+     next. Same connective logic, rotated. */
+  .why-rail-step::before {
+    content: "";
+    position: absolute;
+    left: 0.84rem;
+    top: 1.7rem;
+    bottom: -1.5rem;
+    width: 1px;
+    background: var(--c-ondark-rule);
+  }
+  .why-rail-step:last-child::before { display: none; }
+
+  .why-rail-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    height: 1.7rem;
+    width: 1.7rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--c-ondark-rule);
+    background: var(--c-band);
+    font-family: var(--font-heading);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-accent-ondark);
+  }
+
+  .why-rail-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-ondark);
+  }
+
+  .why-rail-desc {
+    margin: 0.45rem 0 0;
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: var(--c-ondark-soft);
+  }
+
+  @media (min-width: 64rem) {
+    /* Never wraps: the step count sets the column count, so the sequence stays
+       on one unbroken line. Capped at five in the frontmatter for that reason. */
+    .why-rail {
+      grid-template-columns: repeat(var(--why-steps), minmax(0, 1fr));
+      gap: 0;
+    }
+    .why-rail-step { padding: 2.5rem 1.5rem 0 0; }
+    .why-rail-step::before {
+      left: 1.7rem;
+      right: 0;
+      top: 0.84rem;
+      bottom: auto;
+      width: auto;
+      height: 1px;
+    }
+    .why-rail-dot { top: 0; }
+  }
+</style>

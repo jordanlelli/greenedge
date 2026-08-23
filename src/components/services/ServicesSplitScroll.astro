@@ -1,0 +1,97 @@
+---
+/**
+ * ServicesSplitScroll — alternating full-width image/text rows.
+ *
+ * Gated on every item having a REAL photo (features.hasPhotos + a per-item
+ * image). A per-service image asserts the client did that specific job, so a
+ * placeholder path is not enough — see hasOwnedPhotos in content.mjs.
+ *
+ * The image side flips each row on desktop. On mobile the text always comes
+ * first regardless of row parity: alternating on a single column produces no
+ * visual rhythm, only an inconsistent reading order.
+ */
+interface Props { items: any[]; }
+const { items } = Astro.props;
+---
+
+<div class="svc-scroll">
+  {items.map((it: any, i: number) => (
+    <div class:list={["svc-scroll-row", i % 2 === 1 && "svc-scroll-row--flip"]}>
+      <div class="svc-scroll-text">
+        <p class="svc-scroll-ord" aria-hidden="true">{String(i + 1).padStart(2, "0")}</p>
+        <h3 class="mt-2 font-heading text-2xl font-semibold leading-tight text-brand">{it.title}</h3>
+        {it.description && (
+          <p class="mt-3 text-base leading-relaxed text-muted">{it.description}</p>
+        )}
+        {it.longDescription && (
+          <p class="mt-3 text-base leading-relaxed text-muted">{it.longDescription}</p>
+        )}
+        {it.includes.length > 0 && (
+          <ul class="mt-4 space-y-2">
+            {it.includes.slice(0, 5).map((inc: string) => (
+              <li class="flex gap-2 text-sm leading-snug text-ink">
+                <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-highlight" aria-hidden="true"></span>
+                <span>{inc}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {it.price && (
+          <p class="mt-4 font-heading text-lg font-semibold text-brand">{it.price}</p>
+        )}
+        {it.href && (
+          <p class="mt-4">
+            <a href={it.href} class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
+              More on {it.title} <span class="ml-2" aria-hidden="true">→</span>
+            </a>
+          </p>
+        )}
+      </div>
+      <div class="svc-scroll-media">
+        <img src={it.image} alt={it.imageAlt} loading="lazy" decoding="async" width="800" height="600" />
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .svc-scroll { display: flex; flex-direction: column; gap: 3rem; }
+
+  .svc-scroll-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .svc-scroll-ord {
+    margin: 0;
+    font-family: var(--font-display, inherit);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--color-accent-ink);
+  }
+
+  .svc-scroll-media {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border);
+  }
+  .svc-scroll-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 4 / 3;
+  }
+
+  @media (min-width: 64rem) {
+    .svc-scroll { gap: 4.5rem; }
+    .svc-scroll-row { grid-template-columns: 1fr 1fr; gap: 3.5rem; }
+    /* Media moves to column 1 on odd rows; text always keeps source order on
+       mobile because this only applies at the two-column breakpoint. */
+    .svc-scroll-row--flip .svc-scroll-text { order: 2; }
+    .svc-scroll-row--flip .svc-scroll-media { order: 1; }
+  }
+</style>

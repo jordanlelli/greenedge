@@ -1,0 +1,118 @@
+---
+/**
+ * HeaderParts — the pieces every header variant is assembled from.
+ *
+ * Variants differ in ARRANGEMENT only. Duplicating the wordmark, the phone
+ * link, the CTA and the burger across three files is how a fix lands in one
+ * header and not the other two; the hero already taught us that.
+ *
+ * `part` selects which piece to render. Astro has no multi-export component,
+ * and three tiny files would be worse to navigate than one switch.
+ */
+import { site, formatPhone, headerNavLinks, resolveLinkHref } from "../../config";
+
+interface Props {
+  part: "brand" | "nav" | "phone" | "cta" | "burger" | "panel";
+  tone?: "light" | "ondark";
+  size?: "sm" | "md" | "lg";
+  class?: string;
+}
+const { part, tone = "light", size = "md", class: extra = "" } = Astro.props;
+
+const navLinks = headerNavLinks();
+const business = site.business || {};
+const contact = site.contact || {};
+const name = business.name || "";
+const logo = business.logo || "";
+const logoText = business.logoText || name;
+/* logoMarkText is the short form — a monogram or trading name — for clients
+   whose legal name is too long to sit in a header. It had no reader, so those
+   names wrapped or truncated. Used where the full wordmark will not fit; the
+   full name stays in the aria-label so the link is still announced properly. */
+const logoMarkText = business.logoMarkText || "";
+const phone = contact.phone || "";
+const phoneHref = phone ? `tel:${formatPhone(phone)}` : "";
+const ctaLabel = contact.headerCtaLabel || "Get a free quote";
+const ctaHref = resolveLinkHref(contact.headerCtaHref || "#contact");
+
+const onDark = tone === "ondark";
+const linkInk = onDark ? "text-ondark/85 hover:text-ondark" : "text-brand/85 hover:text-brand";
+const strongInk = onDark ? "text-ondark" : "text-brand";
+const ring = onDark ? "focus-visible:ring-ondark/50" : "focus-visible:ring-brand";
+const markSize = size === "lg" ? "h-9 sm:h-11" : size === "sm" ? "h-6 sm:h-7" : "h-7 sm:h-8";
+const wordSize = size === "lg" ? "text-lg sm:text-2xl" : size === "sm" ? "text-sm sm:text-base" : "text-base sm:text-lg";
+---
+
+{part === "brand" && (
+  <a href="/" class:list={["flex min-w-0 shrink-0 items-center gap-2", extra]} aria-label={name}>
+    {logo ? (
+      <img src={logo} alt={name} width="180" height="48" class:list={["w-auto max-w-[8.5rem] object-contain sm:max-w-[11rem]", markSize]} />
+    ) : (
+      <>
+        {logoMarkText && (
+          <span class:list={["font-heading font-bold sm:hidden", wordSize, strongInk]}>{logoMarkText}</span>
+        )}
+        <span class:list={["truncate font-heading font-bold", logoMarkText && "hidden sm:inline", wordSize, strongInk]}>{logoText}</span>
+      </>
+    )}
+  </a>
+)}
+
+{part === "nav" && navLinks.length > 0 && (
+  <nav class:list={["hidden items-center lg:flex", extra]} aria-label="Primary">
+    {navLinks.map((l) => (
+      <a href={l.href} class:list={["text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2", linkInk, ring]}>
+        {l.label}
+      </a>
+    ))}
+  </nav>
+)}
+
+{part === "phone" && phoneHref && (
+  <a href={phoneHref} class:list={["font-semibold transition hover:opacity-80", strongInk, extra]}>
+    {phone}
+  </a>
+)}
+
+{part === "cta" && (
+  <a href={ctaHref} class:list={["rounded-card bg-accent px-3.5 py-1.5 text-sm font-semibold text-on-accent transition hover:brightness-95", extra]}>
+    {ctaLabel}
+  </a>
+)}
+
+{part === "burger" && (
+  <button
+    id="menu-toggle"
+    type="button"
+    class:list={["flex h-10 w-10 items-center justify-center rounded-lg transition lg:hidden", strongInk, onDark ? "hover:bg-ondark/10" : "hover:bg-brand/5", extra]}
+    aria-label="Open menu"
+    aria-expanded="false"
+    aria-controls="mobile-menu"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+)}
+
+{part === "panel" && (
+  <div id="mobile-menu" class="hidden border-t border-brand/[0.12] bg-bg px-4 pb-4 lg:hidden">
+    <nav class="flex flex-col gap-1 pt-2" aria-label="Mobile">
+      {navLinks.map((l) => (
+        <a href={l.href} class="rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-brand/5" data-menu-link>
+          {l.label}
+        </a>
+      ))}
+      <div class="mt-2 grid grid-cols-1 gap-2">
+        <a href={ctaHref} class="rounded-card bg-accent px-3 py-3 text-center text-sm font-semibold text-on-accent transition hover:brightness-95" data-menu-link>
+          {ctaLabel}
+        </a>
+        {phoneHref && (
+          <a href={phoneHref} class="rounded-card border-2 border-brand/25 px-3 py-3 text-center text-sm font-semibold text-brand transition hover:border-brand/50 hover:bg-brand/5" data-menu-link>
+            Call {phone}
+          </a>
+        )}
+      </div>
+    </nav>
+  </div>
+)}

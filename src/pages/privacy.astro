@@ -1,0 +1,138 @@
+---
+/**
+ * Privacy policy — renders only when legal.privacy.enabled. Trade-agnostic and
+ * provider-aware: the analytics + form clauses adapt to what the site actually
+ * uses. Fill legal.privacy in client-intake.json before deploying (a TODO on a
+ * live legal page is a critical defect — guardrail B7). This is standard plain
+ * language, NOT legal advice; have the client review it.
+ */
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Section from "../components/Section.astro";
+import { site, consentRequired } from "../config";
+// @ts-ignore - the same gate the footer uses
+import { legalPageState } from "../lib/legal.mjs";
+// @ts-ignore - the same field resolver the contact form uses
+import { resolveFormFields, FORM_FIELD_LABELS } from "../lib/content.mjs";
+
+const privacy = site.legal?.privacy || {};
+/* One gate, shared with the footer — see src/lib/legal.mjs. Publishing a
+   policy with "[SET legal.privacy.entityName]" in the body is worse than not
+   publishing one, so a page missing its required facts redirects instead. */
+if (!legalPageState("privacy", site).live) return Astro.redirect("/");
+
+const field = (key: string, value: unknown): string => {
+  if (value == null || value === "" || value === "TODO") return `TODO — ${key}`;
+  return String(value);
+};
+
+const entityName = field("entityName", privacy.entityName || site.business?.name);
+const contactEmail = field("contactEmail", privacy.contactEmail || site.contact?.email);
+const lastUpdated = field("lastUpdated", privacy.lastUpdated);
+const abn = privacy.abn || site.business?.abn || "";
+
+/* Form provider name, config-driven with a sensible fallback. */
+const endpoint: string = (site.contact?.formEndpoint || "").toLowerCase();
+const inferredProvider = endpoint.includes("formsubmit")
+  ? "FormSubmit"
+  : endpoint.includes("formspree")
+    ? "Formspree"
+    : endpoint.includes("web3forms")
+      ? "Web3Forms"
+      : "";
+const formProvider: string = privacy.formProvider || inferredProvider;
+const hasForm = site.contactSection?.form?.enabled !== false && Boolean(site.contact?.formEndpoint);
+
+/* The collection list comes from the SAME resolver the form uses. It used to be
+   read straight off contactSection.form.fields while Contact.astro rendered
+   name, phone and email regardless — so trimming the field list published a
+   policy that understated what the site collected. Of everything on this page,
+   this is the list that has to be true. */
+const collectedFields = resolveFormFields(site).map(
+  (f: string) => FORM_FIELD_LABELS[f as keyof typeof FORM_FIELD_LABELS] || f
+);
+const listFields = (items: string[]): string => {
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+};
+
+const provider: string = site.analytics?.provider || "";
+const analyticsCopy: Record<string, string> = {
+  plausible:
+    "We use Plausible Analytics to understand aggregate site traffic. Plausible is cookieless and sets no identifiers on your device.",
+  umami:
+    "We use Umami to understand aggregate site traffic. It is privacy-focused and does not use cookies to identify you.",
+  ga4:
+    "We use Google Analytics 4 to understand how the site is used. It sets cookies on your device only after you accept them via the cookie notice. You can decline, and you can clear these cookies in your browser at any time.",
+};
+const analyticsText = analyticsCopy[provider] || "";
+
+const title = `Privacy policy — ${site.business?.name || entityName}`;
+const description = `How ${entityName} collects and handles personal information.`;
+---
+
+<Layout title={title} description={description} pageType="other" robots="noindex,follow">
+  <Header />
+  <main>
+    <Section id="privacy" bg="bg">
+      <div class="max-w-3xl">
+        <h1 class="font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">Privacy policy</h1>
+        <p class="mt-3 text-muted">Last updated: {lastUpdated}</p>
+      </div>
+
+      <div class="mt-10 max-w-3xl space-y-6 text-base leading-relaxed text-ink">
+        <p>
+          This privacy policy explains how {entityName}{abn && <> (ABN {abn})</>} handles
+          personal information collected through this website.
+        </p>
+
+        {hasForm && (
+          <>
+            <h2 class="font-heading text-xl font-semibold text-brand">Contact form</h2>
+            <p>
+              When you submit an enquiry, we collect your {listFields(collectedFields)}.
+              {formProvider
+                ? ` Submissions are transmitted via a third-party form provider (${formProvider}) so we can receive and respond to your message.`
+                : " Submissions are transmitted to us so we can receive and respond to your message."}
+              {" "}We use this information only to respond to your enquiry and to provide the
+              services you ask about, and we do not sell it.
+            </p>
+          </>
+        )}
+
+        {analyticsText && (
+          <>
+            <h2 class="font-heading text-xl font-semibold text-brand">Analytics</h2>
+            <p>{analyticsText}</p>
+          </>
+        )}
+
+        {consentRequired && (
+          <>
+            <h2 class="font-heading text-xl font-semibold text-brand">Cookies</h2>
+            <p>
+              This site uses non-essential cookies only after you accept them via the
+              cookie notice shown on your first visit. Declining leaves only the cookies
+              strictly necessary for the site to function. You can change your choice by
+              clearing this site's data in your browser.
+            </p>
+          </>
+        )}
+
+        <h2 class="font-heading text-xl font-semibold text-brand">Access and correction</h2>
+        <p>
+          To request access to, or correction of, personal information we hold about
+          you, contact us at{" "}
+          {contactEmail.startsWith("TODO") ? (
+            <span>{contactEmail}</span>
+          ) : (
+            <a href={`mailto:${contactEmail}`} class="text-brand underline underline-offset-2 hover:text-brand-dark">{contactEmail}</a>
+          )}.
+        </p>
+      </div>
+    </Section>
+  </main>
+  <Footer />
+</Layout>

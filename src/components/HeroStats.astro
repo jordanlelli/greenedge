@@ -1,0 +1,42 @@
+---
+/**
+ * HeroStats — the strip directly under the hero.
+ *
+ * Lifted from the landscape reference, which is the strongest single idea in
+ * the set: four hard numbers immediately below the fold, before any sales copy.
+ * On a trade site it is the cheapest credibility you can buy, and it works
+ * without a single photograph.
+ *
+ * Reads `hero.stats[]` ONLY. Nothing is derived, inferred or rounded up — a
+ * fabricated "200+ projects" on a site carrying a real ABN is an ACCC problem,
+ * not a design flourish. No stats in the intake, no strip on the page.
+ */
+import { site } from "../config";
+
+type Stat = { value?: string; label?: string };
+const stats: Stat[] = (site.hero?.stats || [])
+  .filter((s: Stat) => s && String(s.value || "").trim() && String(s.label || "").trim())
+  .slice(0, 4);
+---
+
+{stats.length > 0 && (
+  <section class="border-y border-border bg-tint" aria-label="At a glance">
+    <div class="mx-auto max-w-[var(--w-wide)] px-4 sm:px-6 lg:px-8">
+      <dl class="grid grid-cols-2 divide-border sm:divide-x lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div class="px-2 py-7 text-center sm:px-6 lg:py-8">
+            <dt class="sr-only">{stat.label}</dt>
+            <dd>
+              <span class="block font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+                {stat.value}
+              </span>
+              <span class="mt-1 block text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-muted">
+                {stat.label}
+              </span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+)}

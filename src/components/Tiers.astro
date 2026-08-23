@@ -1,0 +1,40 @@
+---
+import { site } from "../config";
+import Section from "./Section.astro";
+
+const tiers = site.tiers || {};
+const items: any[] = tiers.items || [];
+const eyebrow = tiers.eyebrow || "Plans";
+const heading = tiers.heading || "Choose a plan";
+const subhead = tiers.subhead || "";
+---
+
+{items.length > 0 && (
+  <Section id="tiers" width="content" bg="bg">
+    <div class="max-w-2xl">
+      <p class="text-sm font-semibold uppercase tracking-wide text-highlight section-eyebrow">{eyebrow}</p>
+      <h2 class="mt-2 font-heading text-3xl font-semibold text-brand sm:text-4xl section-heading">{heading}</h2>
+      {subhead && <p class="mt-4 text-lg leading-relaxed text-muted">{subhead}</p>}
+    </div>
+
+    <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((tier: any) => {
+        const of = tier.of || 3;
+        const intensity = Math.min(tier.intensity || 1, of);
+        return (
+          <div class="flex flex-col rounded-card border border-border bg-bg p-6">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="font-heading text-xl font-semibold text-brand">{tier.title}</h3>
+            </div>
+            <div class="mt-4 flex gap-1.5" aria-label={`Intensity ${intensity} of ${of}`}>
+              {Array.from({ length: of }).map((_, i) => (
+                <span class:list={["h-1.5 flex-1 rounded-full", i < intensity ? "bg-brand" : "bg-border"]} aria-hidden="true"></span>
+              ))}
+            </div>
+            <p class="mt-4 text-sm leading-relaxed text-muted">{tier.description}</p>
+          </div>
+        );
+      })}
+    </div>
+  </Section>
+)}

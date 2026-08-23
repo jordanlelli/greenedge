@@ -1,0 +1,277 @@
+================================================================
+  VARIANTS.txt — LAYOUT VARIANT LIBRARY + DESIGN KITS
+================================================================
+  Single source of truth for section layout skeletons, the
+  design kits, and how the engine selects them. The variant
+  ENGINE (src/lib/variants.mjs) reads this vocabulary; component
+  files implement each named variant. Keep names here in sync
+  with the component branches and the CATALOGUE in variants.mjs.
+
+
+================================================================
+  HOW SELECTION WORKS (read this first)
+================================================================
+
+  Selection is DETERMINISTIC, not live-random. variants.mjs
+  seeds a PRNG from the business name + domain (or an explicit
+  _brief.variantSeed). The same client always resolves to the
+  same kit / variants / order on every build, forever. Different
+  clients seed differently, so the portfolio looks varied.
+
+  Per axis, the engine resolves in this order:
+    1. Explicit value in _brief (designKit, layoutVariants[x]) —
+       always wins.
+    2. Filter the section's list by DATA PREREQUISITES (no photos
+       -> drop photo variants; no stats -> drop stat-bar; etc.).
+    3. Seeded random pick from whatever survives.
+
+  Persisting picks: run  npm run variants  (scripts/pick-
+  variants.mjs) to WRITE the resolved kit / variants / order into
+  client-intake.json. It is idempotent — only empty slots get
+  filled, and it never overwrites a value you set by hand. The
+  site is already deterministic without it; persisting just makes
+  the picks visible and editable.
+
+  Reshuffle one client: set _brief.variantSeed to a new string
+  and delete the picks you want re-rolled, then re-run.
+
+
+================================================================
+  NON-NEGOTIABLE RULES FOR EVERY VARIANT
+================================================================
+
+  - Tokens only. Use the semantic utilities backed by global.css:
+    bg-bg, bg-card, bg-brand, bg-brand-dark, text-brand,
+    text-accent, text-ink, text-muted, text-highlight, text-white,
+    border-border, font-heading, font-body, rounded-card,
+    shadow-card. Never hardcode hex. Never hardcode a font.
+  - Colour comes from the CLIENT (style block, injected by
+    Layout). Type/radius/shadow come from the KIT. A variant
+    controls STRUCTURE only.
+  - Container. Standard width is via the Container/Section
+    primitives (max-w content / wide). Inner text keeps a
+    readable measure even in wide/full-bleed layouts.
+  - Vertical rhythm. Sections use py-16 lg:py-20 (Section default)
+    unless noted. Heroes may go larger.
+  - Mobile-first. Every multi-column layout collapses to ONE
+    column below the lg breakpoint (1024px) — never md. This is
+    what makes "half screen" stack cleanly.
+  - Image fallback. Every <img> carries the error fallback:
+      onerror="this.style.display='none';
+      this.parentElement.classList.add('bg-gradient-to-br',
+      'from-brand/20','to-brand-dark/30')"
+    Photo-dependent variants are gated on features.hasPhotos so
+    they are never auto-selected for a no-photo client.
+  - Heading block. Most sections open with eyebrow
+    (text-sm font-semibold uppercase tracking-wide text-accent),
+    heading (font-heading ... text-brand), optional subhead
+    (text-muted).
+  - No new dependencies. Carousels/accordions/rotators use
+    vanilla JS or CSS only.
+
+
+================================================================
+  DESIGN KITS  (axis 1 — picked once per site)
+================================================================
+  A kit bundles TYPE + RADIUS + SHADOW + RHYTHM personality. It
+  does NOT set colour. Defined as .kit-* classes in global.css;
+  Layout adds the class to <html> and loads the kit's fonts.
+
+  ledger   — editorial/journalistic. Newsreader + Inter Tight.
+             small radius, hairline shadow, tight tracking.
+  workshop — industrial trade. Archivo (heavy) + Public Sans.
+             square radius, hard offset shadow.
+  coast    — soft/approachable. Bricolage Grotesque + Inter.
+             large radius, diffuse shadow, airy.
+  press    — classic/refined. Fraunces + Source Sans 3.
+             small radius, light shadow, loose rhythm.
+  signal   — modern/geometric. Space Grotesk + Inter.
+             medium radius, minimal shadow.
+
+  Override per client: _brief.designKit: "press".
+
+
+================================================================
+  SECTION ORDER  (axis 2 — picked once per site)
+================================================================
+  Pinned near the TOP: hero, then services.
+  Pinned to the BOTTOM: faq/faqs, then contact.
+  Everything else (story, whyUs, tiers, usage, testimonials) is
+  seeded-shuffled in the MIDDLE. Order is derived from the
+  intake `sections` array; sections not listed do not render.
+
+
+================================================================
+  HERO   (axis 3 — per-section variant)
+================================================================
+  Reads `hero`: eyebrow, heading, subhead, body,
+  primaryCtaLabel/Href, secondaryCtaLabel/Href, trustMarks[],
+  image (optional).
+
+  typographic  [DEFAULT]  Left-aligned oversized H1, subhead as
+    a lighter continuation, body at readable width, CTA row,
+    inline trust marks, one understated motif. No photo.
+  split-media  [needs photos]  Content left, media right, equal
+    columns; image object-cover rounded-card. Stacks on mobile.
+  fullbleed    [needs photos]  Full-viewport background image with
+    a brand-dark scrim, white text. Falls back to solid bg-brand
+    if no image.
+  docket       [no assets]  Copy left, ruled spec panel right —
+    services, areas, hours, licence/ABN, established. Every row
+    is sourced from the intake; a row with no value is omitted,
+    never filled with "Contact us". Under two resolved rows the
+    panel drops and the copy runs full width.
+  index        [needs 4+ services]  Numbered service index on a
+    tinted rail, copy right. Puts the service list above the
+    fold. The ordinals are an INDEX, not a sequence — no rail,
+    no connectors, no arrows between them.
+  stat-lede    [needs hero.stats]  Oversized figure leads,
+    headline beside it, remaining stats in a ruled strip below.
+    ABSORBS the HeroStats strip, which is suppressed while this
+    variant is active. No placeholder state: no real stat, no
+    variant.
+
+
+================================================================
+  SERVICES
+================================================================
+  Reads `services`: eyebrow, heading, subhead, items[] (title,
+  description, longDescription, includes[], price, href,
+  image, imageAlt, featured).
+
+  Per-service images are gated on features.hasPhotos as well as
+  a path — a per-service photo asserts the client did THAT job.
+  The hero image is not gated this way; see content.mjs.
+
+  grid-icons   [DEFAULT, no assets]  Scannable card grid, ordinal
+    + title + description + up to 4 includes. The grid WRAPS and
+    its column count is sized for services PLUS the CTA card, so
+    no row is left with a hole. On awkward totals the CTA card
+    spans two columns. A real service is never dropped to make a
+    row even.
+  ledger       [no assets]  Ruled rows, title left / description
+    right / optional "from" price. No cards. Handles very uneven
+    description lengths, which is where card grids break. The
+    price column disappears entirely when no service carries a
+    price — never padded with "POA".
+  split-scroll [needs a photo on EVERY service]  Alternating
+    full-width image/text rows, media side flips each row on
+    desktop. Text always leads on mobile.
+  feature-lead [needs a photo on the LEAD service]  One large
+    service card with imagery, the rest stacked beside it in a
+    single bordered group. Lead comes from items[].featured —
+    first true wins, otherwise items[0].
+  list-detail  [needs longDescription + 2 includes on EVERY
+    service]  Nav list drives a detail panel on desktop,
+    accordion below. Renders as a working accordion with
+    JavaScript off.
+
+================================================================
+  WHY US
+================================================================
+  Reads `whyUs` (array of title, description) or {heading,
+  items[], trust[], type, pairs[], themLabel, usLabel}.
+
+  ALL FOUR RENDER INSIDE THE DARK BAND. whyUs is the template's
+  only permanent mid-page inverted section and the engine relies
+  on it — whyUs and its immediate neighbours are excluded from
+  BAND_ELIGIBLE. A light whyUs variant would invalidate that for
+  every existing client, so the band engine has to change in the
+  same commit if one is ever wanted.
+
+  ruled-rows    [DEFAULT]  Hairline rows, title left / desc
+    right. NO NUMBERING — the points are not a sequence and can
+    be reordered without losing meaning.
+  icon-grid     Tick cards. Column count is chosen to divide the
+    item count, so the last row is never left with a hole.
+  contrast-pair [needs whyUs.pairs[]]  Two columns, the shortcut
+    vs what we do, x against tick. Names the competitor's corner
+    cut without naming a competitor. Reads a DIFFERENT shape
+    from items[] and is filtered out without it — the "them"
+    column is not derivable from a list of benefits and must
+    never be invented.
+  process-rail  [needs whyUs.type: "process"]  Numbered steps on
+    a connecting rail, capped at five so the sequence never
+    wraps on desktop. THE ONLY VARIANT THAT ASSERTS AN ORDER.
+    The test is whether the items can be reordered without
+    losing meaning; if they can, this variant is wrong for them.
+    Gated on the intake declaring a process, never inferred.
+
+================================================================
+  HEADER
+================================================================
+  standard [DEFAULT]  Logo left, nav links, phone + CTA right.
+  minimal             Logo + single phone CTA; no link list.
+  centered            Stacked centred logo + links, CTA right.
+  (Links auto-build from the resolved section order. Mobile menu
+   is vanilla JS.)
+
+
+================================================================
+  ADDING A NEW VARIANT
+================================================================
+  1. Add the name to the section's list in CATALOGUE
+     (src/lib/variants.mjs).
+  2. If it needs data, add a "section/variant" entry to PREREQS.
+  3. Implement the branch in the component, tokens only.
+  4. Document it here. Never introduce a dependency or hex.
+================================================================
+
+
+================================================================
+  SURFACE  (axis — page background treatment, one per site)
+================================================================
+  Seeded per site (or _brief.surface). Subtle + colour-safe; applied to
+  --c-bg only when the client has NOT set an explicit style.bg.
+
+  flat  [default feel]  No change; the paper --c-bg as-is.
+  tint  Page washed in the brand-50 ramp step (derived in Layout).
+  warm  Neutral warm paper (#faf7f2) regardless of brand.
+
+  Override: _brief.surface: "flat" | "tint" | "warm".
+
+
+================================================================
+  SECTION-HEAD GRAMMAR  (kit-driven, NOT a per-section variant)
+================================================================
+  Every section head carries two hook classes: .section-eyebrow and
+  .section-heading. The treatment is chosen by the ACTIVE KIT (class on
+  <html>), so it is consistent across all sections of one site and varies
+  between clients with the kit. Defined in global.css. There is nothing to
+  set per client — it follows the kit.
+
+  ledger    hairline lead-rule before the eyebrow.
+  workshop  heavy accent left-bar, bold eyebrow.
+  coast     filled pill eyebrow, roomier heading.
+  press     sentence-case italic eyebrow, larger serif heading.
+  signal    "+"-prefixed, wide-tracked technical tag.
+
+
+================================================================
+  COLOUR BAND  (axis — one dark mid-page section, contrast-gated)
+================================================================
+  The engine picks ONE eligible mid section to invert into a dark brand
+  band (bandSection). Eligible: tiers, usage, whyUs, story, testimonials
+  (only Section.astro-based sections, so the token remap flips cleanly).
+  Hero/Services/FAQ/Contact never band.
+
+  Mechanism: the assembler wraps the chosen section in .band-dark, which
+  REMAPS the semantic colour tokens (--color-*). Every component inside
+  flips to white-on-dark automatically — no per-component edits.
+
+  Contrast guard: a band only appears if WCAG relative luminance of the
+  client's dark brand is <= 0.183 (white text clears ~4.5:1). Light-branded
+  clients get NO band rather than white-on-pale.
+
+  Override: _brief.bandSection: "none" (disable) | a section key (force).
+
+
+================================================================
+================================================================
+  One style per site. Placed by the assembler between adjacent content
+  sections; skipped after the hero and around the colour band.
+
+  none      rely on background alternation only.
+  hairline  contained top rule in border colour.
+  contour   subtle low-opacity topographic contour line (SVG, tokens only).
+

@@ -1,0 +1,83 @@
+---
+/**
+ * Header — the variant shell and switch.
+ *
+ * Three arrangements, one shell. The sticky behaviour, the scrolled background
+ * swap and the mobile-menu script live here so a variant can never ship without
+ * them — the pieces themselves are in header/HeaderParts.astro.
+ *
+ * THE CONSTRAINT EVERY VARIANT MUST HOLD: the phone and the quote CTA stay
+ * reachable at 375px and in the scrolled state. On a trade site that is the
+ * header's entire job; arrangement is aesthetics. The previous single header
+ * hid BOTH behind `sm:` breakpoints, so on a phone — where most of this traffic
+ * lands — the bar showed a wordmark and a hamburger, with the number one tap
+ * away behind a menu. `features.stickyPhoneBar` was meant to cover that and
+ * ships `false`. Every variant here now renders a tap-to-call pill below the
+ * breakpoint where the text number drops out.
+ */
+import { variantOf } from "../config";
+import HeaderStandard from "./header/HeaderStandard.astro";
+import HeaderCentered from "./header/HeaderCentered.astro";
+import HeaderMinimal from "./header/HeaderMinimal.astro";
+
+const VARIANTS: Record<string, any> = {
+  standard: HeaderStandard,
+  centered: HeaderCentered,
+  minimal: HeaderMinimal,
+};
+const variant = variantOf("header", "standard");
+const HeaderVariant = VARIANTS[variant] || HeaderStandard;
+const bordered = variant !== "minimal";
+---
+
+<header
+  id="site-header"
+  class:list={[
+    "sticky top-0 z-40 transition-[background-color] duration-200",
+    bordered && "border-b border-brand/[0.12]",
+  ]}
+>
+  <HeaderVariant />
+</header>
+
+<style is:global>
+  #site-header {
+    background-color: transparent;
+  }
+
+  /* Solid cream when scrolled — 92% color-mix still let page text ghost through. */
+  #site-header.is-scrolled {
+    background-color: var(--color-bg);
+  }
+</style>
+
+<script>
+  const header = document.getElementById("site-header");
+  const toggle = document.getElementById("menu-toggle");
+  const panel = document.getElementById("mobile-menu");
+
+  const readScrollY = () =>
+    window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+  const setScrolled = () => {
+    header?.classList.toggle("is-scrolled", readScrollY() > 80);
+  };
+  setScrolled();
+
+  /* body overflow-x:hidden made body a scroll container in some engines so
+     window "scroll" never fired — clip avoids that; still listen on all roots. */
+  const scrollOpts: AddEventListenerOptions = { passive: true, capture: true };
+  window.addEventListener("scroll", setScrolled, scrollOpts);
+  document.addEventListener("scroll", setScrolled, scrollOpts);
+  document.documentElement.addEventListener("scroll", setScrolled, { passive: true });
+  document.body.addEventListener("scroll", setScrolled, { passive: true });
+
+  const setOpen = (open: boolean) => {
+    if (!toggle || !panel) return;
+    panel.classList.toggle("hidden", !open);
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  };
+  toggle?.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+  document.querySelectorAll("[data-menu-link]").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+</script>

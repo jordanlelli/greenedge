@@ -1,0 +1,144 @@
+================================================================
+  BUILD-PLAYBOOK.txt — NEW CLIENT, START TO LIVE
+  (v2 — variant-engine template)
+================================================================
+  The end-to-end build sequence. Read alongside
+  workflow-cheat-sheet.txt (commands + prompts), CURSOR-CONTEXT.txt
+  (build rules), and VARIANTS.txt (the catalogue).
+
+  MENTAL MODEL
+  ------------
+  One frozen template + one JSON per client. The template never
+  changes per client. A seeded engine reads the JSON and decides
+  the design kit, each section's layout variant, and the section
+  order — so every client looks different but stays stable across
+  rebuilds. Your job per client is the JSON, not the code.
+
+
+================================================================
+  STEP 0 — BEFORE YOU TOUCH ANYTHING
+================================================================
+  Decide what you actually have for this client:
+  - Real photos?  -> if yes, you'll set features.hasPhotos: true
+    and put files in public/images. If no, leave it false and the
+    engine avoids photo-only layouts automatically.
+  - Real reviews? -> gather them now; placeholder testimonials get
+    replaced before launch, never invented and left.
+  - Email or form? -> if no email, you'll go phone-first (no form
+    endpoint) or wire a FormSubmit endpoint (the default).
+  - Founding year / real numbers? -> enables timeline / stat-bar.
+
+
+================================================================
+  STEP 1 — SPIN UP THE FOLDER
+================================================================
+  1. Copy the template to a CLIENT-NAME folder.
+  2. Open in Cursor.
+  3. npm ci
+
+
+================================================================
+  STEP 2 — FILL client-intake.json (THE WHOLE JOB)
+================================================================
+  Either paste the questionnaire and use prompt 4A to generate the
+  JSON, or hand-fill it. Then validate with prompt 4B.
+
+  Required to launch:
+    business.name, contact.phone, and one of
+    (contact.email OR contact.formEndpoint).
+
+  Content blocks (fill what applies; empty sections won't render):
+    hero, services.items, tiers, usage, whyUs, story,
+    testimonials, faqs.items, contactSection, footer, seo.
+
+  The two layers:
+    - Everything outside _brief is CONTENT — it renders.
+    - _brief is DIRECTION — it never renders. Put the vibe, voice,
+      palette intent, and any variant/kit overrides here.
+
+  The control fields:
+    style.brand / brandDark / accent / highlight   (+ optional
+      bg/card/ink/muted/border), theme: light|dark
+    sections: [ ... ]   decides which sections appear + base order
+                        (hero/services pin near top; faq/contact
+                         pin to bottom; the rest get shuffled)
+    features.hasPhotos: true ONLY with real photos
+    contact.formEndpoint: form URL, or omit for phone-first
+    _brief.designKit: pick a kit, or leave blank for a seeded pick
+    _brief.layoutVariants.<section>: force a layout, or leave blank
+    _brief.variantSeed: change to reshuffle the whole look
+
+
+================================================================
+  STEP 3 — LOCK THE VARIANTS
+================================================================
+  npm run variants
+
+  Writes the resolved designKit, layoutVariants, and section order
+  into client-intake.json so you can SEE and tweak them. Idempotent.
+  If you don't love a pick, change that one value by hand (valid
+  names in VARIANTS.txt) and rebuild — the rest stay put. To re-roll
+  everything, bump _brief.variantSeed, clear the picks, re-run.
+
+
+================================================================
+  STEP 4 — PREVIEW & TUNE
+================================================================
+  npm run dev   ->  http://localhost:4321
+
+  Eyeball it at full width, half-screen, and mobile. Tuning is all
+  JSON (Section 3 of the cheat sheet):
+    - Wrong personality?      change _brief.designKit
+    - One section off?        set _brief.layoutVariants.<section>
+    - Colours off?            edit the style block
+    - Photos look broken?     features.hasPhotos is true without
+                              real photos — set it false
+    - Form dead?              add contact.formEndpoint
+
+  Do NOT fix layout by editing components. If something is wrong
+  for ALL clients, that's a system-level change (prompt 4G) — rare.
+
+
+================================================================
+  STEP 5 — PRE-LAUNCH QA
+================================================================
+  Run prompt 4E. Then manually confirm:
+    - Every section in `sections` renders and reads well.
+    - No placeholder/lorem/REQUIRED text; testimonials are REAL.
+    - Phone is click-to-call; form submits (or phone-first is
+      intended).
+    - Nothing from _brief appears on the page.
+    - Title/description set in the seo block.
+  npm run build   (must complete with no errors)
+
+
+================================================================
+  STEP 6 — DEPLOY
+================================================================
+  git init / add / commit, gh repo create --private --push.
+  Vercel: import repo, Astro preset, build = npm run build,
+  install = npm ci, output = dist. Add the domain + DNS.
+  (Full commands in cheat-sheet Section 5.)
+
+
+================================================================
+  STEP 7 — POST-LAUNCH
+================================================================
+  - Swap placeholder testimonials for real Google reviews.
+  - Add real photos when available, then features.hasPhotos: true
+    (this can unlock richer layouts on the next variants run).
+  - Later edits: change the JSON, commit, push. Auto-deploys.
+
+
+================================================================
+  COMMON MISTAKES (all carried over from the v1 habit set)
+================================================================
+  - Editing a component for one client. (Changes everyone.)
+  - Asking Cursor to "confirm tailwind.config". (Gone.)
+  - Forgetting npm run variants, then wondering why a fresh client
+    looks like the last one.
+  - Setting features.hasPhotos: true with only placeholder paths,
+    producing broken-image heroes.
+  - Inventing testimonials and leaving them live.
+  - npm install --legacy-peer-deps / npm update / audit fix --force.
+================================================================

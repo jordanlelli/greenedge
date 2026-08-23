@@ -1,0 +1,207 @@
+---
+/**
+ * ServicesListDetail — nav list drives a detail panel on desktop, accordion
+ * below. The most content-hungry variant, so it is hard-gated on every item
+ * having a longDescription AND at least two `includes` entries. Rendered
+ * without that depth it is a panel of whitespace.
+ *
+ * Progressive enhancement: the markup is a stack of <details> elements, which
+ * works with JavaScript off and is what mobile shows. The script converts it to
+ * a two-pane list/detail at the desktop breakpoint. If the script never runs,
+ * the accordion is still a correct, usable rendering of the same content.
+ *
+ * Vanilla JS only — no framework, no library. Template rule.
+ */
+interface Props { items: any[]; }
+const { items } = Astro.props;
+const uid = "svcld";
+---
+
+<div class="svc-ld" data-svc-listdetail>
+  <div class="svc-ld-nav" role="tablist" aria-label="Services" hidden>
+    {items.map((it: any, i: number) => (
+      <button
+        type="button"
+        role="tab"
+        id={`${uid}-tab-${i}`}
+        aria-controls={`${uid}-panel-${i}`}
+        aria-selected={i === 0 ? "true" : "false"}
+        tabindex={i === 0 ? 0 : -1}
+        class="svc-ld-tab"
+      >
+        <span>{it.title}</span>
+        <span class="svc-ld-tab-mark" aria-hidden="true">→</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="svc-ld-panes">
+    {items.map((it: any, i: number) => (
+      <details class="svc-ld-item" open={i === 0} id={`${uid}-panel-${i}`}>
+        <summary class="svc-ld-summary">
+          <span class="font-heading text-lg font-semibold text-brand">{it.title}</span>
+          <svg class="svc-ld-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+          </svg>
+        </summary>
+        <div class="svc-ld-body">
+          <h3 class="svc-ld-title font-heading text-2xl font-semibold leading-tight text-brand" hidden>{it.title}</h3>
+          {it.description && <p class="text-base leading-relaxed text-muted">{it.description}</p>}
+          {it.longDescription && <p class="mt-3 text-base leading-relaxed text-muted">{it.longDescription}</p>}
+          {it.includes.length > 0 && (
+            <ul class="mt-5 grid gap-2 sm:grid-cols-2">
+              {it.includes.slice(0, 8).map((inc: string) => (
+                <li class="flex gap-2 text-sm leading-snug text-ink">
+                  <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-highlight" aria-hidden="true"></span>
+                  <span>{inc}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {it.price && <p class="mt-4 font-heading text-lg font-semibold text-brand">{it.price}</p>}
+          {it.href && (
+            <p class="mt-4">
+              <a href={it.href} class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
+                More on {it.title} <span class="ml-2" aria-hidden="true">→</span>
+              </a>
+            </p>
+          )}
+        </div>
+      </details>
+    ))}
+  </div>
+</div>
+
+<style>
+  .svc-ld {
+    display: grid;
+    grid-template-columns: 1fr;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border);
+  }
+
+  .svc-ld-item { border-bottom: 1px solid var(--color-border); }
+  .svc-ld-item:last-child { border-bottom: 0; }
+
+  .svc-ld-summary {
+    display: flex;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    min-height: 2.75rem;
+  }
+  .svc-ld-summary::-webkit-details-marker { display: none; }
+  .svc-ld-icon {
+    height: 1.25rem;
+    width: 1.25rem;
+    flex-shrink: 0;
+    color: var(--color-accent-ink);
+    transition: transform 0.2s;
+  }
+  .svc-ld-item[open] .svc-ld-icon { transform: rotate(45deg); }
+  .svc-ld-body { padding: 0 1.25rem 1.5rem; }
+
+  .svc-ld-nav { border-bottom: 1px solid var(--color-border); background: var(--color-card); }
+  .svc-ld-tab {
+    display: none;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem 1.25rem;
+    min-height: 2.75rem;
+    text-align: left;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-muted);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+  }
+  .svc-ld-tab-mark { opacity: 0; color: var(--color-accent-ink); }
+  .svc-ld-tab[aria-selected="true"] {
+    background: var(--color-bg);
+    color: var(--color-brand);
+    font-weight: 700;
+    box-shadow: inset 3px 0 0 var(--color-accent);
+  }
+  .svc-ld-tab[aria-selected="true"] .svc-ld-tab-mark { opacity: 1; }
+  .svc-ld-tab:focus-visible { outline: 2px solid var(--color-brand); outline-offset: -2px; }
+
+  @media (min-width: 64rem) {
+    /* Two-pane only once the script has switched it on, so a no-JS desktop
+       still gets the working accordion rather than an empty left rail. */
+    .svc-ld[data-enhanced="true"] { grid-template-columns: 0.36fr 0.64fr; }
+    .svc-ld[data-enhanced="true"] .svc-ld-nav {
+      border-bottom: 0;
+      border-right: 1px solid var(--color-border);
+    }
+    .svc-ld[data-enhanced="true"] .svc-ld-tab { display: flex; }
+    .svc-ld[data-enhanced="true"] .svc-ld-tab:last-child { border-bottom: 0; }
+    .svc-ld[data-enhanced="true"] .svc-ld-summary { display: none; }
+    .svc-ld[data-enhanced="true"] .svc-ld-title { display: block; margin: 0 0 0.75rem; }
+    .svc-ld[data-enhanced="true"] .svc-ld-item { border-bottom: 0; }
+    .svc-ld[data-enhanced="true"] .svc-ld-body { padding: 1.75rem 2rem 2rem; }
+  }
+</style>
+
+<script>
+  (() => {
+    const DESKTOP = window.matchMedia("(min-width: 64rem)");
+
+    document.querySelectorAll("[data-svc-listdetail]").forEach((root) => {
+      const nav = root.querySelector(".svc-ld-nav");
+      const tabs = Array.from(root.querySelectorAll(".svc-ld-tab"));
+      const panes = Array.from(root.querySelectorAll(".svc-ld-item"));
+      const titles = Array.from(root.querySelectorAll(".svc-ld-title"));
+      if (!nav || !tabs.length || tabs.length !== panes.length) return;
+
+      let active = 0;
+
+      const select = (i) => {
+        active = i;
+        tabs.forEach((t, n) => {
+          t.setAttribute("aria-selected", n === i ? "true" : "false");
+          t.tabIndex = n === i ? 0 : -1;
+        });
+        panes.forEach((p, n) => { p.open = n === i; });
+      };
+
+      const enhance = () => {
+        root.dataset.enhanced = "true";
+        nav.hidden = false;
+        titles.forEach((t) => t.removeAttribute("hidden"));
+        select(active);
+      };
+      const revert = () => {
+        delete root.dataset.enhanced;
+        nav.hidden = true;
+        titles.forEach((t) => t.setAttribute("hidden", ""));
+        /* Accordion default: first open, the rest closed — the same state the
+           server rendered. */
+        panes.forEach((p, n) => { p.open = n === 0; });
+      };
+
+      tabs.forEach((tab, i) => {
+        tab.addEventListener("click", () => select(i));
+        tab.addEventListener("keydown", (e) => {
+          const delta = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+          if (!delta) return;
+          e.preventDefault();
+          const next = (i + delta + tabs.length) % tabs.length;
+          select(next);
+          tabs[next].focus();
+        });
+      });
+
+      const apply = () => (DESKTOP.matches ? enhance() : revert());
+      apply();
+      DESKTOP.addEventListener("change", apply);
+    });
+  })();
+</script>

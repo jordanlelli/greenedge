@@ -1,0 +1,96 @@
+---
+/**
+ * HeroIndex — a numbered service index on a tinted left rail, copy right.
+ *
+ * Puts the service list above the fold, which for a trade site is very often
+ * the only question the visitor has. Needs no photography.
+ *
+ * Gated on FOUR OR MORE services. With two or three the rail is mostly empty
+ * and the page looks like it is missing something — which is why the gate lives
+ * in the engine's PREREQS as well as in the fallback below, rather than being
+ * left to whoever edits the intake.
+ *
+ * The ordinals are an INDEX, not a sequence. Services are reorderable without
+ * losing meaning, so there is no rail, no connector and no arrow between them —
+ * the numbers count the list, they do not imply steps. Process ordering lives
+ * in whyUs/process-rail, which is gated on content that actually is a sequence.
+ */
+import HeroCopy from "./HeroCopy.astro";
+import { site } from "../../config";
+
+const items = (site.services?.items || [])
+  .filter((it: any) => it && String(it.title || "").trim())
+  .slice(0, 6);
+
+const eyebrow = site.services?.eyebrow || "What we do";
+---
+
+<section class="relative overflow-hidden bg-bg" data-no-reveal>
+  <div class="hero-pad mx-auto grid max-w-[var(--w-content)] gap-0 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] lg:px-8">
+    <div class="hero-index-rail order-2 min-w-0 lg:order-1">
+      <p class="text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">
+        {eyebrow}
+      </p>
+      <ul class="hero-index-list">
+        {items.map((it: any, i: number) => (
+          <li class="hero-index-item">
+            <span class="hero-index-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            <span class="hero-index-label">
+              {it.href ? (
+                <a href={it.href} class="underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{it.title}</a>
+              ) : it.title}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="order-1 min-w-0 lg:order-2 lg:pl-14">
+      <HeroCopy size="default" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-index-rail {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .hero-index-list { margin: 1rem 0 0; padding: 0; list-style: none; }
+
+  .hero-index-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.875rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: var(--color-ink);
+  }
+  .hero-index-item:last-child { border-bottom: 0; }
+
+  .hero-index-num {
+    flex-shrink: 0;
+    font-family: var(--font-display, inherit);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--color-accent-ink);
+  }
+  .hero-index-label { min-width: 0; }
+
+  @media (min-width: 64rem) {
+    .hero-index-rail {
+      margin-top: 0;
+      padding: 2rem 2rem 2.25rem;
+      border-top: 0;
+      border-radius: var(--radius-card);
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      align-self: start;
+    }
+  }
+</style>

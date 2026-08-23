@@ -1,0 +1,113 @@
+================================================================
+  INTAKE-MERGE.txt — DEMO FILE  ->  CLIENT QUESTIONNAIRE  ->  REBUILD
+================================================================
+  The two intake files in your pipeline have INVERTED quality:
+
+    RECON DEMO file:  strong authored _brief, GUESSED content.
+    FORM EXPORT file: real content, WEAK/empty _brief (a form
+                      cannot produce good creative direction; a
+                      tradie types "green, professional").
+
+  If you let the form export REPLACE the demo file wholesale, you
+  throw away the authored _brief that made the demo look on-brand,
+  and the rebuild regresses to generic. The client approved the
+  demo; shipping a worse rebuild is the opposite of a show of faith.
+
+  Therefore the default operation is MERGE WITH PRECEDENCE, not
+  replace. A pure-replace path is documented at the bottom for the
+  case where you deliberately want to re-author _brief from scratch.
+
+
+================================================================
+  MERGE PRECEDENCE (default)
+================================================================
+  CLIENT CONTENT OVERWRITES your guesses (they know their business):
+    business.*            (name, tagline, trade, abn, licence,
+                           established, hours)
+    contact.*             (phone, email, address, socials,
+                           enquiryTypes)
+    services.items[]      (real service list + descriptions)
+    testimonials[]        (real reviews — replace all placeholders)
+    faqs.items[]          (their real questions)
+    usage.items[]         (their real service suburbs)
+    seo.*                 (regenerate from real content)
+    features.hasPhotos    (true ONLY if they actually sent photos)
+
+  YOUR AUTHORED _brief SURVIVES (the form cannot better it):
+    _brief.designDirection (vibe, voice, palette intent, motif)
+    _brief.designKit / surface / bandSection /
+      layoutVariants / variantSeed
+    UNLESS a client answer actively contradicts it (see below).
+
+  CLIENT "VIBE" ANSWERS are RAW INPUT, not direction:
+    Dump them under _brief.rawClientAnswers, then translate the
+    useful parts INTO _brief.designDirection yourself. Do not paste
+    a tradie's one-line vibe answer in as the finished brief.
+
+
+================================================================
+  CONFLICT PASS (run every time before rebuilding)
+================================================================
+  1. BRAND COLOUR. Your demo guessed a palette. If the client gives
+     real brand colours, replace style.brand/brandDark/accent/
+     highlight. CHECK: is the new brandDark still dark
+     (luminance <= 0.183)? If they went light, the colour band
+     will vanish — decide: accept no band, or set a dark brandDark
+     anyway, or _brief.bandSection: "none" to make it intentional.
+  2. VIBE CONTRADICTION. If a client answer contradicts your demo
+     direction (you built green, they say "we hate green"; you
+     picked press/serif, they say "modern and techy"), the client
+     wins — update _brief.designDirection and, if needed, designKit.
+  3. PHOTOS. features.hasPhotos flips to true ONLY if real files
+     arrived. If not, keep it false; do not trust image paths.
+  4. SECTIONS. If real content means a block is now empty (no
+     reviews yet, no tiers), remove that key from `sections` rather
+     than shipping an empty or placeholder section.
+  5. SEED. Keep the SAME business.name + domain so the engine
+     resolves the SAME kit/order the client approved — unless a
+     conflict above forced a kit change. Do not let the design
+     shift under the client silently.
+
+
+================================================================
+  THE CURSOR PROMPT (merge, do not clobber)
+================================================================
+  Paste the client's form-export JSON below the prompt, with the
+  existing demo client-intake.json open in the project:
+
+  ----------------------------------------------------------------
+  I am merging a client's questionnaire export INTO the existing
+  client-intake.json, which already has an authored _brief I want
+  to KEEP. Rules:
+  - Overwrite all CONTENT (business, contact, services.items,
+    testimonials, faqs.items, usage.items, seo, hours) with the
+    values from the pasted JSON below.
+  - PRESERVE the existing _brief.designDirection and all
+    _brief engine overrides (designKit, surface,
+    bandSection, layoutVariants, variantSeed) unless a pasted
+    answer contradicts them.
+  - Put any client "look/feel/vibe" answers under
+    _brief.rawClientAnswers verbatim; do not overwrite
+    _brief.designDirection with them.
+  - If the client supplied real brand colours, update the style
+    block, then tell me the new brandDark luminance and whether
+    the colour band still passes the guard (<= 0.183).
+  - Set features.hasPhotos true ONLY if the JSON references real
+    uploaded photos; otherwise keep it false.
+  - List every field you changed and every conflict you found
+    with the existing _brief. Do not invent testimonials or stats.
+  Output the merged client-intake.json only.
+  ----------------------------------------------------------------
+
+
+================================================================
+  ALTERNATIVE: PURE REPLACE  (NOT recommended)
+================================================================
+  Only if you intend to re-author _brief from scratch every time.
+  Cost: you lose the demo's authored direction, the rebuild will
+  not match the approved demo, and same-trade sites drift. If you
+  still want it: swap the form export in as client-intake.json,
+  then paste a fresh trade preset from brief-presets.txt into
+  _brief and re-author designDirection before building. Expect the
+  result to differ from what the client signed off on.
+================================================================

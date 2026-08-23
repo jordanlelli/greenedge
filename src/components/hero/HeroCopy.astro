@@ -1,0 +1,118 @@
+---
+/**
+ * HeroCopy — the copy block every hero variant shares.
+ *
+ * Extracted so the four variants differ in COMPOSITION only. When the headline,
+ * CTAs and trust marks are duplicated per variant they drift, and three of the
+ * four end up missing whatever was added last. This is the same lesson as the
+ * palette: one implementation, several presentations.
+ */
+import { site, formatPhone } from "../../config";
+// @ts-ignore — plain-JS content normalisers shared with the Node check scripts
+import { resolveTrustMarks, resolveSecondaryCta } from "../../lib/content.mjs";
+
+interface Props {
+  tone?: "light" | "ondark";
+  size?: "default" | "large";
+}
+const { tone = "light", size = "default" } = Astro.props;
+
+const h = site.hero || {};
+const heading = h.heading || site.business?.tagline || "";
+const headingTint = h.headingTint || "";
+const subhead = h.subhead || "";
+const body = h.body || "";
+const eyebrow = h.eyebrow || "";
+const locationLine = h.locationLine || "";
+const primaryLabel = h.primaryCtaLabel || site.contact?.headerCtaLabel || "Get a free quote";
+const primaryHref = h.primaryCtaHref || "#contact";
+const phone = site.contact?.phone || "";
+const trustMarks = resolveTrustMarks(site);
+const secondaryCta = resolveSecondaryCta(site);
+
+const onDark = tone === "ondark";
+const inkClass = onDark ? "text-ondark" : "text-brand";
+const bodyClass = onDark ? "text-ondark/85" : "text-muted";
+const tintClass = onDark ? "text-accent-ondark" : "text-brand-secondary-ink";
+/* Fluid, and self-contained ON PURPOSE. The old scale (text-4xl / sm:text-5xl /
+   lg:text-6xl) capped at 60px from 1024px up, so the headline was identical on
+   a 13" laptop and a 32" monitor. These clamps keep growing. Kept as arbitrary
+   Tailwind values rather than a class in global.css because Tailwind preflight
+   resets h1 to font-size:inherit — if the two files ever fall out of sync, a
+   hook class would drop the largest element on the page to body size. */
+const headingSize =
+  size === "large"
+    ? "text-[clamp(2.75rem,calc(1.1rem+4.9vw),6.25rem)] leading-[1.02]"
+    : "text-[clamp(2.5rem,calc(1rem+4vw),5.25rem)] leading-[1.04]";
+---
+
+{eyebrow && (
+  <p class:list={["text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em]", tintClass]}>
+    {eyebrow}
+  </p>
+)}
+
+<h1 class:list={["font-heading font-semibold tracking-tight", eyebrow && "mt-3", headingSize, inkClass]}>
+  {heading}{headingTint && <> <span class={tintClass}>{headingTint}</span></>}
+</h1>
+
+{subhead && <p class:list={["mt-5 max-w-prose text-lg leading-relaxed", onDark ? "text-ondark/90" : "text-ink"]}>{subhead}</p>}
+{body && <p class:list={["mt-4 max-w-prose text-base leading-relaxed", bodyClass]}>{body}</p>}
+
+{locationLine && (
+  <p class:list={["mt-5 flex items-center gap-2 text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em]", tintClass]}>
+    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+    </svg>
+    <span>{locationLine}</span>
+  </p>
+)}
+
+<div class="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
+  <a
+    href={primaryHref}
+    class="inline-flex min-h-11 items-center justify-center rounded-card bg-accent px-7 py-3 text-base font-semibold text-on-accent shadow-none transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+  >
+    {primaryLabel}
+  </a>
+  {secondaryCta && (
+    <a
+      href={secondaryCta.href}
+      class:list={[
+        "inline-flex min-h-11 items-center justify-center rounded-card border px-7 py-3 text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+        onDark ? "border-ondark/35 text-ondark hover:border-ondark/60" : "border-border text-brand hover:border-brand/40",
+      ]}
+    >
+      {secondaryCta.label}
+    </a>
+  )}
+  {phone && (
+    <a
+      href={`tel:${formatPhone(phone)}`}
+      class:list={[
+        "inline-flex min-h-11 items-center font-semibold underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+        onDark ? "text-ondark" : "text-[var(--c-brand-900)]",
+      ]}
+    >
+      Call {phone} <span class="ml-2" aria-hidden="true">&#8594;</span>
+    </a>
+  )}
+</div>
+
+{trustMarks.length > 0 && (
+  <ul
+    class:list={[
+      "mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-t pt-5 text-sm font-medium",
+      onDark ? "border-ondark/20 text-ondark/85" : "border-border text-muted",
+    ]}
+  >
+    {trustMarks.map((mark: string) => (
+      <li class="flex items-center gap-2">
+        <svg class:list={["h-4 w-4 shrink-0", onDark ? "text-accent-ondark" : "text-highlight"]} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 111.4-1.4l3.8 3.8 6.8-6.8a1 1 0 011.4 0z" clip-rule="evenodd"></path>
+        </svg>
+        <span>{mark}</span>
+      </li>
+    ))}
+  </ul>
+)}

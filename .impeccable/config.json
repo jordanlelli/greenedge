@@ -1,0 +1,19 @@
+{
+  "ignoreRules": [
+    {
+      "rule": "design-system-radius",
+      "value": "33554432",
+      "reason": "Tailwind v4 rounded-full is calc(infinity * 1px), which the browser clamps to 2^25px (33554432). Not a real design-token value."
+    },
+    {
+      "rule": "em-dash-overuse",
+      "path": "src/styles/global.css",
+      "reason": "The rule counts '--' as well as em dashes, so every --token and var(--x) is a false match. This file is token-heavy; verify real em dashes with: rg -o '\u2014' <file> | wc -l."
+    },
+    {
+      "rule": "em-dash-overuse",
+      "path": "src/layouts/Layout.astro",
+      "reason": "Inline CSS custom properties (--c-*) trip the '--' false match; there are no real em dashes here."
+    }
+  ]
+}

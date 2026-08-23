@@ -1,0 +1,76 @@
+---
+/**
+ * Hero — the variant switch, plus the service-card row.
+ *
+ * This is the FIRST real consumer of `layout.layoutVariants`. That axis has been
+ * resolved by the engine, written into every client intake, validated by
+ * verify-lock and documented across 270 lines of VARIANTS.txt since v3.0, and
+ * read by nothing. Two clients on the same kit therefore got different fonts and
+ * different colours on an identical page. The hero is where that mattered most,
+ * because it is the only part of the page a visitor reliably looks at.
+ *
+ * ROUTING: the seeded variant wins UNLESS its prerequisite is missing. A photo
+ * variant without a photo is the failure that produced the empty right-hand
+ * column, so it falls back to `typographic` rather than rendering a gap. The
+ * engine's PREREQS already gate the draw; this is the second line of defence for
+ * hand-edited intakes.
+ *
+ * The service-card row below the hero is shared by every variant — it is the
+ * same composition regardless, and duplicating it four times is how variants
+ * drift apart.
+ */
+import { site, variantOf } from "../config";
+import HeroSplit from "./hero/HeroSplit.astro";
+import HeroTypographic from "./hero/HeroTypographic.astro";
+import HeroFullbleed from "./hero/HeroFullbleed.astro";
+import HeroDocket from "./hero/HeroDocket.astro";
+import HeroIndex from "./hero/HeroIndex.astro";
+import HeroStatLede from "./hero/HeroStatLede.astro";
+import HeroStats from "./HeroStats.astro";
+
+const h = site.hero || {};
+/* Hero imagery is decorative and no longer gated on features.hasPhotos —
+   see resolveHeroImage in src/lib/content.mjs. */
+const hasRealPhoto = Boolean(h.image);
+
+/* Second line of defence for hand-edited intakes, where someone sets
+   _brief.layoutVariants.hero directly and skips the engine's PREREQS filter.
+   A variant whose data is missing renders a hole, so it falls back instead. */
+const stats = (site.hero?.stats || []).filter(
+  (s: any) => s && String(s.value || "").trim() && String(s.label || "").trim()
+);
+const serviceCount = (site.services?.items || []).filter(
+  (it: any) => it && String(it.title || "").trim()
+).length;
+
+const CAN_RENDER: Record<string, boolean> = {
+  typographic: true,
+  "split-media": hasRealPhoto,
+  fullbleed: hasRealPhoto,
+  docket: true,
+  index: serviceCount >= 4,
+  "stat-lede": stats.length >= 1,
+};
+
+const requested = variantOf("hero", hasRealPhoto ? "split-media" : "typographic");
+const variant = CAN_RENDER[requested] ? requested : "typographic";
+
+const VARIANTS: Record<string, any> = {
+  "split-media": HeroSplit,
+  typographic: HeroTypographic,
+  fullbleed: HeroFullbleed,
+  docket: HeroDocket,
+  index: HeroIndex,
+  "stat-lede": HeroStatLede,
+};
+const HeroVariant = VARIANTS[variant] || HeroTypographic;
+
+/* stat-lede absorbs the stats strip: stats[0] is its lede and stats[1..3] run
+   beneath it. Rendering HeroStats as well would print the same numbers twice
+   on one screen. */
+const showStatsStrip = variant !== "stat-lede";
+
+---
+
+<HeroVariant />
+{showStatsStrip && <HeroStats />}

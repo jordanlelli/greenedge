@@ -1,0 +1,30 @@
+---
+/**
+ * minimal — wordmark, a short nav, one filled pill. No border, no phone text.
+ *
+ * The dark-luxury reference. Fewer exits from the page, more weight on the one
+ * CTA. Pairs with the fullbleed hero, where the header sits over the photo and
+ * a hairline border would cut across it.
+ *
+ * Trimmed to four links on purpose: this arrangement stops reading as
+ * considered the moment it gets crowded.
+ */
+import P from "./HeaderParts.astro";
+import { headerNavLinks } from "../../config";
+
+const links = headerNavLinks().slice(0, 4);
+---
+<div class="mx-auto flex max-w-[var(--w-wide)] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8 lg:py-4">
+  <P part="brand" />
+  <div class="flex items-center gap-3 lg:gap-8">
+    <nav class="hidden items-center gap-7 lg:flex" aria-label="Primary">
+      {links.map((l) => (
+        <a href={l.href} class="text-sm font-medium tracking-tight text-brand/75 transition hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{l.label}</a>
+      ))}
+    </nav>
+    <P part="cta" class="hidden rounded-full px-5 py-2 sm:inline-flex" />
+    <P part="phone" class="inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm text-on-accent sm:hidden" />
+    <P part="burger" />
+  </div>
+</div>
+<P part="panel" />

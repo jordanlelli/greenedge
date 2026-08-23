@@ -1,0 +1,118 @@
+---
+/**
+ * ServicesGridIcons — scannable card grid. The safe default: needs no photos,
+ * no long copy, no per-service depth.
+ *
+ * The grid WRAPS. It previously used grid-auto-flow: column, which put every
+ * service in a single desktop row — five services plus the CTA card meant six
+ * columns at roughly 180px each. Column count now comes from gridShape(), which
+ * sizes for services PLUS the CTA card so no row is ever left with a hole.
+ */
+import { site, formatPhone } from "../../config";
+// @ts-ignore — plain-JS content normaliser shared with the Node check scripts
+import { gridShape } from "../../lib/content.mjs";
+
+interface Props { items: any[]; }
+const { items } = Astro.props;
+
+const { cols, ctaSpan } = gridShape(items.length);
+
+const primaryLabel =
+  site.hero?.primaryCtaLabel || site.contact?.headerCtaLabel || "Get a free quote";
+const phone = site.contact?.phone || "";
+const email = site.contact?.email || "";
+---
+
+<ul class="svc-grid" style={`--svc-cols:${cols};--svc-cta-span:${ctaSpan}`}>
+  {items.map((card: any, i: number) => {
+    const includes = card.includes.slice(0, 4);
+    const HeadingTag = card.href ? "a" : "span";
+    return (
+      <li class="svc-card">
+        <p class="svc-ordinal" aria-hidden="true">{String(i + 1).padStart(2, "0")}</p>
+        <h3 class="font-heading text-xl font-semibold leading-tight text-brand">
+          <HeadingTag
+            {...(card.href ? { href: card.href } : {})}
+            class:list={[card.href && "underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"]}
+          >{card.title}</HeadingTag>
+        </h3>
+        {card.description && (
+          <p class="mt-2 text-sm leading-relaxed text-muted">{card.description}</p>
+        )}
+        {includes.length > 0 && (
+          <ul class="mt-4 space-y-2">
+            {includes.map((item: string) => (
+              <li class="flex gap-2 text-sm leading-snug text-ink">
+                <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-highlight" aria-hidden="true"></span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {card.price && (
+          <p class="svc-price font-heading text-lg font-semibold text-brand">{card.price}</p>
+        )}
+      </li>
+    );
+  })}
+
+  <li class="svc-card svc-card--cta">
+    <h3 class="font-heading text-2xl font-semibold leading-tight">{primaryLabel}</h3>
+    <p class="mt-2 text-base leading-relaxed">Tell us what needs doing and we'll get back to you.</p>
+    {phone ? (
+      <a href={`tel:${formatPhone(phone)}`} class="svc-price font-heading text-xl font-semibold underline underline-offset-4">{phone}</a>
+    ) : email ? (
+      <a href={`mailto:${email}`} class="svc-price break-all font-heading text-base font-semibold underline underline-offset-4">{email}</a>
+    ) : null}
+  </li>
+</ul>
+
+<style>
+  .svc-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .svc-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: var(--radius-card);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 20%, transparent);
+    background: var(--color-card);
+    padding: 1.5rem;
+  }
+
+  .svc-ordinal {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-display, inherit);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--color-accent-ink);
+  }
+
+  /* Pushed to the bottom so prices line up across a row without needing
+     subgrid — which only worked because the old grid was a single row. */
+  .svc-price { margin: auto 0 0; padding-top: 1rem; }
+
+  .svc-card--cta {
+    background: var(--color-accent);
+    border-color: color-mix(in srgb, var(--color-accent) 80%, black);
+    color: var(--color-on-accent);
+  }
+  .svc-card--cta .svc-price { color: var(--color-on-accent); }
+
+  @media (min-width: 40rem) {
+    .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 64rem) {
+    .svc-grid { grid-template-columns: repeat(var(--svc-cols), minmax(0, 1fr)); }
+    .svc-card--cta { grid-column: span var(--svc-cta-span); }
+  }
+</style>

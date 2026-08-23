@@ -1,0 +1,38 @@
+{
+  "name": "universal-template",
+  "type": "module",
+  "version": "3.16.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/check-catalogue.mjs && node scripts/check-universal.mjs && node scripts/check-intake.mjs && node scripts/check-service-prices.mjs && astro build",
+    "build:force-placeholders": "node scripts/check-universal.mjs && node scripts/check-intake.mjs && node scripts/check-service-prices.mjs --allow-placeholders && astro build",
+    "check:prices": "node scripts/check-service-prices.mjs",
+    "preview": "astro preview",
+    "variants": "node scripts/pick-variants.mjs",
+    "verify:lock": "node scripts/verify-lock.mjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "regen": "npm run variants && npm run build",
+    "fresh": "npm run clean && npm run variants && npm run build",
+    "qa": "npx --yes impeccable@3 detect dist",
+    "check:universal": "node scripts/check-universal.mjs --report",
+    "check:presets": "node scripts/check-presets.mjs --verbose",
+    "palette": "node scripts/check-universal.mjs --report",
+    "check:intake": "node scripts/check-intake.mjs",
+    "new-client": "node scripts/new-client.mjs",
+    "preflight": "node scripts/check-universal.mjs --report && node scripts/check-intake.mjs",
+    "check:catalogue": "node scripts/check-catalogue.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.1.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "sharp": true
+  }
+}

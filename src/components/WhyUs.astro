@@ -1,0 +1,145 @@
+---
+/**
+ * WhyUs — the variant switch, plus the band shell and the trust strip.
+ *
+ * ALL FOUR VARIANTS RENDER INSIDE THE DARK BAND. WhyUs is the template's only
+ * permanent mid-page inverted section, and the engine depends on that: whyUs is
+ * excluded from BAND_ELIGIBLE, and so are its immediate neighbours, because two
+ * dark blocks back to back read as a mistake. Letting a whyUs variant render
+ * light would silently invalidate that exclusion for every existing client on
+ * next rebuild. If light whyUs variants are ever wanted, the band engine has to
+ * change in the same commit.
+ *
+ * The heading and trust strip live here, not in the variants, so a new variant
+ * cannot forget them — the same reason SectionHead exists.
+ */
+import { site, variantOf } from "../config";
+import Section from "./Section.astro";
+
+import WhyUsIconGrid from "./whyus/WhyUsIconGrid.astro";
+import WhyUsRuledRows from "./whyus/WhyUsRuledRows.astro";
+import WhyUsContrastPair from "./whyus/WhyUsContrastPair.astro";
+import WhyUsProcessRail from "./whyus/WhyUsProcessRail.astro";
+
+const raw = site.whyUs;
+const block: any = Array.isArray(raw) ? {} : raw || {};
+
+const items: { title: string; description: string }[] = (Array.isArray(raw) ? raw : block.items || [])
+  .filter((it: any) => it && (String(it.title || "").trim() || String(it.description || "").trim()))
+  .map((it: any) => ({ title: String(it.title || "").trim(), description: String(it.description || "").trim() }));
+
+const heading = block.heading || "Why choose us";
+
+/* Trust strip is optional and NEVER fabricated. Supply whyUs.trust[] — real
+   operating hours, service area, ABN status, reply time — or leave it out and
+   the strip is omitted entirely. */
+const trustItems: string[] = Array.isArray(block.trust) ? block.trust.filter(Boolean) : [];
+
+/* contrast-pair reads a different shape: paired them/us statements. The two
+   sides are not derivable from a list of benefits, and inventing the "them"
+   column would be putting words in a competitor's mouth. */
+const pairs: { them: string; us: string }[] = (Array.isArray(block.pairs) ? block.pairs : [])
+  .filter((p: any) => p && String(p.them || "").trim() && String(p.us || "").trim())
+  .map((p: any) => ({ them: String(p.them).trim(), us: String(p.us).trim() }));
+
+/* process-rail asserts a sequence, so it is gated on the intake declaring one.
+   Never inferred from the shape of the items. */
+const isProcess = block.type === "process";
+
+const CAN_RENDER: Record<string, boolean> = {
+  "icon-grid": items.length > 0,
+  "ruled-rows": items.length > 0,
+  "contrast-pair": pairs.length >= 2,
+  "process-rail": isProcess && items.length >= 2,
+};
+
+const requested = variantOf("whyUs", "ruled-rows");
+const variant = CAN_RENDER[requested] ? requested : "ruled-rows";
+
+const hasContent = variant === "contrast-pair" ? pairs.length >= 2 : items.length > 0;
+---
+
+{hasContent && (
+  <Section
+    id="why-us"
+    bg="brand"
+    pad="default"
+    class="why-us-band bg-[var(--c-band)] text-on-band"
+    innerClass="why-us-inner"
+  >
+    <div class="why-us-head max-w-2xl">
+      <h2 class="section-heading font-heading text-3xl font-semibold tracking-tight text-on-band sm:text-4xl">
+        {heading}
+      </h2>
+    </div>
+
+    {trustItems.length > 0 && (
+      <ul class="why-us-trust" aria-label="At a glance">
+        {trustItems.map((label) => (
+          <li class="why-us-trust-item">
+            <span class="why-us-trust-label">{label}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+
+    {variant === "icon-grid" && <WhyUsIconGrid items={items} />}
+    {variant === "ruled-rows" && <WhyUsRuledRows items={items} />}
+    {variant === "contrast-pair" && (
+      <WhyUsContrastPair
+        pairs={pairs}
+        themLabel={block.themLabel || "The cheap quote"}
+        usLabel={block.usLabel || "Us"}
+      />
+    )}
+    {variant === "process-rail" && <WhyUsProcessRail items={items} />}
+  </Section>
+)}
+
+<style>
+  /* Hairlines: quieter than 20% white — structure without a ruled shout. */
+  .why-us-band {
+    --why-rule: var(--c-ondark-rule);
+    --why-ink-soft: var(--c-ondark-soft);
+  }
+
+  /* DESIGN.md spacing: sm 0.5 / md 1 / lg 1.75 / section 5.5 (outer via sec-pad-default). */
+  .why-us-head { margin: 0 0 1.75rem; }
+
+  .why-us-trust {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 0 1.75rem;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--why-rule);
+    border-bottom: 1px solid var(--why-rule);
+  }
+
+  .why-us-trust-item {
+    flex: 1 1 10rem;
+    padding: 0.75rem 1.25rem;
+    border-right: 1px solid var(--why-rule);
+  }
+  .why-us-trust-item:last-child { border-right: none; }
+
+  .why-us-trust-label {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.45;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--why-ink-soft);
+  }
+
+  @media (max-width: 39.99rem) {
+    .why-us-trust-item {
+      border-right: none;
+      border-bottom: 1px solid var(--why-rule);
+      flex: 1 1 100%;
+    }
+    .why-us-trust-item:last-child { border-bottom: none; }
+  }
+</style>

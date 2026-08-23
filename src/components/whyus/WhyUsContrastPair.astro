@@ -1,0 +1,84 @@
+---
+/**
+ * WhyUsContrastPair — two columns, the shortcut vs what we do, ✕ against ✓.
+ *
+ * The strongest selling layout in the set: it names the competitor's corner-cut
+ * without naming a competitor. Reads `whyUs.pairs[]`, a different intake shape
+ * from `whyUs.items[]`, and is filtered out by the engine when pairs are
+ * absent — the two sides are not derivable from a single list of benefits, and
+ * inventing the "them" column would be putting words in a competitor's mouth.
+ */
+interface Props {
+  pairs: { them: string; us: string }[];
+  themLabel: string;
+  usLabel: string;
+}
+const { pairs, themLabel, usLabel } = Astro.props;
+---
+
+<div class="why-pair">
+  <div class="why-pair-col why-pair-col--them">
+    <p class="why-pair-head">{themLabel}</p>
+    <ul class="why-pair-list">
+      {pairs.map((p) => (
+        <li class="why-pair-item why-pair-item--them"><span aria-hidden="true">&#10005;</span><span>{p.them}</span></li>
+      ))}
+    </ul>
+  </div>
+  <div class="why-pair-col why-pair-col--us">
+    <p class="why-pair-head">{usLabel}</p>
+    <ul class="why-pair-list">
+      {pairs.map((p) => (
+        <li class="why-pair-item why-pair-item--us"><span aria-hidden="true">&#10003;</span><span>{p.us}</span></li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<style>
+  .why-pair {
+    display: grid;
+    grid-template-columns: 1fr;
+    border: 1px solid var(--c-ondark-rule);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+
+  .why-pair-col { padding: 1.75rem 1.625rem 1.875rem; }
+  .why-pair-col--them { border-bottom: 1px solid var(--c-ondark-rule); }
+
+  .why-pair-head {
+    margin: 0 0 1.125rem;
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .why-pair-col--them .why-pair-head { color: var(--c-ondark-soft); }
+  .why-pair-col--us .why-pair-head { color: var(--color-accent-ondark); }
+
+  .why-pair-list { margin: 0; padding: 0; list-style: none; }
+
+  .why-pair-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--c-ondark-rule);
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .why-pair-item:last-child { border-bottom: 0; }
+  .why-pair-item span:first-child { flex-shrink: 0; font-weight: 700; font-size: 0.8125rem; line-height: 1.85; }
+
+  .why-pair-item--them { color: var(--c-ondark-soft); }
+  .why-pair-item--them span:first-child { color: var(--c-ondark-soft); }
+  .why-pair-item--us { color: var(--color-ondark); }
+  .why-pair-item--us span:first-child { color: var(--color-accent-ondark); }
+
+  @media (min-width: 48rem) {
+    .why-pair { grid-template-columns: 1fr 1fr; }
+    .why-pair-col--them { border-bottom: 0; border-right: 1px solid var(--c-ondark-rule); }
+  }
+</style>

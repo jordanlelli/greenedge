@@ -1,0 +1,161 @@
+================================================================
+  brief-presets.txt — TRADE _brief PRESETS
+================================================================
+  Drop one of these into the _brief.designDirection block of a
+  fresh client-intake.json (skeleton), then tune per client.
+  This is the layer that makes a painter feel different from a
+  tiler. Content is trade-agnostic; DIRECTION is not.
+
+  TWO WAYS TO USE THE KIT LINE:
+    - LEAVE _brief.designKit EMPTY  -> the engine seeds a kit, so
+      two painters look different. Best for building a varied
+      portfolio of same-trade clients.
+    - SET _brief.designKit = <primary>  -> locks the trade feel.
+      Best for a one-off recon demo where you want it on-brand
+      on the first build.
+
+  PALETTE HEXES BELOW ARE STARTERS for a recon demo when you
+  have no brand yet. Replace with the client's real colours the
+  moment you have them. brandDark MUST stay genuinely dark: it
+  paints the colour band AND satisfies the luminance guard
+  (WCAG luminance <= 0.183). A light brandDark = no band.
+
+  to seed unless the trade clearly wants one.
+
+
+================================================================
+  PAINTER
+================================================================
+  designKit primary: coast      alt: press
+  palette:  brand #1E4C8A   brandDark #0E2A50   accent #E07A2F   highlight #2FA36B
+  vibe:  Clean, colour-confident, dust-free precision. Premium
+         residential repaints and commercial work. Sells the
+         FINISH, not the paint.
+  voice: Precise and tidy. "Clean lines, furniture covered, no
+         overspray, site left spotless." Confident about quality.
+  audience: Homeowners doing a repaint/renovation; property
+         managers; builders needing a reliable sub.
+  motif: Single brushstroke arc, or a thin colour-swatch strip.
+  avoid: Rainbow paint-splatter cliches. "3 rooms for $X"
+         franchise pricing tiles. Roller-and-tin stock photos.
+
+
+================================================================
+  TILER
+================================================================
+  designKit primary: signal     alt: ledger
+  palette:  brand #3A3F45   brandDark #1B1E22   accent #C08A4E   highlight #4C9A8E
+  vibe:  Geometric precision, waterproofing, pattern discipline.
+         Bathrooms, kitchens, outdoor, large-format.
+  voice: Level, square, sealed. "Laid dead level, waterproofed to
+         Australian standard, grout lines you can trust."
+  audience: Renovators; bathroom/kitchen clients; builders.
+  motif: Tessellation / fine grid lines (subtle, behind nothing
+         that carries text).
+  avoid: Busy mosaic backgrounds. Tile-pattern wallpaper under
+         copy. Anything that fights readability.
+
+
+================================================================
+  PLUMBER
+================================================================
+  designKit primary: workshop   alt: signal
+  palette:  brand #0B5CAD   brandDark #06294E   accent #E4572E   highlight #2FA36B
+  vibe:  Reliable, fast, emergency-ready, upfront pricing.
+  voice: 24/7, no-mess, fixed-price. "Turn up on time, fix it
+         once, clean up after."
+  audience: Homeowners with urgent problems; real estate; strata.
+  specialFeatures: turn on features.stickyPhoneBar (emergency
+         call bar); lead with phone, not a form; upfront-pricing
+         trust marks.
+  motif: None needed; let the strong CTA and phone carry it.
+  avoid: Cartoon plunger mascots. "Friendly neighbourhood
+         plumber" comic tone. Overuse of pipe imagery.
+
+
+================================================================
+  ELECTRICIAN
+================================================================
+  designKit primary: signal     alt: workshop
+  palette:  brand #1466C7   brandDark #0A2B54   accent #F2B01E   highlight #2FA36B
+  NOTE: if the client's brand is amber/yellow (common), keep
+        that as ACCENT and set a dark charcoal brandDark like
+        #1C2029 so the colour band still works. A light brand is
+        fine; a light brandDark is not.
+  vibe:  Safety, compliance, precision, energy. Modern-technical.
+  voice: Licensed, certified, tested-and-tagged, compliant.
+  audience: Homeowners; builders; commercial fit-outs; solar.
+  motif: A single clean bolt or circuit line, understated.
+  avoid: Lightning-bolt clip-art overload. Wall-to-wall hi-vis
+         yellow. Danger/shock fear imagery.
+
+
+================================================================
+  LANDSCAPER   (landscaping / property care)
+================================================================
+  designKit primary: coast      alt: workshop (hardscaping focus)
+  palette:  brand #1F3D2B   brandDark #0F2417   accent #C2410C   highlight #65A30D
+  vibe:  Natural, considered, earthy. Premium-but-down-to-earth.
+  voice: Down-to-earth, quality-led, local. Sounds like a person.
+  audience: Homeowners who value their garden and have budget for
+         ongoing maintenance or a build.
+  motif: Botanical — curved hedge silhouette, low-opacity leaf.
+  avoid: Stock immaculate-lawn photos. Green/blue gradients.
+         Italic script fonts. Franchise-template look.
+
+
+================================================================
+  CARPENTER
+================================================================
+  designKit primary: press      alt: workshop (framing/structural)
+  palette:  brand #6B4A2E   brandDark #2E1F13   accent #B07A3C   highlight #7A8B3C
+  vibe:  Craftsmanship, warmth, bespoke joinery, made-to-last.
+  voice: Handmade, measured, honest. "Built once, built right."
+  audience: Renovators; bespoke furniture/joinery clients;
+         builders needing a fit-out chippy.
+  motif: Woodgrain hairline, or a single dovetail/joint mark.
+  avoid: Sawdust-splatter textures. Generic "handyman" clutter.
+         Stocky tool-belt photography.
+
+
+================================================================
+  ROOFER
+================================================================
+  designKit primary: workshop   alt: signal
+  palette:  brand #3E4A54   brandDark #1E262C   accent #C4432B   highlight #4C9A8E
+  vibe:  Sturdy, weatherproof, protective, structural.
+  voice: Leak-free, flashed, warrantied, licensed. Solid, not
+         salesy. "Sealed and guaranteed."
+  audience: Homeowners with leaks/re-roofs; builders; strata.
+  motif: Roofline chevron / ridge line.
+  avoid: Dramatic storm-damage photos as decoration. Fear-based
+         "your roof could collapse" framing.
+
+
+================================================================
+  CONCRETER
+================================================================
+  designKit primary: workshop
+  palette:  brand #4A4E52   brandDark #23262A   accent #E08A1E   highlight #6C8EA8
+  vibe:  Heavy, solid, monolithic, foundational. The workshop
+         kit's square radius + hard-offset shadow already reads
+         like poured concrete — lean into it.
+  voice: Solid, heavy-duty. "Poured level, finished sharp —
+         exposed aggregate, polished, or plain."
+  audience: Homeowners (driveways, slabs, paths); builders.
+  motif: Slab edge / aggregate speckle (subtle).
+  avoid: Cement-bag clip art. Flat greyscale monotony — the
+         safety-orange accent exists to break it up.
+
+
+================================================================
+  ADDING A NEW TRADE
+================================================================
+  1. Pick a primary kit by personality: workshop (heavy/solid),
+     signal (technical/modern), coast (soft/approachable),
+     press (refined/craft), ledger (editorial).
+  2. Choose brand + a genuinely DARK brandDark (for the band).
+  3. Write vibe / voice / audience / motif / avoid in the
+     client's world, not generic marketing.
+  4. Decide lock-vs-seed on designKit per the top of this file.
+================================================================

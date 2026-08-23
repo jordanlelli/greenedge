@@ -1,0 +1,305 @@
+{
+  "_comment": "SKELETON INTAKE \u2014 trade-agnostic. Copy this over client-intake.json, paste a trade preset from brief-presets.txt into _brief, then fill the content. Every _-prefixed key (including these _comment notes) is stripped by config.ts and NEVER renders. Read INTAKE-SPEC.txt before filling.",
+  "_brief": {
+    "_comment": "DIRECTION, never content. config.ts strips this whole block. Two kinds of keys: (1) ENGINE OVERRIDES read by variants.mjs; (2) CREATIVE DIRECTION in designDirection{} read by Cursor/you. Leave an engine override empty to let the seeded engine choose (more portfolio variety); set it to LOCK that axis.",
+    "variantSeed": "",
+    "designKit": "",
+    "surface": "",
+    "bandSection": "",
+    "layoutVariants": {
+      "_comment": "Force a variant per section, or leave empty for the seeded pick. Valid names are in VARIANTS.txt and enforced by check-catalogue.mjs. story, testimonials and footer have ONE layout each \u2014 they have no variant axis, so no key here.",
+      "hero": "",
+      "services": "",
+      "whyUs": "",
+      "header": ""
+    },
+    "_engine_key_reference": "designKit: ledger|workshop|coast|press|signal (this also picks the two typefaces, loaded per-kit by astro.config.mjs) | surface: flat|tint|warm | bandSection: <a section key present in `sections`> OR none | variantSeed: any string (change to reshuffle the whole look)",
+    "designDirection": {
+      "_comment": "Read by Cursor as creative guidance; ignored by the engine. This is what makes a painter feel different from a tiler. Fill from a brief-presets.txt preset, then tune per client.",
+      "vibe": "",
+      "voice": "",
+      "audience": "",
+      "palette": {
+        "mood": "",
+        "primary": "",
+        "secondary": "",
+        "highlight": "",
+        "background": "",
+        "feelingWords": []
+      },
+      "motif": "",
+      "avoid": ""
+    },
+    "notesForCursor": "",
+    "completedBy": "",
+    "completedAt": "",
+    "sourceStage": "recon-demo | client-questionnaire",
+    "_layoutVariantsNote": "Only hero and header have rendering variants. hero: typographic|split-media|fullbleed|editorial (the last two need features.hasPhotos). header: standard|minimal|centered. Empty = the engine seeds it from the client name."
+  },
+  "_meta": {
+    "domain": "example.com.au",
+    "deployTarget": "vercel",
+    "notes": "",
+    "_comment_domain": "REQUIRED: replace with the client's real domain. Seeds the engine (with business.name) and sets the canonical/sitemap URL."
+  },
+  "theme": "light",
+  "_comment_sections": "Controls WHICH sections render and the base order. hero+services pin near the top; faq/faqs+contact pin to the bottom; the rest is seeded-shuffled unless _brief.sectionsLocked is true. Remove a key to drop that section.",
+  "sections": [
+    "hero",
+    "services",
+    "tiers",
+    "whyUs",
+    "areas",
+    "story",
+    "testimonials",
+    "faqs",
+    "contact"
+  ],
+  "pages": {
+    "_comment": "Per-page switches. A page turned on with no content redirects home instead of building.",
+    "services": true,
+    "gallery": false,
+    "faq": true,
+    "areas": false
+  },
+  "business": {
+    "name": "REQUIRED",
+    "tagline": "",
+    "shortDescription": "",
+    "trade": "",
+    "abn": "",
+    "licence": "",
+    "established": "",
+    "logoText": "",
+    "logoMarkText": "",
+    "logo": ""
+  },
+  "contact": {
+    "phone": "REQUIRED",
+    "email": "REQUIRED \u2014 the dev banner flags this even for phone-first clients.",
+    "formEndpoint": "",
+    "address": "Adelaide SA 5000",
+    "hours": "",
+    "instagram": "",
+    "facebook": "",
+    "tiktok": "",
+    "headerCtaLabel": "Get a free quote",
+    "headerCtaHref": "#contact",
+    "enquiryTypes": [
+      "Free quote",
+      "General enquiry"
+    ]
+  },
+  "style": {
+    "_comment": "Client's real brand colours. ONLY brand, brandDark and accent are required \u2014 every other colour on the site (page paper, body ink, muted text, borders, card, eyebrow ink, on-dark text, the section band, and the text colour on every CTA) is DERIVED from these by src/lib/palette.mjs and contrast-checked at build time. Do not paste colours from another client's intake to 'fill it in' \u2014 that is how a landscaper's greens ended up in a painter's hero. brandDark must be genuinely dark (WCAG luminance <= 0.183) or the colour band self-suppresses. Optional overrides, only when the client insists: highlight, bg, card, ink, muted, border, surfaceAlt, accentInk, accentOndark, brandSecondaryInk, onDark, band. Run `npm run check:universal` to see the resolved palette and its contrast report.",
+    "brand": "REQUIRED",
+    "brandDark": "REQUIRED \u2014 set dark",
+    "accent": "REQUIRED",
+    "highlight": ""
+  },
+  "hero": {
+    "_comment": "heading + headingTint (the coloured tail) + subhead + primaryCta are the minimum. stats[]: up to 4 {value,label} shown as a strip under the hero \u2014 REAL numbers only, nothing derived or rounded up. rating: {score,scale,line,href} anchors the `editorial` variant. image+imageAlt only when features.hasPhotos is true; without a photo the engine routes to `typographic` and generates a motif from the palette + business.trade. motif: swatch|grid|contour|circuit|strata overrides that pick.",
+    "eyebrow": "",
+    "heading": "",
+    "headingTint": "",
+    "subhead": "",
+    "body": "",
+    "primaryCtaLabel": "Get a free quote",
+    "primaryCtaHref": "#contact",
+    "locationLine": "",
+    "image": "",
+    "imageAlt": "",
+    "stats": [],
+    "rating": {},
+    "_comment_stats": "stats[] {value,label} \u2014 REAL numbers only. Gates hero/stat-lede, where stats[0] becomes the lede and stats[1..3] the strip beneath. No stats, no variant: it has no placeholder state."
+  },
+  "services": {
+    "_comment": "items[] drives the homepage hero card row (title + description + includes[] + optional price + optional href). For rich per-service DETAIL pages (/services/[slug]) add records to src/data/services.ts instead.",
+    "eyebrow": "What we do",
+    "heading": "Services",
+    "subhead": "",
+    "pageEyebrow": "Services",
+    "pageHeading": "Everything we do",
+    "items": [
+      {
+        "title": "",
+        "description": "",
+        "includes": [],
+        "price": "",
+        "href": "",
+        "featured": false,
+        "_comment": "EXAMPLE item \u2014 duplicate per service. description is the short card line. longDescription + includes[] (2+) gate list-detail. image is gated by features.hasPhotos and gates split-scroll (needs one on EVERY service) and feature-lead (needs one on the LEAD service). featured:true marks the service that leads in feature-lead \u2014 first true wins, else items[0].",
+        "longDescription": "",
+        "image": "",
+        "imageAlt": ""
+      }
+    ]
+  },
+  "tiers": {
+    "_comment": "Optional pricing/frequency tiers with an intensity bar (intensity of `of`). Remove the whole block if unused.",
+    "eyebrow": "",
+    "heading": "",
+    "subhead": "",
+    "items": [
+      {
+        "title": "",
+        "intensity": 1,
+        "of": 3,
+        "description": ""
+      }
+    ]
+  },
+  "usage": {
+    "_comment": "Read by the `areas` section (v3.16) \u2014 it used to live inside Story, so switching story off silently removed the suburb coverage. featured[] become the homepage chips; items[] is the full list for /areas.",
+    "eyebrow": "Where we work",
+    "heading": "Service areas",
+    "subhead": "",
+    "areasLine": "",
+    "travelLine": "",
+    "notCoveredLine": "",
+    "featured": [],
+    "items": []
+  },
+  "whyUs": {
+    "_comment": "Bare array OR this object form. items[]: title + description. type 'process' unlocks whyUs/process-rail \u2014 set it ONLY when the items are a real sequence (test: can they be reordered without losing meaning? if yes they are a list). pairs[] {them,us} unlocks contrast-pair and must come from the client, never be invented. trust[] is the optional strip above the list.",
+    "heading": "",
+    "type": "benefits",
+    "trust": [],
+    "items": [
+      {
+        "title": "",
+        "description": ""
+      }
+    ],
+    "pairs": [],
+    "themLabel": "",
+    "usLabel": ""
+  },
+  "story": {
+    "eyebrow": "About us",
+    "heading": "",
+    "body": "",
+    "image": "",
+    "cards": [
+      {
+        "_comment": "Standard card: title + description. Emoji cards were removed in v3.16 (DESIGN-LIBRARY B6 bans emoji as section icons). Badge card: {title, type:'badges', badges:[]}.",
+        "title": "",
+        "description": ""
+      }
+    ],
+    "process": [
+      {
+        "_comment": "Optional numbered process strip.",
+        "title": "",
+        "body": ""
+      }
+    ],
+    "_comment_process": "process[] {title,body} \u2014 a genuine sequence. Automatically suppressed if whyUs renders process-rail, so the page never shows two numbered sequences."
+  },
+  "testimonials": [
+    {
+      "_comment": "Bare array OR {eyebrow,heading,items[]}. NEVER invent these \u2014 real, sourced reviews only, or leave empty.",
+      "name": "",
+      "location": "",
+      "quote": ""
+    }
+  ],
+  "recentJobs": {
+    "_comment": "Optional 'recent jobs' strip. Copy lives here (heading/subhead); the actual entries + photos live in src/data/recent-jobs.ts. Empty by default \u2014 the section self-hides.",
+    "heading": "Recent jobs",
+    "subhead": ""
+  },
+  "gallery": {
+    "_comment": "Optional /gallery copy. Entries + photos live in src/data/gallery.ts. Real paired photos only.",
+    "subhead": ""
+  },
+  "faqs": {
+    "eyebrow": "FAQ",
+    "heading": "Common questions",
+    "items": [
+      {
+        "question": "",
+        "answer": ""
+      }
+    ]
+  },
+  "contactSection": {
+    "_comment": "emailSubject overrides the form email subject (defaults to 'New enquiry \u2014 <business>'). messagePlaceholder overrides the textarea placeholder.",
+    "eyebrow": "Contact",
+    "heading": "",
+    "subhead": "",
+    "emailSubject": "",
+    "messagePlaceholder": "",
+    "form": {
+      "enabled": true,
+      "submitLabel": "Send enquiry",
+      "fields": [
+        "name",
+        "phone",
+        "email",
+        "message"
+      ]
+    }
+  },
+  "footer": {
+    "tagline": "",
+    "columns": [
+      {
+        "heading": "",
+        "links": [
+          {
+            "label": "",
+            "href": ""
+          }
+        ]
+      }
+    ],
+    "copyrightSuffix": "All rights reserved."
+  },
+  "serviceAreas": [],
+  "features": {
+    "_comment": "hasPhotos MUST be an explicit boolean and only flips true when REAL files exist in public/images. It gates hero split-media/fullbleed and services split-scroll/feature-lead \u2014 those variants become unavailable, not broken.",
+    "hasPhotos": false,
+    "stickyPhoneBar": false,
+    "servicesPage": true
+  },
+  "seo": {
+    "title": "",
+    "description": "",
+    "ogImage": "",
+    "_keywordsNote": "No meta keywords tag \u2014 dead since 2009 and it only showed competitors your targets. Keep a keyword list in your own notes for copy and service-area planning.",
+    "_comment_ogImage": "Leave empty until a real file exists in public/. A wrong path is worse than none \u2014 social scrapers cache a 404 hard, so the link preview stays broken for days after you fix it."
+  },
+  "analytics": {
+    "_comment": "Leave provider empty for no analytics. plausible + umami are cookieless (no consent banner). ga4 sets cookies and triggers the consent banner under Consent Mode v2.",
+    "provider": "",
+    "plausibleDomain": "",
+    "ga4MeasurementId": "",
+    "umamiWebsiteId": "",
+    "umamiSrc": ""
+  },
+  "legal": {
+    "privacy": {
+      "enabled": true,
+      "lastUpdated": "",
+      "entityName": "",
+      "contactEmail": "",
+      "abn": ""
+    },
+    "terms": {
+      "enabled": true,
+      "lastUpdated": "",
+      "entityName": "",
+      "contactEmail": "",
+      "abn": ""
+    }
+  },
+  "agency": {
+    "_comment": "Build credit in the client footer. Defaults to Kova Digital, with the anchor phrasing chosen per client so dozens of sites do not share one identical footer link. credit.enabled:false removes it (what a white-label fee buys). credit.rel set to nofollow keeps the referral traffic without passing link equity. credit.label overrides the wording entirely.",
+    "credit": {
+      "enabled": true
+    }
+  },
+  "_serviceAreasNote": "Service-area pages. A suburb gets its own page ONLY when it carries content that could not be pasted onto the next suburb: an intro of 60+ words plus at least one anchor \u2014 a job in jobs[], a note[] of 20+ words about local housing stock, or a sourced review from that suburb. Everything else stays a list entry in usage.items, which is honest: the suburb is served, there just isn't a page's worth to say yet. The build fails if two area pages are 70%+ the same text, because near-identical suburb pages are a doorway site. Fields: name, slug, intro, heading, metaDescription, services[], jobs[{title,street,detail}], note, testimonialQuote + testimonialName + testimonialSourceUrl, nearby[].",
+  "_comment_serviceAreas": "serviceAreas[] builds a PAGE per suburb, each needing a 60+ word unique intro. Twenty thin pages is a doorway-site pattern. Leave empty and keep suburbs in usage.items[] unless there is genuinely a page's worth to say."
+}

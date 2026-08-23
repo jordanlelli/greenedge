@@ -1,0 +1,202 @@
+================================================================
+  VARIANT CHEAT SHEET
+  How to see what a client got, and how to change it.
+  Template v3.16.0
+================================================================
+
+Nothing here requires touching src/. Every override lives in the
+`_brief` block of client-intake.json.
+
+
+================================================================
+  1. SEE WHAT THIS CLIENT RESOLVED TO
+================================================================
+  npm run variants
+
+  Prints the kit, per-section variants, section order, surface and
+  band for the current intake. Run it before changing anything —
+  you cannot sensibly override a pick you have not seen.
+
+  Selection is DETERMINISTIC. The same business name + domain
+  always resolves to the same everything, on every build, forever.
+  It is not random per build; it is seeded once and stable.
+
+
+================================================================
+  2. THE OVERRIDE BLOCK
+================================================================
+  Everything is set inside `_brief`. Anything you omit stays
+  seeded. Anything you set is locked and will never drift.
+
+  "_brief": {
+    "variantSeed":    "any string",
+    "designKit":      "signal",
+    "surface":        "flat",
+    "bandSection":    "testimonials",
+    "sectionsLocked": true,
+    "layoutVariants": {
+      "hero":     "docket",
+      "services": "ledger",
+      "whyUs":    "ruled-rows",
+      "header":   "minimal"
+    }
+  }
+
+  PRECEDENCE, per axis:
+    1. Explicit value in _brief             — always wins
+    2. Data prerequisite filter             — drops what the
+                                              client's data cannot fill
+    3. Seeded pick from whatever survives
+
+  IMPORTANT: an explicit value skips the prereq filter. If you
+  hand-set a photo variant on a client with no photos, the
+  component's own fallback catches it and renders the safe
+  default instead. You will not see an error — you will see the
+  wrong layout. Check `npm run variants` after any override.
+
+
+================================================================
+  3. THE FIVE THINGS YOU CAN CHANGE
+================================================================
+
+  variantSeed
+    Reroll everything at once. Change the string, get a different
+    kit + variants + order + surface + band. Use this when a
+    build "feels wrong" but you cannot name which axis is at
+    fault. Cheapest possible fix.
+
+  designKit
+    Type, radius, shadow and rhythm personality. Not colour —
+    colour comes from `style`, so no kit can impose a palette.
+      ledger    editorial / journalistic.  Newsreader + Inter Tight
+      workshop  industrial trade.          Archivo + Public Sans
+      coast     soft / approachable.       Archivo + Source Sans 3
+      press     classic / refined.         Fraunces + Inter
+      signal    modern / geometric.        Space Grotesk + Inter
+
+  surface
+    Page-level background treatment.
+      flat   plain background
+      tint   faint cool wash
+      warm   faint warm wash
+
+  bandSection
+    Which single mid-page section inverts to a dark brand band.
+    Set "none" to switch it off entirely.
+    Eligible: tiers, usage, story, testimonials.
+    GATED ON CONTRAST — if brandDark fails ~4.5:1 against white,
+    the band is dropped no matter what you set. That is not a
+    bug; a hand-picked band on a pale brand is unreadable.
+
+  layoutVariants
+    Per-section skeleton. See §4.
+
+
+================================================================
+  4. VARIANTS BY SECTION
+================================================================
+  ! This table is enforced. scripts/check-catalogue.mjs fails the
+    build if VARIANTS.txt, CATALOGUE and the components disagree,
+    so anything listed here renders. See VARIANTS.txt for the
+    long-form description of each.
+
+  ---- HERO ----
+  typographic  [default, no assets]  Oversized H1, CTA row,
+    inline trust marks, palette-derived motif right.
+  split-media  [needs hero image]  Content left, media right.
+  fullbleed    [needs hero image]  Full-viewport background photo
+    with a dark scrim.
+  docket       [no assets]  Copy left, ruled spec panel right —
+    services, areas, hours, licence, established. Every row is
+    sourced; empty rows are omitted, and under two rows the panel
+    drops entirely.
+  index        [needs 4+ services]  Numbered service index on a
+    tinted rail, copy right. Service list above the fold.
+  stat-lede    [needs hero.stats]  Oversized figure leads. It
+    ABSORBS the HeroStats strip, which is suppressed while active.
+
+  ---- HEADER ----
+  standard  [default]  Logo left, nav, phone + CTA right.
+  minimal              Logo + single phone CTA, no link list.
+  centered             Stacked centred logo + links, CTA right.
+
+  ---- SERVICES ----
+  grid-icons   [default, no assets]  Wrapping card grid. Column
+    count is sized for services PLUS the CTA card so no row has
+    a hole.
+  ledger       [no assets]  Ruled rows, optional "from" price
+    column. Best when descriptions are very uneven in length.
+  split-scroll [photo on EVERY service]  Alternating image/text
+    rows.
+  feature-lead [photo on the LEAD service]  One large service,
+    the rest stacked beside it. Lead = items[].featured.
+  list-detail  [longDescription + 2 includes on EVERY service]
+    Nav list + detail panel; accordion on mobile.
+
+  ---- WHY US ----
+  All four render inside the dark band. whyUs is the only
+  permanent inverted section and the band engine depends on it.
+
+  ruled-rows    [default]  Hairline rows, title left / desc
+    right. No numbering.
+  icon-grid     Tick cards; column count divides the item count.
+  contrast-pair [needs whyUs.pairs[]]  Them vs us, x against
+    tick. Strongest seller in the set.
+  process-rail  [needs whyUs.type: "process"]  Numbered steps on
+    a connecting rail. The ONLY variant that asserts an order.
+    Suppresses the story process strip when active.
+
+  ---- AREAS ----
+  One layout. Its own section from v3.16 — it used to live
+  inside Story, so turning story off removed the suburb
+  coverage. Add "areas" to sections.
+
+
+================================================================
+  5. WHEN TO CHANGE WHAT
+================================================================
+
+  "It looks generic"
+    Not a colour problem. Change layoutVariants, or reroll
+    variantSeed. Sameness comes from every section sharing the
+    same bones, not from the palette.
+
+  "Two clients look too similar"
+    hero 6 x services 5 x whyUs 4 x header 3 = 360 structural
+    combinations, before 5 kits and 3 surfaces. If two builds
+    still collide, one of them has an explicit _brief override
+    holding an axis still. Check npm run variants on both.
+
+  "It doesn't suit the trade"
+    designKit first. Palette second (in `style`, not `_brief`).
+
+  "The page has no focal point"
+    Check the palette in `style` — brand, accent and highlight
+    are probably too close in hue or luminance. Contrast can
+    pass AA and still cluster.
+
+  "There is a dark block in the wrong place"
+    bandSection. Set a different eligible section, or "none".
+
+  "A section looks empty"
+    That is a content gap, not a layout gap. The variant is
+    doing its job by showing you the hole. Fill the intake.
+
+  "A variant I want isn't being picked"
+    Its data prerequisite is unmet. Run npm run variants to see
+    what survived the filter. Do not force it — supply the data.
+
+
+================================================================
+  6. WHAT YOU CANNOT CHANGE FROM THE INTAKE
+================================================================
+  Component internals, spacing scale, token names, section
+  markup. Those are template-level and affect every client on
+  next rebuild. If a client outcome seems to need one, the
+  answer is almost always that the intake is wrong or the
+  variant you want does not exist yet.
+
+  To work at template level: touch .template-work, make the
+  change, update VARIANTS.txt + CATALOGUE + the component
+  together, bump the version, log it in TEMPLATE-CHANGES.md,
+  rm .template-work.

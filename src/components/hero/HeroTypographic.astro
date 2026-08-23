@@ -1,0 +1,36 @@
+---
+/**
+ * HeroTypographic — for the client with no photography.
+ *
+ * The type carries the page and a palette-derived motif holds the right-hand
+ * column. This is the variant the majority of cold-outreach demos need: most
+ * trades have a phone number, a suburb list, and nothing else. Previously they
+ * got the photo hero with the photo missing, which left a 36rem text column
+ * floating in an 80rem container with no counterweight.
+ *
+ * The motif is generated from the client's own palette and their trade — no
+ * stock imagery, nothing that implies work they haven't shown us.
+ */
+import HeroCopy from "./HeroCopy.astro";
+import { site } from "../../config";
+// @ts-ignore — plain-JS motif generator
+import { heroMotifSvg } from "../../lib/motif.mjs";
+
+const motif = heroMotifSvg(site);
+---
+
+<section class="relative overflow-hidden bg-bg" data-no-reveal>
+  <div class="hero-pad mx-auto grid max-w-[var(--w-content)] items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16 lg:px-8">
+    <div class="min-w-0">
+      <HeroCopy size="large" />
+    </div>
+
+    {/* Decorative: hidden from assistive tech, and dropped entirely on small
+        screens where it would push the CTA below the fold. */}
+    <div class="relative hidden min-w-0 lg:block" aria-hidden="true">
+      <div class="relative aspect-[5/6] w-full overflow-hidden rounded-card">
+        <Fragment set:html={motif} />
+      </div>
+    </div>
+  </div>
+</section>

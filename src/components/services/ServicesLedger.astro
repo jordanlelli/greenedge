@@ -1,0 +1,112 @@
+---
+/**
+ * ServicesLedger — ruled rows, no cards, no photos.
+ *
+ * Bones borrowed from a trade rate card rather than from web design, which is
+ * the point: it does not read as a template because the template corpus does
+ * not contain it. Dense and scannable, and it handles wildly uneven description
+ * lengths — the failure mode that makes card grids look broken.
+ *
+ * The price column drops out entirely when the client publishes no rates. It is
+ * never filled with "POA" or "Contact us" to keep the grid tidy; a column that
+ * says nothing is worse than one that isn't there.
+ */
+import { site, formatPhone } from "../../config";
+
+interface Props { items: any[]; anyPrice: boolean; }
+const { items, anyPrice } = Astro.props;
+
+const primaryLabel =
+  site.hero?.primaryCtaLabel || site.contact?.headerCtaLabel || "Get a free quote";
+const phone = site.contact?.phone || "";
+---
+
+<div class="svc-ledger" data-priced={anyPrice ? "true" : "false"}>
+  {items.map((it: any) => (
+    <div class="svc-row">
+      <div class="svc-row-title">
+        <h3 class="font-heading text-lg font-semibold leading-snug text-brand">
+          {it.href ? (
+            <a href={it.href} class="underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{it.title}</a>
+          ) : it.title}
+        </h3>
+      </div>
+      <div class="svc-row-body">
+        {it.description && <p class="text-sm leading-relaxed text-muted">{it.description}</p>}
+        {it.includes.length > 0 && (
+          <p class="mt-2 text-sm leading-relaxed text-muted">{it.includes.slice(0, 4).join(" · ")}</p>
+        )}
+      </div>
+      {anyPrice && (
+        <div class="svc-row-price">
+          {it.price ? (
+            <>
+              <span class="svc-price-key">From</span>
+              <span class="font-heading text-base font-semibold text-brand">{it.price}</span>
+            </>
+          ) : (
+            <>
+              <span class="svc-price-key">Quoted</span>
+              <span class="font-heading text-base font-semibold text-brand">On site</span>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+
+<div class="mt-8 flex flex-wrap items-center gap-4">
+  <a
+    href={site.hero?.primaryCtaHref || "#contact"}
+    class="inline-flex min-h-11 items-center rounded-card bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+  >{primaryLabel}</a>
+  {phone && (
+    <a href={`tel:${formatPhone(phone)}`} class="font-heading text-lg font-semibold text-brand underline-offset-4 hover:underline">{phone}</a>
+  )}
+</div>
+
+<style>
+  .svc-ledger { border-top: 1px solid var(--color-border); }
+
+  .svc-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .svc-row-title h3 { margin: 0; }
+  .svc-row-body p { margin: 0; }
+
+  .svc-row-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .svc-price-key {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .svc-row {
+      grid-template-columns: 0.34fr 1fr;
+      gap: 1.5rem;
+      align-items: baseline;
+    }
+    .svc-ledger[data-priced="true"] .svc-row {
+      grid-template-columns: 0.3fr 1fr 0.16fr;
+    }
+    .svc-row-price {
+      justify-content: flex-end;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.125rem;
+      text-align: right;
+    }
+  }
+</style>

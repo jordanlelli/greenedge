@@ -1,0 +1,193 @@
+================================================================
+  CURSOR-CONTEXT.txt — READ THIS BEFORE EVERY BUILD PROMPT
+================================================================
+  Standing context for this template. Read this file AND
+  VARIANTS.txt before acting on any build prompt. Everything here
+  is binding unless a specific prompt explicitly overrides it.
+
+
+================================================================
+  1. WHAT THIS PROJECT IS
+================================================================
+  A universal Astro + Tailwind static-site template for
+  Australian tradespeople and local small businesses. One
+  template, driven entirely by client-intake.json. Content lives
+  in JSON; the _brief block drives creative direction; a seeded
+  ENGINE picks each site's design kit, per-section layout
+  variants, and section order so no two clients look the same.
+
+
+================================================================
+  2. STACK — DO NOT DEVIATE
+================================================================
+  - Astro 7.x. Migrated 2026-07-23 from 5.18.2 (end of the 5.x
+    line — no further security patches). The old note "rolldown
+    breaks the Tailwind Vite plugin" is STALE: @tailwindcss/vite
+    declares vite ^5.2 || ^6 || ^7 || ^8 and builds clean on
+    Vite 8 / Rolldown. Verified: identical rendered output,
+    0 impeccable findings, 0 npm vulnerabilities.
+  - Requires Node >= 22.12.0 (Astro 7 engine constraint).
+  - astro.config.mjs pins vite.build.cssTarget. Do NOT remove:
+    Vite 8 otherwise emits @media (width>=40rem) range syntax,
+    which older Safari/Chrome ignore, dropping all breakpoints.
+  - Tailwind CSS v4 via @tailwindcss/vite (configured in
+    astro.config.mjs as a vite plugin). There is NO
+    tailwind.config.js and NO PostCSS Tailwind config. Theme
+    tokens live in src/styles/global.css under @theme.
+  - Vanilla JS only for interactivity. NO React/Vue/Swiper/jQuery
+    or animation libraries.
+  - Deploy: Vercel, static output.
+  - Do NOT add dependencies. If a task seems to need one, STOP
+    and flag it.
+
+
+================================================================
+  3. DEPENDENCY DISCIPLINE (HARD RULES)
+================================================================
+  - Never run  npm audit fix --force  (force-upgrades Astro,
+    breaks the build).
+  - Never run  npm update .
+  - Respect the committed lockfile; assume  npm ci .
+
+
+================================================================
+  4. THE VARIANT ENGINE (src/lib/variants.mjs)
+================================================================
+  - Pure, deterministic. resolveSite(intake) seeds a PRNG from
+    business name + domain (or _brief.variantSeed) and returns
+    { kit, kitFonts, layoutVariants, order }.
+  - config.ts exports `layout = resolveSite(intake)`. Components
+    read layout.layoutVariants[section] and layout.kit. They do
+    NOT roll their own randomness.
+  - Selection precedence: explicit _brief value > data-
+    prerequisite filter > seeded pick. (See VARIANTS.txt.)
+  - Persist picks with  npm run variants  — writes them into
+    client-intake.json (_brief.designKit, _brief.layoutVariants,
+    sections). Idempotent; never overwrites manual values.
+  - features.hasPhotos (boolean, default false) gates photo-
+    dependent variants. NEVER infer photos from placeholder image
+    paths — set the flag explicitly when real photos exist.
+
+
+================================================================
+  5. THE TWO-LAYER MODEL: CONTENT vs. BRIEF
+================================================================
+  - Content = everything in client-intake.json outside _brief.
+    Render it.
+  - _brief = creative direction + variant overrides. config.ts
+    STRIPS all _-prefixed keys from `site`, so _brief can never
+    render. The engine reads _brief from the raw intake to make
+    selections. Reading a key to CHOOSE a layout is fine; putting
+    _brief text on the page is not.
+
+
+================================================================
+  6. DESIGN TOKENS — SINGLE SOURCE OF TRUTH
+================================================================
+  - global.css holds all tokens under @theme. Colour tokens read
+    per-client --c-* vars that Layout injects from the style block
+    (+ theme light/dark). Type/radius/shadow read --kit-* vars set
+    by the active .kit-* class.
+  - Consume via semantic utilities only: bg-bg, bg-card, bg-brand,
+    bg-brand-dark, text-brand, text-accent, text-ink, text-muted,
+    text-highlight, border-border, font-heading, font-body,
+    rounded-card, shadow-card.
+  - Never hardcode hex or a font family in a component.
+
+
+================================================================
+  7. LAYOUT = STRUCTURE, KIT = PERSONALITY, BRIEF = DIRECTION
+================================================================
+  - VARIANTS.txt controls the structural skeleton of each section.
+  - The KIT controls type/radius/shadow/rhythm feel.
+  - _brief controls palette source (via style), voice, overrides.
+  - Layout variety comes from STRUCTURAL skeleton changes across
+    sections + the kit — NOT from centring everything.
+
+
+================================================================
+  8. STANDING CONVENTIONS
+================================================================
+  - Content width + gutters come from the Container / Section
+    primitives (responsive: px-4 sm:px-6 lg:px-8; caps --w-content
+    / --w-wide). Do not hand-roll container strings.
+  - Multi-column layouts collapse at lg (1024px), never md.
+  - Headlines sentence case unless _brief/kit says otherwise.
+  - Phone numbers click-to-call (tel:); emails mailto:.
+  - Reuse Layout, Header, Footer, Section, Container, and the
+    section components rather than re-implementing them.
+  - The single-page assembler is src/pages/index.astro: it reads
+    layout.order and renders each section with its component.
+    Section keys map there.
+
+
+================================================================
+  9. ACCESSIBILITY & QUALITY FLOOR
+================================================================
+  - Semantic HTML: one <h1> per page, logical heading order,
+    <main>, <nav>, <section>.
+  - Keyboard-accessible interactive elements; visible focus.
+  - Decorative SVGs aria-hidden; meaningful images get real alt.
+  - Respect prefers-reduced-motion (handled in global.css and JS).
+
+
+================================================================
+  10. SEO BASELINE (Layout.astro — keep intact)
+================================================================
+  - Title/description/canonical/OG/Twitter from the seo block.
+  - LocalBusiness, FAQPage, Service JSON-LD generated in Layout.
+  - en-AU lang, Adelaide/SA address schema, keyword wiring.
+  - llms.txt and robots.txt routes + sitemap integration.
+
+
+================================================================
+  11. HOW TO RESPOND TO A BUILD PROMPT
+================================================================
+  1. Identify the section(s) and the resolved variant (from
+     layout / _brief, else the default).
+  2. State the variant you're building in one line first.
+  3. Build with tokens + conventions above; keep changes scoped.
+  4. If the prompt needs a dependency or a hardcoded colour/font,
+     STOP and flag it.
+  5. Note anything the intake is missing that the section needs.
+
+
+================================================================
+  12. WHAT NOT TO DO
+================================================================
+  - No stock photography or invented image URLs.
+  - Don't render any part of _brief.
+  - Don't hardcode hex/fonts; don't redeclare tokens.
+  - Don't add libraries; don't upgrade Astro/Tailwind.
+  - Don't roll per-component randomness — use the engine.
+  - Don't gate multi-column at md; use lg.
+================================================================
+
+
+================================================================
+  13. NEW SITE-LEVEL AXES (engine-driven, added after the rebuild)
+================================================================
+  The engine now resolves four more things, all seeded/deterministic and
+  all overridable from _brief. None of these are Cursor's to invent.
+
+  - surface  (page background: flat | tint | warm) -> injected to --c-bg in
+    Layout when the client set no explicit style.bg. Uses the derived
+    palette ramp (--c-brand-50 ... --c-brand-900) that Layout computes from
+    style.brand/accent. Do NOT hardcode tints; read the ramp.
+  - section-head grammar -> per-KIT eyebrow/heading treatment via the hook
+    classes .section-eyebrow / .section-heading (in every section head) and
+    kit-scoped rules in global.css. Do NOT restyle eyebrows inline per
+    client; add to the kit rules if a kit's grammar needs changing.
+  - colour band -> ONE mid section inverts via the .band-dark wrapper in the
+    assembler, which REMAPS --color-* tokens. Contrast-gated in the engine
+    (luminance <= 0.183). Do NOT invert by hand-editing a component's
+    colours; that breaks the token model.
+    adjacent non-band sections.
+
+  Motion: Layout adds a global IntersectionObserver reveal to section[id],
+  gated on prefers-reduced-motion. The hidden state is applied by JS only,
+  so a JS failure never hides content. Opt a section out with
+  data-no-reveal. Do NOT add animation libraries.
+
+  layoutVariants and order in resolveSite, so adding them did not shift any
+  existing client's kit/variants/order. Keep new draws appended at the end.

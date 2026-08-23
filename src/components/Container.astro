@@ -1,0 +1,33 @@
+---
+/**
+ * Container.astro — responsive max-width + gutters, no section/padding wrapper.
+ *
+ * Use inside a hero, a full-bleed Section, or anywhere you need the horizontal
+ * constraint but are handling vertical spacing yourself.
+ *
+ *   width: "content" (default) | "wide" | "full"
+ *   as:    element tag (default "div")
+ *
+ * USAGE:
+ *   <Container>...</Container>
+ *   <Container width="wide" as="ul">...</Container>
+ */
+interface Props {
+  as?: string;
+  width?: "content" | "wide" | "full";
+  class?: string;
+}
+
+const { as = "div", width = "content", class: className = "" } = Astro.props;
+const Tag = as as any;
+
+const widthMap: Record<string, string> = {
+  content: "max-w-[var(--w-content)]",
+  wide: "max-w-[var(--w-wide)]",
+  full: "max-w-none",
+};
+---
+
+<Tag class:list={["mx-auto w-full px-4 sm:px-6 lg:px-8", widthMap[width], className]}>
+  <slot />
+</Tag>

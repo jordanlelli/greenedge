@@ -1,0 +1,76 @@
+---
+/**
+ * Services — the variant switch and the shared section head.
+ *
+ * Until v3.16 this section did not exist. The service-card row lived at the
+ * bottom of Hero.astro, so `services` had no variant axis at all: every client,
+ * on every kit, with every hero, got one identical card row. It was also the
+ * single largest block on the page, which made it the largest contributor to
+ * two sites reading as the same template.
+ *
+ * ROUTING: the seeded variant wins UNLESS its data prerequisite is unmet. The
+ * engine's PREREQS already gate the draw; this is the second line of defence
+ * for hand-edited intakes, where someone sets `layoutVariants.services` in
+ * _brief and skips the filter. A variant that cannot be filled falls back to
+ * grid-icons rather than rendering a hole.
+ *
+ * The section head is here, not in the variants, so a new variant cannot forget
+ * the eyebrow — the bug SectionHead was created to end.
+ */
+import { site, variantOf } from "../config";
+import Section from "./Section.astro";
+import SectionHead from "./SectionHead.astro";
+// @ts-ignore — plain-JS content normaliser shared with the Node check scripts
+import { resolveServices } from "../lib/content.mjs";
+
+import ServicesGridIcons from "./services/ServicesGridIcons.astro";
+import ServicesLedger from "./services/ServicesLedger.astro";
+import ServicesSplitScroll from "./services/ServicesSplitScroll.astro";
+import ServicesFeatureLead from "./services/ServicesFeatureLead.astro";
+import ServicesListDetail from "./services/ServicesListDetail.astro";
+
+const svc = resolveServices(site);
+const items = svc.items;
+
+/* Each variant's data requirement, checked against the resolved content rather
+   than against the raw intake — a path to a file that does not exist is not a
+   photo, and hasOwnedPhotos has already stripped those. */
+const CAN_RENDER: Record<string, boolean> = {
+  "grid-icons": true,
+  ledger: true,
+  "split-scroll": svc.everyItemHasImage,
+  "feature-lead": Boolean(items[svc.leadIndex]?.image),
+  "list-detail": svc.everyItemHasDetail,
+};
+
+const requested = variantOf("services", "grid-icons");
+const variant = CAN_RENDER[requested] ? requested : "grid-icons";
+
+const heading = svc.heading;
+const showHead = Boolean(svc.eyebrow || heading || svc.subhead);
+/* Wide is right for the grid; the ledger and list-detail are reading layouts
+   and get the narrower content cap so line length stays sane. */
+const width = variant === "grid-icons" || variant === "feature-lead" ? "wide" : "content";
+---
+
+{items.length > 0 && (
+  <Section id="services" width={width} bg="bg">
+    {showHead && (
+      <SectionHead eyebrow={svc.eyebrow} heading={heading || "What we do"} subhead={svc.subhead} class="mb-10" />
+    )}
+
+    {variant === "grid-icons" && <ServicesGridIcons items={items} />}
+    {variant === "ledger" && <ServicesLedger items={items} anyPrice={svc.anyPrice} />}
+    {variant === "split-scroll" && <ServicesSplitScroll items={items} />}
+    {variant === "feature-lead" && <ServicesFeatureLead items={items} leadIndex={svc.leadIndex} />}
+    {variant === "list-detail" && <ServicesListDetail items={items} />}
+
+    {site.features?.servicesPage !== false && (
+      <p class="mt-8">
+        <a href="/services" class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
+          View all services <span class="ml-2" aria-hidden="true">→</span>
+        </a>
+      </p>
+    )}
+  </Section>
+)}

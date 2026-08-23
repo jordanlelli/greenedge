@@ -1,0 +1,37 @@
+---
+import Section from "./Section.astro";
+import RecentJobsList from "./RecentJobsList.astro";
+import RecentJobsDemoNotice from "./RecentJobsDemoNotice.astro";
+import { getRecentJobs } from "../data/recent-jobs";
+import { site } from "../config";
+
+const jobs = getRecentJobs(6);
+const rj = site.recentJobs || {};
+const heading = rj.heading || "Recent jobs";
+const subhead = rj.subhead || "";
+/* Any placeholder entry present -> show the honest demo notice. */
+const anyPlaceholder = jobs.some((j) => j.isPlaceholder);
+---
+
+{jobs.length > 0 && (
+  <Section id="recent-jobs" bg="bg">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div class="max-w-2xl">
+        <h2 class="section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+          {heading}
+        </h2>
+        {anyPlaceholder && <RecentJobsDemoNotice />}
+        {subhead && (
+          <p class="mt-4 text-base leading-relaxed text-muted">{subhead}</p>
+        )}
+      </div>
+      <a href="/gallery" class="inline-flex min-h-11 shrink-0 items-center font-semibold text-brand underline-offset-4 hover:underline">
+        View the full gallery <span class="ml-2" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <div class="mt-10">
+      <RecentJobsList jobs={jobs} />
+    </div>
+  </Section>
+)}

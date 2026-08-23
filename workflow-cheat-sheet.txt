@@ -1,0 +1,267 @@
+================================================================
+  WEB AGENCY WORKFLOW — COMMANDS & CURSOR PROMPTS CHEAT SHEET
+  (v3 — variant-engine template, Astro 7 + Tailwind v4)
+================================================================
+  Keep this open in a tab. Copy-paste as needed.
+
+  THE ONE RULE THAT CHANGED EVERYTHING:
+  The template is now FROZEN and SHARED. Per-client work happens
+  in client-intake.json ONLY (content, style, _brief, sections).
+  Editing a component or global.css changes EVERY client. Do that
+  only as a deliberate system-level change, never per client.
+
+  Windows: run terminal commands in Cursor's terminal
+  (Ctrl + ` to open). If PowerShell blocks scripts, run once:
+    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+
+================================================================
+  SECTION 1 — ONE-TIME SETUP (do this once, ever)
+================================================================
+
+# Install Node.js LTS from https://nodejs.org, verify:
+node --version
+npm --version
+
+# Install GitHub CLI from https://cli.github.com then:
+gh auth login
+
+# Folder structure (adjust path to taste):
+mkdir "%USERPROFILE%\Desktop\Cursor"
+# Put the unzipped template inside as "template"
+# e.g. Desktop\Cursor\template
+
+
+================================================================
+  SECTION 2 — START A NEW CLIENT
+================================================================
+
+# 1. Copy the master template to a new client folder
+#    (Windows Command Prompt)
+xcopy "%USERPROFILE%\Desktop\Cursor\template" "%USERPROFILE%\Desktop\Cursor\CLIENT-NAME" /E /I /H
+#    (Mac / Linux)
+cp -r ~/Desktop/Cursor/template ~/Desktop/Cursor/CLIENT-NAME
+
+# 2. Open that folder in Cursor (File > Open Folder)
+
+# 3. Install dependencies (lockfile is committed — use ci):
+npm ci
+
+# 4. Replace client-intake.json with this client's data.
+#    Keep the schema. (Use prompt 3A / 3B below to build/validate it.)
+
+# 5. Lock in the variant picks so they are visible + editable:
+npm run variants
+#    Writes designKit, layoutVariants, and section order into
+#    client-intake.json. Idempotent — only fills empty slots,
+#    never overwrites anything you set by hand. Re-run any time.
+
+# 6. Preview locally:
+npm run dev
+#    Then open http://localhost:4321
+
+
+================================================================
+  SECTION 3 — TUNING THE LOOK (JSON KNOBS, NOT CURSOR EDITS)
+================================================================
+  Changing how a site looks is now a JSON edit. No component
+  edits, no tailwind.config (it does not exist anymore).
+
+# Personality / fonts — pick a design kit:
+#   _brief.designKit: "ledger" | "workshop" | "coast" | "press" | "signal"
+#   (leave blank to let the engine pick one from the seed)
+
+# Force one section's layout (otherwise the engine picks):
+#   _brief.layoutVariants.hero: "editorial"
+#   _brief.layoutVariants.services: "grid-icons"
+#   (valid names are in VARIANTS.txt)
+
+# Reshuffle a site's WHOLE look (new random spin):
+#   set _brief.variantSeed: "v2"  (any new string)
+#   delete the picks you want re-rolled from _brief.layoutVariants
+#   then run:  npm run variants
+
+# Colours — edit the style block:
+#   style.brand / style.brandDark / style.accent / style.highlight
+#   (optional: style.bg / card / ink / muted / border to override neutrals)
+#   theme: "light" | "dark"
+
+# Unlock photo-based layouts (split-media / fullbleed / carousel /
+# founder) — ONLY when real photos exist in public/images:
+#   features.hasPhotos: true
+
+# Enable the contact form:
+#   contact.formEndpoint: "https://formsubmit.co/YOUR@EMAIL"
+#   FormSubmit is the template default. Web3Forms and Formspree
+#   also work — the field just needs a POST endpoint. Pick one
+#   per client and record it; three docs naming three services
+#   is how the wrong one gets wired.
+#   (no endpoint + no email = contact section shows a phone-first
+#    panel, which is correct for phone-only clients)
+
+
+================================================================
+  SECTION 4 — CURSOR PROMPTS (Ctrl+L for the chat panel)
+================================================================
+
+---- 4A. CONVERT QUESTIONNAIRE RESPONSES TO JSON ----
+(Paste the raw form responses, then:)
+
+Convert these client questionnaire responses into a complete
+client-intake.json matching the schema already in this project
+(business, contact, style, theme, sections, hero, services.items,
+tiers, usage, whyUs, story, testimonials, faqs.items,
+contactSection, footer, seo, features). Map every field to the
+correct nested path. Convert Yes/No to booleans. Leave unknown
+fields empty. Add a _brief block with designDirection (vibe,
+voice, palette, typography) as creative direction only — it must
+never render. Output only the JSON.
+
+
+---- 4B. VALIDATE A PASTED INTAKE FILE ----
+
+I've replaced client-intake.json with this client's data. Verify
+it is valid JSON, fix formatting, and confirm business.name,
+contact.phone, and at least one of contact.email or
+contact.formEndpoint are present. Confirm features.hasPhotos is
+only true if real photos exist. Tell me what's missing. Do not
+edit any component.
+
+
+---- 4C. TUNE DIRECTION VIA _brief (no component edits) ----
+
+Update only client-intake.json for a more PREMIUM feel: set
+_brief.designKit to "press", refine the style palette to a muted
+scheme, and tighten the hero copy. Do not touch any component,
+global.css, or the engine.
+
+(Swap "press"/"premium" for any kit or direction.)
+
+
+---- 4D. FIX A BUILD ERROR ----
+(Paste the full error from the terminal, then:)
+
+I got this error running npm run build. Explain the cause in
+plain English and fix it. Stay within the stack rules in
+CURSOR-CONTEXT.txt — no new dependencies, no Tailwind/Astro
+upgrade.
+
+
+---- 4E. PRE-LAUNCH QA ----
+
+Pre-launch QA on this client-intake.json + build. Check:
+business.name and contact.phone present; if
+contactSection.form.enabled, that contact.formEndpoint or
+contact.email exists (else it's phone-only — confirm intended);
+features.hasPhotos is true ONLY if real photos are in
+public/images; no REQUIRED/placeholder/lorem text; phones are
+click-to-call; the sections array lists exactly the sections
+wanted; nothing from _brief renders on the page. List what to fix.
+
+
+---- 4F. SEO META ----
+
+Write an SEO meta title (under 60 chars) and description (under
+160 chars) optimised for local search for this business, and put
+them in the seo block of client-intake.json. Do not edit
+components.
+
+
+---- 4G. SYSTEM-LEVEL CHANGE (the ONLY time to edit components) ----
+(Use sparingly — this affects every client on the template.)
+
+SYSTEM change to the shared template — affects all clients. Read
+CURSOR-CONTEXT.txt and VARIANTS.txt first. Add a new "[name]"
+variant to [Component].astro: [describe the skeleton]. Tokens
+only (bg-bg, text-brand, rounded-card, shadow-card, font-heading,
+border-border…), collapse multi-column at lg not md, image
+fallback on every img, vanilla JS only. Then add "[name]" to
+CATALOGUE[section] in src/lib/variants.mjs (plus a PREREQS entry
+if it needs photos/stats) and document it in VARIANTS.txt. Do not
+edit any client-intake.json.
+
+
+---- 4H. BATCH-PROCESS / OPTIMISE IMAGES ----
+(Requires ImageMagick: https://imagemagick.org)
+
+Write a script for my OS that loops every jpg/png in
+public/images, sharpens subtly, resizes anything wider than
+1600px down to 1600px, and outputs WebP at 80% quality alongside
+the originals. Give me the command to run it.
+
+
+================================================================
+  SECTION 5 — DEPLOY (first time for a client)
+================================================================
+
+# In Cursor's terminal, inside the client folder:
+git init
+git add .
+git commit -m "initial build"
+gh repo create YOUR-AGENCY/CLIENT-NAME --private --push --source=.
+# If it doesn't auto-push:
+git branch -M main
+git remote add origin https://github.com/YOUR-AGENCY/CLIENT-NAME.git
+git push -u origin main
+
+# THEN in the browser at vercel.com/new:
+# 1. Import the repo
+# 2. Framework preset: Astro
+# 3. Build command:    npm run build
+# 4. Install command:  npm ci        <-- changed (was --legacy-peer-deps)
+# 5. Output directory: dist
+# 6. Deploy
+# 7. Settings > Domains > add the client's domain + DNS records
+
+
+================================================================
+  SECTION 6 — MAKING CHANGES LATER (daily workflow)
+================================================================
+
+# Edit client-intake.json (content / style / _brief). Preview:
+npm run dev
+
+# Push live (Vercel auto-deploys on push):
+git add .
+git commit -m "describe what you changed"
+git push
+# Site updates in ~30 seconds.
+
+
+================================================================
+  SECTION 7 — HANDY ONE-OFFS
+================================================================
+
+npm ci                  Install from the committed lockfile
+npm run variants        Pick/lock this client's variants into the JSON
+npm run dev             Local preview (localhost:4321)
+npm run build           Build to dist/
+npm run preview         Serve the built dist/
+npx kill-port 4321      Kill a stuck dev server
+git status / git diff   See what changed
+git restore .           Undo all uncommitted changes (careful)
+
+# NEVER run these (they break the pinned stack):
+#   npm audit fix --force      (force-upgrades Astro -> 6, breaks build)
+#   npm update                 (drifts pinned versions)
+
+
+================================================================
+  WHAT CHANGED FROM v1 (so you don't fall back into old habits)
+================================================================
+  - No more tailwind.config.mjs. Colours = style block; fonts =
+    design kit. Don't ask Cursor to "confirm tailwind.config".
+  - No more "apply a vibe" / "rebuild from screenshots" component
+    edits. Look = JSON (designKit, style, layoutVariants).
+  - New mandatory step: npm run variants after filling the JSON.
+  - Install is npm ci (not npm install --legacy-peer-deps).
+  - Service-area landing pages EXIST but are off by default.
+    src/pages/areas.astro and src/pages/areas/[slug].astro both
+    ship; pages.areas is false unless you turn it on. (This line
+    said "removed" from v3.x to v3.15 and was wrong the whole
+    time — same class of stale constraint as the Rolldown note.)
+    Ask for them back as a system-level add-on if needed.
+  - Adding a homepage section = add it to the sections array (the
+    component already exists). Adding a NEW layout = system-level
+    prompt 4G.
+================================================================

@@ -1,0 +1,58 @@
+---
+/**
+ * Analytics loader. Plausible + Umami are cookieless (no consent needed). GA4
+ * sets cookies, so it runs under Google Consent Mode v2: when a consent banner
+ * is required, analytics_storage/ad_storage DEFAULT to "denied" and ConsentBanner
+ * flips them to "granted" on accept. When no banner is required (consentRequired
+ * false), GA4 runs normally. Leave analytics.provider empty to render nothing.
+ */
+import { site, consentRequired } from "../config";
+
+const analytics = site.analytics || { provider: "" };
+const provider = analytics.provider || "";
+const defaultConsent = consentRequired ? "denied" : "granted";
+---
+
+{provider === "plausible" && analytics.plausibleDomain && (
+  <script
+    defer
+    is:inline
+    data-domain={analytics.plausibleDomain}
+    src="https://plausible.io/js/script.js"
+  />
+)}
+
+{provider === "ga4" && analytics.ga4MeasurementId && (
+  <>
+    <script is:inline define:vars={{ defaultConsent }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      // Consent Mode v2 defaults — set BEFORE config so no cookies fire early.
+      gtag('consent', 'default', {
+        ad_storage: defaultConsent,
+        analytics_storage: defaultConsent,
+        ad_user_data: defaultConsent,
+        ad_personalization: defaultConsent,
+      });
+    </script>
+    <script
+      is:inline
+      async
+      src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga4MeasurementId}`}
+    />
+    <script is:inline define:vars={{ id: analytics.ga4MeasurementId }}>
+      gtag('js', new Date());
+      gtag('config', id);
+    </script>
+  </>
+)}
+
+{provider === "umami" && analytics.umamiWebsiteId && analytics.umamiSrc && (
+  <script
+    defer
+    is:inline
+    data-website-id={analytics.umamiWebsiteId}
+    src={analytics.umamiSrc}
+  />
+)}

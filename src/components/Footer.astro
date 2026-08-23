@@ -1,0 +1,107 @@
+---
+import { site, formatPhone, legalLinks } from "../config";
+// @ts-ignore - plain-JS credit resolver shared with the Node check scripts
+import { resolveCredit } from "../lib/credit.mjs";
+
+const footer = site.footer || {};
+const business = site.business || {};
+const contact = site.contact || {};
+const name = business.name || "";
+const tagline = footer.tagline || business.shortDescription || "";
+const columns: any[] = footer.columns || [];
+const year = new Date().getFullYear();
+const abn = business.abn || "";
+const credit = resolveCredit(site);
+
+/* Social links. contact.instagram / facebook / tiktok have been in the intake
+   since the start with no reader, so a client's Instagram went nowhere. For a
+   trade, Instagram is often the only place their work photos live, which makes
+   it the one outbound link on the page worth having. */
+const socials = [
+  { label: "Instagram", href: (contact as any).instagram, d: "M12 2.2c3.2 0 3.6 0 4.9.07 1.2.05 1.8.25 2.2.42.6.2 1 .5 1.4 1 .5.4.8.8 1 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c0 1.2-.2 1.8-.4 2.2-.2.6-.5 1-1 1.4-.4.5-.8.8-1.4 1-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2 0-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-1-.5-.4-.8-.8-1-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c0-1.2.2-1.8.4-2.2.2-.6.5-1 1-1.4.4-.5.8-.8 1.4-1 .4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 3.2a6.6 6.6 0 100 13.2 6.6 6.6 0 000-13.2zm0 10.9a4.3 4.3 0 110-8.6 4.3 4.3 0 010 8.6zm8.4-11.2a1.55 1.55 0 11-3.1 0 1.55 1.55 0 013.1 0z" },
+  { label: "Facebook", href: (contact as any).facebook, d: "M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0022 12z" },
+  { label: "TikTok", href: (contact as any).tiktok, d: "M16.6 5.8a4.8 4.8 0 01-1-2.8h-3v12.3a2.4 2.4 0 11-2.4-2.4c.2 0 .4 0 .6.1v-3a5.6 5.6 0 00-.6 0 5.5 5.5 0 105.5 5.5V9.4a7.9 7.9 0 004.5 1.4V7.9a4.7 4.7 0 01-3.6-2.1z" },
+].filter((l) => Boolean(l.href));
+const copyrightSuffix = footer.copyrightSuffix || "All rights reserved.";
+---
+
+{/* Footer text uses the DERIVED on-dark tokens rather than raw opacity.
+    text-ondark/60 and /45 were fixed percentages picked to look right against
+    one client's brand-dark; on a lighter brand-dark they land near 3:1 and fail
+    AA. --c-ondark-soft is fitted per client (see palette.mjs) so it stays as
+    quiet as it can while remaining readable on any palette. */}
+<footer class="border-t border-transparent bg-brand-dark py-14 text-[var(--c-ondark-soft)]">
+  <div class="mx-auto max-w-6xl px-4 lg:px-8">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="sm:col-span-2 lg:col-span-1">
+        <span class="font-heading text-lg font-semibold text-ondark">{name}</span>
+        {tagline && <p class="mt-2 text-sm leading-relaxed">{tagline}</p>}
+      </div>
+
+      {columns.map((col: any) => (
+        <div>
+          <p class="text-sm font-semibold text-ondark" role="presentation">{col.heading}</p>
+          <ul class="mt-3 space-y-2 text-sm">
+            {(col.links || []).map((l: any) => (
+              <li>
+                <a href={l.href} class="transition hover:text-ondark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark">{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-10 border-t border-white/10 pt-6 text-center text-xs">
+      <p>
+        © {year} {name}. {copyrightSuffix}
+        {abn && <> ABN {abn}.</>}
+      </p>
+      <p class="mt-2">
+        {contact.phone && (
+          <a href={`tel:${formatPhone(contact.phone)}`} class="transition hover:text-ondark">{contact.phone}</a>
+        )}
+        {contact.phone && contact.email && <> · </>}
+        {contact.email && (
+          <a href={`mailto:${contact.email}`} class="transition hover:text-ondark">{contact.email}</a>
+        )}
+      </p>
+      {contact.address && <p class="mt-1 text-[var(--c-ondark-soft)]">{contact.address}</p>}
+      {socials.length > 0 && (
+        <ul class="mt-6 flex items-center justify-center gap-4">
+          {socials.map((s) => (
+            <li>
+              <a
+                href={s.href}
+                rel="noopener noreferrer"
+                target="_blank"
+                aria-label={s.label}
+                class="flex h-10 w-10 items-center justify-center rounded-full border border-ondark/20 text-[var(--c-ondark-soft)] transition hover:border-ondark/50 hover:text-ondark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={s.d}></path></svg>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {credit && (
+        <p class="mt-3 text-[var(--c-ondark-soft)]">
+          {credit.prefix}{" "}
+          <a
+            href={credit.url}
+            rel={credit.rel || undefined}
+            class="font-medium text-ondark/80 underline-offset-2 transition hover:text-ondark hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40"
+          >{credit.name}</a>
+        </p>
+      )}
+      {legalLinks.length > 0 && (
+        <p class="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
+          {legalLinks.map((l) => (
+            <a href={l.href} class="text-[var(--c-ondark-soft)] underline-offset-2 transition hover:text-ondark hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40">{l.label}</a>
+          ))}
+        </p>
+      )}
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,165 @@
+---
+/**
+ * BeforeAfter — drag-to-reveal comparison. Real images when present;
+ * labelled SVG BEFORE/AFTER frames otherwise (photoless demo-safe).
+ */
+import { site } from "../config";
+import Section from "./Section.astro";
+
+const ba = site.beforeAfter || {};
+const items: any[] = ba.items || [];
+const eyebrow = ba.eyebrow || "See the difference";
+const heading = ba.heading || "Before & after";
+const subhead = ba.subhead || "";
+
+/* Placeholder frames are painted from the CLIENT's injected palette vars, not
+   from literals. "before" reads as the muted/neutral state, "after" as the
+   brand state, so the pair still narrates without carrying anyone's hue but
+   this client's. */
+function placeholderSvg(label: string, side: "before" | "after") {
+  const fill = side === "before" ? "var(--c-ink)" : "var(--c-brand-dark)";
+  const accent = side === "before" ? "var(--c-muted)" : "var(--c-accent)";
+  const tag = side === "before" ? "BEFORE" : "AFTER";
+  const safe = String(label || "").replace(/[<>&"]/g, "");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" class="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="800" height="500" fill="${fill}"/><rect x="40" y="40" width="720" height="420" fill="none" stroke="${accent}" stroke-width="2" stroke-dasharray="8 6" opacity="0.55"/><text x="400" y="235" text-anchor="middle" fill="var(--c-ondark)" font-family="system-ui,sans-serif" font-size="28" font-weight="700" letter-spacing="0.14em">${tag}</text><text x="400" y="280" text-anchor="middle" fill="var(--c-ondark)" font-family="system-ui,sans-serif" font-size="16" opacity="0.7">${safe}</text></svg>`;
+}
+---
+
+{items.length > 0 && (
+  <Section id="before-after" width="wide" bg="bg">
+    <div class="max-w-2xl">
+      <h2 class="section-heading font-heading text-3xl font-semibold text-brand sm:text-4xl section-heading">{heading}</h2>
+      {subhead && <p class="mt-4 text-lg leading-relaxed text-muted">{subhead}</p>}
+    </div>
+
+    <div class="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-8">
+      {items.map((item: any, i: number) => (
+        <figure class="min-w-0" data-ba-root>
+          <div
+            class="relative aspect-[8/5] touch-none overflow-hidden rounded-card border border-border bg-brand-dark shadow-card select-none"
+            data-ba-frame
+          >
+            {/* After — full frame */}
+            <div class="absolute inset-0">
+              {item.afterImage && (
+                <img
+                  src={item.afterImage}
+                  alt={item.afterAlt || ""}
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                  data-ba-photo
+                  onerror="this.classList.add('hidden'); this.nextElementSibling?.classList.remove('hidden')"
+                />
+              )}
+              <div
+                class:list={["h-full w-full", item.afterImage && "hidden"]}
+                set:html={placeholderSvg(item.label || "After", "after")}
+              />
+            </div>
+
+            {/* Before — full-size layer revealed by clip-path (single source of
+                truth: --ba-p on the frame). The old w-1/2 + w-[200%] pair only
+                registered correctly at exactly 50%. */}
+            <div
+              class="absolute inset-0"
+              style="clip-path: inset(0 calc(100% - var(--ba-p, 50%)) 0 0)"
+              data-ba-before
+            >
+              <div class="h-full w-full">
+                {item.beforeImage && (
+                  <img
+                    src={item.beforeImage}
+                    alt={item.beforeAlt || ""}
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                    data-ba-photo
+                    onerror="this.classList.add('hidden'); this.nextElementSibling?.classList.remove('hidden')"
+                  />
+                )}
+                <div
+                  class:list={["h-full w-full", item.beforeImage && "hidden"]}
+                  set:html={placeholderSvg(item.label || "Before", "before")}
+                />
+              </div>
+            </div>
+
+            <div
+              class="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-0.5 -translate-x-1/2 bg-white"
+              data-ba-line
+              aria-hidden="true"
+            ></div>
+            <button
+              type="button"
+              class="absolute top-1/2 left-1/2 z-20 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark"
+              data-ba-handle
+              aria-label={`Compare before and after: ${item.label || `example ${i + 1}`}`}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="50"
+              role="slider"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12H4m0 0l3-3M4 12l3 3m9-3h4m0 0l-3-3m3 3l-3 3" />
+              </svg>
+            </button>
+          </div>
+
+          <figcaption class="mt-4">
+            <p class="font-heading text-lg font-semibold text-brand">{item.label}</p>
+            {item.caption && <p class="mt-1 text-sm text-muted">{item.caption}</p>}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  </Section>
+)}
+
+<script>
+  (() => {
+    document.querySelectorAll<HTMLElement>("[data-ba-root]").forEach((root) => {
+      const frame = root.querySelector<HTMLElement>("[data-ba-frame]");
+      const handle = root.querySelector<HTMLButtonElement>("[data-ba-handle]");
+      const before = root.querySelector<HTMLElement>("[data-ba-before]");
+      const line = root.querySelector<HTMLElement>("[data-ba-line]");
+      if (!frame || !handle || !before || !line) return;
+
+      const setPos = (pct: number) => {
+        const p = Math.max(2, Math.min(98, pct));
+        frame.style.setProperty("--ba-p", `${p}%`);
+        line.style.left = `${p}%`;
+        handle.style.left = `${p}%`;
+        handle.setAttribute("aria-valuenow", String(Math.round(p)));
+      };
+
+      let dragging = false;
+      const fromX = (x: number) => {
+        const r = frame.getBoundingClientRect();
+        if (r.width) setPos(((x - r.left) / r.width) * 100);
+      };
+
+      handle.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        handle.setPointerCapture(e.pointerId);
+        fromX(e.clientX);
+        e.preventDefault();
+      });
+      handle.addEventListener("pointermove", (e) => { if (dragging) fromX(e.clientX); });
+      const stop = () => { dragging = false; };
+      handle.addEventListener("pointerup", stop);
+      handle.addEventListener("pointercancel", stop);
+
+      frame.addEventListener("pointerdown", (e) => {
+        if ((e.target as HTMLElement).closest("[data-ba-handle]")) return;
+        fromX(e.clientX);
+      });
+
+      handle.addEventListener("keydown", (e) => {
+        const cur = Number(handle.getAttribute("aria-valuenow") || 50);
+        if (e.key === "ArrowLeft") { setPos(cur - 5); e.preventDefault(); }
+        if (e.key === "ArrowRight") { setPos(cur + 5); e.preventDefault(); }
+        if (e.key === "Home") { setPos(2); e.preventDefault(); }
+        if (e.key === "End") { setPos(98); e.preventDefault(); }
+      });
+    });
+  })();
+</script>

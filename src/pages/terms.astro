@@ -1,0 +1,123 @@
+---
+/**
+ * Terms of service (website terms of use) — renders only when
+ * legal.terms.enabled. Trade-agnostic, plain-language, config-driven. This
+ * covers USE OF THE WEBSITE; it is not the client's service/works contract
+ * (that's a separate document). Standard boilerplate, NOT legal advice — have
+ * the client review and adjust before relying on it. Fill legal.terms in
+ * client-intake.json (a TODO on a live legal page is a critical defect — B7).
+ */
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Section from "../components/Section.astro";
+import { site } from "../config";
+// @ts-ignore - clause composer
+import { resolveTerms } from "../lib/terms.mjs";
+// @ts-ignore - the same gate the footer uses
+import { legalPageState } from "../lib/legal.mjs";
+
+const terms = site.legal?.terms || {};
+/* One gate, shared with the footer — see src/lib/legal.mjs. Publishing a
+   policy with "[SET legal.terms.entityName]" in the body is worse than not
+   publishing one, so a page missing its required facts redirects instead. */
+if (!legalPageState("terms", site).live) return Astro.redirect("/");
+
+const field = (key: string, value: unknown): string => {
+  if (value == null || value === "" || value === "TODO") return `TODO — ${key}`;
+  return String(value);
+};
+
+const entityName = field("entityName", terms.entityName || site.business?.name);
+const lastUpdated = field("lastUpdated", terms.lastUpdated);
+const contactEmail = terms.contactEmail || site.contact?.email || "";
+const abn = terms.abn || site.business?.abn || "";
+const governingState = terms.governingState || "South Australia";
+const country = terms.country || "Australia";
+
+const title = `Terms of service — ${site.business?.name || entityName}`;
+const description = `The terms that apply when you use the ${entityName} website.`;
+
+/* Clauses are composed in src/lib/terms.mjs. Every terms-of-trade clause is
+   gated on a fact the client supplied: a deposit percentage or a warranty period
+   we invented is a term their customers could hold them to. */
+const { website, trade, hasTradeTerms } = resolveTerms(site);
+---
+
+<Layout title={title} description={description} pageType="other" robots="noindex,follow">
+  <Header />
+  <main>
+    <Section id="terms" bg="bg">
+      <div class="max-w-3xl">
+        <h1 class="font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">Terms of service</h1>
+        <p class="mt-3 text-muted">Last updated: {lastUpdated}</p>
+      </div>
+
+      <div class="mt-10 max-w-3xl space-y-6 text-base leading-relaxed text-ink">
+        <p>
+          These terms apply to your use of the {entityName}{abn && <> (ABN {abn})</>} website
+          {hasTradeTerms && <>, and to work we carry out for you</>}. By using this site you
+          accept the website terms below. If you do not accept them, please do not use the site.
+        </p>
+
+        <h2 class="font-heading text-2xl font-semibold text-brand">Website terms</h2>
+        {website.map((clause: any) => (
+          <>
+            <h3 class="font-heading text-xl font-semibold text-brand">{clause.heading}</h3>
+            <p>{clause.body}</p>
+          </>
+        ))}
+
+        {hasTradeTerms && (
+          <>
+            <h2 class="mt-10 font-heading text-2xl font-semibold text-brand">Terms of trade</h2>
+            <p>
+              These terms apply to work we quote and carry out. Where a written quote says
+              something different and specific, the quote applies on that point.
+            </p>
+            {trade.map((clause: any) => (
+              <>
+                <h3 class="font-heading text-xl font-semibold text-brand">{clause.heading}</h3>
+                <p>{clause.body}</p>
+              </>
+            ))}
+          </>
+        )}
+
+        <h2 class="mt-10 font-heading text-2xl font-semibold text-brand">General</h2>
+
+        <h3 class="font-heading text-xl font-semibold text-brand">Australian Consumer Law</h3>
+        <p>
+          Nothing in these terms excludes, restricts or modifies any right or guarantee you
+          have under the Australian Consumer Law that cannot be excluded. Our services come
+          with guarantees that cannot be excluded, including that they will be provided with
+          due care and skill and will be fit for the purpose we agreed. Where those guarantees
+          apply, they apply whatever else these terms say.
+        </p>
+
+        <h3 class="font-heading text-xl font-semibold text-brand">Liability</h3>
+        <p>
+          To the extent permitted by law, and subject to the paragraph above, we are not
+          liable for loss or damage arising from your use of or reliance on this website.
+        </p>
+
+        <h3 class="font-heading text-xl font-semibold text-brand">Resolving a problem</h3>
+        <p>
+          If something is not right, tell us first and give us a reasonable opportunity to
+          inspect it and put it right. Most issues are resolved that way{contactEmail && (
+            <> — contact us at{" "}
+              <a href={`mailto:${contactEmail}`} class="text-brand underline underline-offset-2 hover:text-brand-dark">{contactEmail}</a>
+            </>
+          )}.
+        </p>
+
+        <h3 class="font-heading text-xl font-semibold text-brand">Governing law</h3>
+        <p>
+          These terms are governed by the laws of {governingState}, {country}, and you agree
+          to the non-exclusive jurisdiction of the courts of that state.
+        </p>
+      </div>
+    </Section>
+  </main>
+  <Footer />
+</Layout>

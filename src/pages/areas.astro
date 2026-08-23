@@ -1,0 +1,74 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Usage from "../components/Usage.astro";
+import { site } from "../config";
+// @ts-ignore — plain-JS page gate shared with the Node check scripts
+import { pageIsBuilt } from "../lib/pages.mjs";
+// @ts-ignore — service-area resolver
+import { allAreas, buildableAreas } from "../lib/areas.mjs";
+
+const title = `Service areas | ${site.business?.name || ""}`;
+const description =
+  site.usage?.subhead || site.seo?.description || "";
+
+/* An empty page is worse than no page: a 200 with nothing on it is a soft
+   404 to a crawler and a dead end to a visitor. If there is no content,
+   send them somewhere that has some. */
+if (!pageIsBuilt("areas", site)) /* v3.16: the homepage coverage block is the `areas` section now. */
+  return Astro.redirect("/#areas");
+
+/* Suburbs with a page of their own get linked; the rest are listed. A suburb
+   without page-worthy content is still served — there just isn't a page's worth
+   to say about it yet, and inventing one is how a doorway site starts. */
+const areas = allAreas(site);
+const withPages = buildableAreas(site);
+---
+
+<Layout title={title} description={description} pageType="area">
+  <Header />
+  <Usage full as="h1" />
+
+  {withPages.length > 0 && (
+    <section class="bg-tint px-4 py-14 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-[var(--w-content)]">
+        <h2 class="font-heading text-2xl font-semibold text-brand">Areas in detail</h2>
+        <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {withPages.map((a: any) => (
+            <li>
+              <a href={`/areas/${a.slug}`} class="flex min-h-11 items-center rounded-card border border-border bg-card px-4 py-3 font-semibold text-brand transition hover:border-brand/40">
+                {a.name} <span class="ml-auto" aria-hidden="true">&#8594;</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+  <section class="bg-bg px-4 py-16 lg:px-8">
+    <div class="mx-auto flex max-w-6xl flex-col gap-4 rounded-card border border-border bg-card p-8 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="font-heading text-2xl font-semibold text-brand">Not sure we cover your area?</h2>
+        <p class="mt-2 max-w-xl text-muted">{site.usage?.notCoveredLine || "Not sure if we cover your suburb? Get in touch and ask."}</p>
+      </div>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        {site.contact?.phone && (
+          <a
+            href={`tel:${site.contact.phone.replace(/\s+/g, "")}`}
+            class="rounded-card border border-brand/20 px-6 py-3 text-center text-sm font-semibold text-brand transition hover:bg-card"
+          >
+            {site.contact.phone}
+          </a>
+        )}
+        <a
+          href="/#contact"
+          class="rounded-card bg-accent px-6 py-3 text-center text-sm font-semibold text-on-accent transition hover:bg-accent/90"
+        >
+          Get a free quote
+        </a>
+      </div>
+    </div>
+  </section>
+  <Footer />
+</Layout>

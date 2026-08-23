@@ -1,0 +1,123 @@
+---
+/**
+ * /gallery — the work page.
+ *
+ * Three things were wrong with this page before v3.5:
+ *  1. It looped a hardcoded `["gardening","pressure-washing","gutter-cleaning"]`
+ *     — the first client's service keys, in a "universal" template.
+ *  2. It read only src/data/gallery.ts, which ships empty, so the intake's
+ *     gallery.images[] never appeared here.
+ *  3. Its body copy was the literal string "PLACEHOLDER gallery. These images
+ *     are placeholders, not completed work, and must be replaced before launch."
+ *     That was live copy on a production page, not a build warning.
+ *
+ * Now it renders the client's real photos, groups the richer before/after
+ * entries by whatever services THIS client actually has, and does not build at
+ * all unless there is something real to show.
+ */
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import GalleryEntries from "../components/GalleryEntries.astro";
+import RecentJobsList from "../components/RecentJobsList.astro";
+import RecentJobsDemoNotice from "../components/RecentJobsDemoNotice.astro";
+import { galleryEntries } from "../data/gallery";
+import { recentJobs } from "../data/recent-jobs";
+import { site } from "../config";
+// @ts-ignore — plain-JS helpers shared with the Node check scripts
+import { resolveGalleryImages, galleryCopy } from "../lib/content.mjs";
+// @ts-ignore
+import { pageIsBuilt } from "../lib/pages.mjs";
+
+const images = resolveGalleryImages(site);
+const copy = galleryCopy(site);
+/* An empty page is worse than no page: a 200 with nothing on it is a soft
+   404 to a crawler and a dead end to a visitor. If there is no content,
+   send them somewhere that has some. */
+if (!pageIsBuilt("gallery", site, { galleryEntries, recentJobs })) return Astro.redirect("/#gallery");
+
+/* Group whatever entries exist by their own service key — no hardcoded list. */
+const byService = new Map<string, typeof galleryEntries>();
+for (const entry of galleryEntries) {
+  const key = String((entry as any).service || "");
+  if (!byService.has(key)) byService.set(key, [] as any);
+  (byService.get(key) as any).push(entry);
+}
+
+const titleCase = (k: string) =>
+  k.replace(/[-_]+/g, " ").trim().replace(/\b\w/g, (c) => c.toUpperCase());
+
+const heading = copy.heading || "Our work";
+const title = `${heading} | ${site.business?.name || ""}`;
+const description = copy.subhead || `Recent work from ${site.business?.name || "us"}.`;
+---
+
+<Layout title={title} description={description} pageType="other">
+  <Header />
+  <main class="bg-bg">
+    <section class="px-4 pb-12 pt-16 sm:px-6 lg:px-8 lg:pb-16 lg:pt-20">
+      <div class="mx-auto max-w-[var(--w-content)]">
+        {copy.eyebrow && (
+          <p class="text-sm font-semibold uppercase tracking-wide text-highlight">{copy.eyebrow}</p>
+        )}
+        <h1 class="mt-2 max-w-3xl font-heading text-4xl font-semibold leading-tight tracking-tight text-brand sm:text-5xl">
+          {heading}
+        </h1>
+        {copy.subhead && (
+          <p class="mt-4 max-w-2xl text-lg leading-relaxed text-muted">{copy.subhead}</p>
+        )}
+      </div>
+    </section>
+
+    {images.length > 0 && (
+      <section class="px-4 pb-14 sm:px-6 lg:px-8 lg:pb-20">
+        <div class="mx-auto max-w-[var(--w-content)]">
+          <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {images.map((img, i) => (
+              <li class="min-w-0">
+                <div class="relative aspect-[4/3] overflow-hidden rounded-card border border-border bg-tint">
+                  <img src={img.src} alt={img.alt} width="960" height="720" loading={i < 3 ? "eager" : "lazy"} decoding="async" class="h-full w-full object-cover" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )}
+
+    {recentJobs.length > 0 && (
+      <section class="bg-card px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+        <div class="mx-auto max-w-[var(--w-content)]">
+          <h2 class="font-heading text-3xl font-semibold tracking-tight text-brand">Recent jobs</h2>
+          <RecentJobsDemoNotice />
+          <div class="mt-8">
+            <RecentJobsList jobs={recentJobs} />
+          </div>
+        </div>
+      </section>
+    )}
+
+    {[...byService.entries()].map(([service, entries]) => (
+      <section class="bg-bg px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+        <div class="mx-auto max-w-[var(--w-content)]">
+          <h2 class="font-heading text-3xl font-semibold tracking-tight text-brand">
+            {titleCase(service)}
+          </h2>
+          <div class="mt-8">
+            <GalleryEntries entries={entries} variant="full" />
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <section class="sec-pad-default bg-tint">
+      <div class="mx-auto flex max-w-[var(--w-content)] flex-col gap-4 px-4 sm:px-6 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+        <h2 class="font-heading text-2xl font-semibold text-brand">Want something like this done?</h2>
+        <a href="/#contact" class="inline-flex min-h-11 items-center justify-center rounded-card bg-accent px-6 py-3 text-center text-sm font-semibold text-on-accent transition hover:brightness-95">
+          Get a free quote
+        </a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>

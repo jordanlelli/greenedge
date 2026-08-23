@@ -1,0 +1,40 @@
+---
+/**
+ * Sticky dual doorways (mobile) — PRODUCT.md: quote + call co-equal.
+ * Quote scrolls to contact; call dials. Thumb-zone only (&lt; md).
+ */
+import { site, formatPhone, resolveLinkHref } from "../config";
+
+if (!site.features?.stickyPhoneBar || !site.contact?.phone) return null;
+
+const phone = site.contact.phone;
+const phoneHref = `tel:${formatPhone(phone)}`;
+const quoteHref = resolveLinkHref(site.contact.headerCtaHref || "#contact");
+const quoteLabel = site.contact.headerCtaLabel || "Get a free quote";
+---
+
+<div
+  class="fixed bottom-0 left-0 right-0 z-50 flex border-t border-white/10 md:hidden"
+  style="padding-bottom: env(safe-area-inset-bottom, 0px)"
+  data-cta="sticky-dual"
+>
+  <a
+    href={quoteHref}
+    class="flex min-h-12 flex-1 items-center justify-center gap-2 bg-accent px-3 py-3.5 text-center text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset"
+    data-cta="sticky-quote"
+  >
+    {quoteLabel}
+  </a>
+  <a
+    href={phoneHref}
+    class="flex min-h-12 flex-1 items-center justify-center gap-2 bg-brand-dark px-3 py-3.5 text-center text-sm font-semibold text-ondark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/50 focus-visible:ring-inset"
+    data-cta="sticky-phone"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.2 2.2z" />
+    </svg>
+    Call
+  </a>
+</div>
+
+<div class="h-14 md:hidden" aria-hidden="true" style="padding-bottom: env(safe-area-inset-bottom, 0px)"></div>

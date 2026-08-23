@@ -1,0 +1,33 @@
+---
+import { site } from "../config";
+import Section from "./Section.astro";
+
+const faqs = site.faqs || {};
+const items: any[] = faqs.items || [];
+const eyebrow = faqs.eyebrow || "FAQ";
+const heading = faqs.heading || "Common questions";
+---
+
+{items.length > 0 && (
+  <Section id="faqs" width="content" bg="bg">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-highlight section-eyebrow">{eyebrow}</p>
+        <h2 class="mt-2 font-heading text-3xl font-semibold text-brand sm:text-4xl section-heading">{heading}</h2>
+      </div>
+      <div class="divide-y divide-border border-t border-border">
+        {items.map((f: any) => (
+          <details class="group py-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-lg font-semibold text-brand [&::-webkit-details-marker]:hidden">
+              <span>{f.question}</span>
+              <svg class="h-5 w-5 shrink-0 text-accent-ink transition-transform group-open:rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+              </svg>
+            </summary>
+            <p class="mt-3 text-base leading-relaxed text-muted">{f.answer}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </Section>
+)}

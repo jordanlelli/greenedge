@@ -1,0 +1,105 @@
+---
+/**
+ * ConsentBanner — cookie-consent notice, shown ONLY when consent is required
+ * (cookie-based analytics like GA4, or legal.consent.enabled === true). For
+ * cookieless analytics (Plausible/Umami) this renders nothing at all.
+ *
+ * Pairs with Google Consent Mode v2 in Analytics.astro: GA4 loads with consent
+ * DENIED by default, so no cookies are set until the visitor accepts here. On
+ * accept we call gtag('consent','update', …). The choice is remembered in
+ * localStorage; the banner never reappears once a choice is made.
+ *
+ * Config-driven copy: legal.consent.{message,acceptLabel,declineLabel}.
+ */
+import { site, consentRequired } from "../config";
+
+const consent = site.legal?.consent || {};
+const message =
+  consent.message ||
+  "We use cookies to measure site traffic and improve your experience. You can accept or decline non-essential cookies.";
+const acceptLabel = consent.acceptLabel || "Accept";
+const declineLabel = consent.declineLabel || "Decline";
+const showPrivacyLink = site.legal?.privacy?.enabled === true;
+---
+
+{consentRequired && (
+  <div
+    id="consent-banner"
+    class="fixed inset-x-0 bottom-0 z-[60] hidden border-t border-border bg-card px-4 py-4 shadow-card sm:px-6"
+    role="dialog"
+    aria-label="Cookie consent"
+    aria-live="polite"
+    data-consent-banner
+  >
+    <div class="mx-auto flex max-w-[var(--w-content)] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="max-w-2xl text-sm leading-relaxed text-ink">
+        {message}
+        {showPrivacyLink && (
+          <>
+            {" "}
+            <a href="/privacy" class="font-semibold text-brand underline underline-offset-2 hover:text-brand-dark">
+              Privacy policy
+            </a>.
+          </>
+        )}
+      </p>
+      <div class="flex shrink-0 gap-3">
+        <button
+          type="button"
+          data-consent="decline"
+          class="inline-flex min-h-11 items-center justify-center rounded-card border border-border bg-bg px-5 py-2.5 text-sm font-semibold text-brand transition hover:border-brand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        >
+          {declineLabel}
+        </button>
+        <button
+          type="button"
+          data-consent="accept"
+          class="inline-flex min-h-11 items-center justify-center rounded-card bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        >
+          {acceptLabel}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const KEY = "cookie-consent";
+      const banner = document.querySelector("[data-consent-banner]");
+      if (!banner) return;
+
+      const gtagUpdate = (granted) => {
+        if (typeof window.gtag !== "function") return;
+        const v = granted ? "granted" : "denied";
+        window.gtag("consent", "update", {
+          ad_storage: v,
+          analytics_storage: v,
+          ad_user_data: v,
+          ad_personalization: v,
+        });
+      };
+
+      const apply = (choice) => {
+        gtagUpdate(choice === "granted");
+        banner.classList.add("hidden");
+      };
+
+      let stored = null;
+      try { stored = localStorage.getItem(KEY); } catch {}
+
+      if (stored === "granted" || stored === "denied") {
+        apply(stored);
+        return;
+      }
+
+      banner.classList.remove("hidden");
+      banner.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-consent]");
+        if (!btn) return;
+        const choice = btn.dataset.consent === "accept" ? "granted" : "denied";
+        try { localStorage.setItem(KEY, choice); } catch {}
+        apply(choice);
+      });
+    })();
+  </script>
+)}

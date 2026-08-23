@@ -1,0 +1,108 @@
+---
+/**
+ * Testimonials — real, attributable client quotes.
+ *
+ * Reads BOTH the intake (`testimonials`, either a bare array or a block with
+ * `items[]`) and src/data/testimonials.ts. Previously it read only the data
+ * file, so an intake carrying real Google reviews rendered nothing and said
+ * nothing about it.
+ *
+ * A quote renders only if it resolves to a sourceUrl — per item, or a
+ * block-level `testimonials.sourceUrl` (your Google Business Profile reviews
+ * link covers the whole set in one line). Unsourced quotes are dropped and
+ * reported by scripts/check-intake.mjs. That rule is the point: a fabricated
+ * review on a live site carrying a real ABN is an ACCC problem, not a design one.
+ */
+import Section from "./Section.astro";
+import { site } from "../config";
+import { testimonials as fromDataFile } from "../data/testimonials";
+// @ts-ignore — plain-JS content normaliser shared with the Node check scripts
+import { resolveTestimonials } from "../lib/content.mjs";
+
+const { items, heading, eyebrow, subhead } = resolveTestimonials(site, fromDataFile);
+---
+
+{items.length > 0 && (
+  <Section id="testimonials" bg="bg">
+    <div class="max-w-2xl">
+      {eyebrow && <p class="section-eyebrow text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">{eyebrow}</p>}
+      <h2 class="section-heading mt-2 font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+        {heading}
+      </h2>
+      {subhead && <p class="mt-3 text-lg leading-relaxed text-muted">{subhead}</p>}
+    </div>
+
+    <ul class:list={["tst-list mt-10", items.length > 3 && "tst-list--carousel"]}>
+      {items.map((t) => (
+        <li class="tst-item min-w-0">
+          <figure class="flex h-full flex-col rounded-card border border-border bg-card p-6 shadow-none">
+            <blockquote class="text-lg leading-relaxed text-ink">
+              &#8220;{t.quote}&#8221;
+            </blockquote>
+            <figcaption class="mt-6">
+              <a
+                href={t.sourceUrl}
+                class="font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {t.name || "Verified review"}
+              </a>
+              {(t.meta || t.sourceLabel) && (
+                <p class="mt-1 text-sm leading-relaxed text-muted">
+                  {[t.meta, t.sourceLabel].filter(Boolean).join(" \u00b7 ")}
+                </p>
+              )}
+            </figcaption>
+          </figure>
+        </li>
+      ))}
+    </ul>
+    {items.length > 3 && (
+      <p class="mt-4 text-sm text-muted lg:hidden">Swipe for more reviews</p>
+    )}
+  </Section>
+)}
+
+<style>
+  /* min-h-72 forced every card to 288px, so three short reviews left a large
+     empty band above the attribution — B8. Cards now size to content and the
+     row stretches so a row stays even. */
+  .tst-list {
+    display: grid;
+    gap: 1.25rem;
+    margin-left: 0;
+    padding: 0;
+    list-style: none;
+    align-items: stretch;
+  }
+
+  @media (min-width: 64rem) {
+    .tst-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    /* Above three, a 3-col grid leaves an uneven last row. Scroll-snap instead:
+       CSS only, no library, and it degrades to a plain scroller everywhere. */
+    .tst-list--carousel {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-left: 0;
+      padding-bottom: 0.75rem;
+      scrollbar-width: thin;
+    }
+    .tst-list--carousel .tst-item {
+      flex: 0 0 clamp(19rem, 31%, 24rem);
+      scroll-snap-align: start;
+    }
+  }
+
+  @media (max-width: 63.99rem) {
+    .tst-list {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 0.75rem;
+    }
+    .tst-item { flex: 0 0 min(85%, 20rem); scroll-snap-align: start; }
+  }
+</style>

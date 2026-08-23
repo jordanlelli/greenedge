@@ -1,0 +1,47 @@
+---
+/**
+ * centered — nav split either side of a centred wordmark, with a thin utility
+ * strip above carrying the phone. The arrangement the landscaping references
+ * use; it reads more "established business" than the standard bar.
+ *
+ * On mobile it collapses to brand-left / call-right, because a centred mark
+ * with a burger under it costs vertical space above the fold for nothing.
+ */
+import P from "./HeaderParts.astro";
+import { site, headerNavLinks } from "../../config";
+
+const links = headerNavLinks();
+const half = Math.ceil(links.length / 2);
+const left = links.slice(0, half);
+const right = links.slice(half);
+/* business.licence is the real key; contact.licence was never populated. */
+const licence = site.business?.licence || site.contact?.licence || "";
+---
+<div class="hidden border-b border-brand/[0.10] lg:block">
+  <div class="mx-auto flex max-w-[var(--w-content)] items-center justify-between gap-4 px-4 py-1.5 text-xs text-muted sm:px-6 lg:px-8">
+    <span>{licence || site.business?.tagline || ""}</span>
+    <P part="phone" class="text-xs" />
+  </div>
+</div>
+
+<div class="mx-auto grid max-w-[var(--w-content)] grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-2 sm:px-6 lg:gap-6 lg:px-8 lg:py-3">
+  <nav class="hidden items-center justify-start gap-5 lg:flex" aria-label="Primary">
+    {left.map((l) => (
+      <a href={l.href} class="text-sm font-medium text-brand/85 transition hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{l.label}</a>
+    ))}
+  </nav>
+
+  <div class="col-start-1 justify-self-start lg:col-start-2 lg:justify-self-center">
+    <P part="brand" size="lg" />
+  </div>
+
+  <div class="col-start-2 flex items-center justify-end gap-2 lg:col-start-3 lg:gap-5">
+    {right.map((l) => (
+      <a href={l.href} class="hidden text-sm font-medium text-brand/85 transition hover:text-brand lg:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{l.label}</a>
+    ))}
+    <P part="cta" class="hidden lg:inline-flex" />
+    <P part="phone" class="inline-flex min-h-10 items-center rounded-card bg-accent px-3 text-sm text-on-accent lg:hidden" />
+    <P part="burger" />
+  </div>
+</div>
+<P part="panel" />

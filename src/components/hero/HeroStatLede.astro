@@ -1,0 +1,103 @@
+---
+/**
+ * HeroStatLede — an oversized figure leads, the headline sits beside it, and
+ * the remaining stats run in a ruled strip beneath.
+ *
+ * NEVER FABRICATES. Every figure resolves from `hero.stats[]`. If the lead stat
+ * is absent the variant is filtered out by the engine entirely — it has no
+ * placeholder state and no fallback number. A made-up "200+ jobs" on a site
+ * carrying a real ABN is an ACCC problem, not a design flourish.
+ *
+ * This variant ABSORBS the HeroStats strip: stats[0] becomes the lede and
+ * stats[1..3] become the strip below, so Hero.astro suppresses the standalone
+ * HeroStats component when this variant is active. Rendering both would print
+ * the same numbers twice on one screen.
+ */
+import HeroCopy from "./HeroCopy.astro";
+import { site } from "../../config";
+
+type Stat = { value?: string; label?: string };
+const stats: Stat[] = (site.hero?.stats || []).filter(
+  (s: Stat) => s && String(s.value || "").trim() && String(s.label || "").trim()
+);
+
+const lede = stats[0];
+const rest = stats.slice(1, 4);
+---
+
+<section class="relative overflow-hidden bg-bg" data-no-reveal>
+  <div class="hero-pad mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end lg:gap-16">
+      <div class="min-w-0">
+        <p class="hero-lede-value">{lede.value}</p>
+        <p class="hero-lede-label">{lede.label}</p>
+      </div>
+      <div class="min-w-0">
+        <HeroCopy size="default" />
+      </div>
+    </div>
+
+    {rest.length > 0 && (
+      <dl class="hero-lede-strip">
+        {rest.map((stat) => (
+          <div class="hero-lede-cell">
+            <dt class="sr-only">{stat.label}</dt>
+            <dd class="m-0">
+              <span class="block font-heading text-2xl font-semibold tracking-tight text-brand">{stat.value}</span>
+              <span class="mt-1 block text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-muted">{stat.label}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    )}
+  </div>
+</section>
+
+<style>
+  .hero-lede-value {
+    margin: 0;
+    font-family: var(--font-display, inherit);
+    font-weight: 700;
+    font-size: clamp(4rem, 12vw, 7rem);
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+    color: var(--color-accent-ink);
+  }
+
+  .hero-lede-label {
+    margin: 0.75rem 0 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+
+  .hero-lede-strip {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 2.5rem 0 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .hero-lede-cell {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 40rem) {
+    .hero-lede-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .hero-lede-cell {
+      padding: 1rem 1.25rem 0;
+      border-bottom: 0;
+      border-right: 1px solid var(--color-border);
+    }
+    .hero-lede-cell:first-child { padding-left: 0; }
+    .hero-lede-cell:last-child { border-right: 0; }
+  }
+
+  @media (min-width: 64rem) {
+    .hero-lede-strip { margin-top: 3.5rem; }
+  }
+</style>

@@ -1,0 +1,181 @@
+================================================================
+  INTAKE-SPEC.txt — RULES FOR A GOOD client-intake.json
+================================================================
+  The schema is in client-intake.skeleton.json. This file is the
+  rules that schema alone does not tell you. Read both before
+  filling an intake, whether by hand or via a form export.
+
+
+================================================================
+  1. THE TWO LAYERS
+================================================================
+  CONTENT  = everything OUTSIDE _brief. It renders. Real facts,
+             services, reviews, hours, contact.
+  _brief   = DIRECTION + engine overrides. config.ts strips every
+             _-prefixed key (recursively, at every depth) from
+             `site`, so _brief and any _comment NEVER reach the
+             page. Putting a sentence in _brief that you want on
+             the page is a mistake — it will silently vanish.
+
+
+================================================================
+  2. THE SIX ENGINE-READ OVERRIDE KEYS (the only machine keys)
+================================================================
+  These live in _brief and are read by src/lib/variants.mjs.
+  Everything else in _brief is read by Cursor/you, not the engine.
+
+    _brief.variantSeed        any string; change to reshuffle the
+                              whole look for one client.
+    _brief.designKit          ledger | workshop | coast | press | signal
+    _brief.surface            flat | tint | warm
+    _brief.bandSection        a section key present in `sections`,
+                              OR "none" to force no band.
+    _brief.layoutVariants.X   force one section's variant (names
+                              in VARIANTS.txt), else seeded.
+
+  Leave any of these EMPTY to let the seeded engine decide. The
+  seed is business.name + _meta.domain (unless variantSeed set),
+  so the design is stable across rebuilds and different per client.
+
+
+================================================================
+  3. LAUNCH-REQUIRED FIELDS (what the dev banner enforces)
+================================================================
+  config.ts checkRequired() hardcodes THREE:
+    business.name
+    contact.phone
+    contact.email
+  The TodoBanner flags a missing email EVEN on a phone-first
+  client. If you are going phone-first, either put a real email in
+  or accept the dev-only warning (it never shows on the live site).
+  A working contact form needs EITHER contact.email OR
+  contact.formEndpoint (see Contact.astro); the banner only checks
+  email, so formEndpoint alone still triggers the nag.
+
+
+================================================================
+  4. SECTIONS ARRAY = WHAT RENDERS + BASE ORDER
+================================================================
+  The `sections` array decides which sections appear. Pins:
+    TOP (in this order):    hero, services
+    BOTTOM:                 faq, faqs, contact
+    MIDDLE (seeded shuffle): story, whyUs, tiers, usage, testimonials
+  Remove a key to drop that section entirely. Empty content blocks
+  also self-hide even if listed.
+
+
+================================================================
+  5. THE COLOUR BAND + LUMINANCE GUARD (read before picking colours)
+================================================================
+  The engine inverts ONE middle section to a dark brand band.
+  - Eligible sections: tiers, usage, whyUs, story, testimonials.
+    Never: hero, services, faq/faqs, contact.
+  - The band colour is style.brandDark. The guard allows the band
+    only if the WCAG relative luminance of brandDark (falling back
+    to brand) is <= 0.183 — i.e. white text clears ~4.5:1.
+  ACTIONABLE RULE: always set a genuinely DARK style.brandDark.
+  That single value both paints the band and passes the guard. A
+  light or empty brandDark = the band silently disappears. This is
+  correct behaviour, not a bug — but it surprises you if you forget.
+  Force it off with _brief.bandSection: "none"; force a specific
+  section with _brief.bandSection: "story".
+
+
+================================================================
+  6. features.hasPhotos IS AN EXPLICIT BOOLEAN
+================================================================
+  Set true ONLY when real photos exist in public/images. NEVER
+  infer it from placeholder image paths — that reintroduces the
+  broken-image-hero bug. With no photos, leave it false and the
+  engine avoids photo-only variants automatically (gradients fill).
+
+
+================================================================
+  7. NEVER FABRICATE
+================================================================
+  - Testimonials: real reviews only. Leave the array empty until
+    you have them. Placeholder reviews get REMOVED before launch,
+    never invented and left live.
+  - Numbers/stats, licence numbers, ABNs, "5 years strong":
+    only if true. The story stat-bar variant is filtered out when
+    there is no real stats data.
+  - Photos: no stock photography, no invented image URLs.
+
+
+================================================================
+  8. RECON-DEMO _brief CHECKLIST (pre-client "show of faith" build)
+================================================================
+  When you build a demo from outside recon (no questionnaire), the
+  client has told you NOTHING, so _brief is doing all the work.
+  You cannot produce an on-brand demo without deciding these six:
+
+    1. Trade            -> pick a preset in brief-presets.txt
+    2. Suburb / area    -> usage[] chips + SEO + local proof
+    3. One competitor   -> the site you must NOT look like
+       to avoid
+    4. Palette intent   -> brand + a DARK brandDark + accent
+    5. Photos?          -> features.hasPhotos true/false (usually
+       false for recon; design must work type-only)
+    6. One-line voice   -> how they should sound
+
+  Miss any of these and the demo defaults to generic — the exact
+  failure a content-only brief produces. Put the six in
+  _brief.designDirection and _brief.notesForCursor, and set
+  _brief.sourceStage: "recon-demo".
+================================================================
+
+================================================================
+  v3.16 KEYS
+================================================================
+
+  services.items[].featured        boolean
+    Marks the ONE service that leads in the services/feature-lead
+    variant. First true wins; absent, items[0] leads. Most trades
+    have one service that pays the bills and several that fill
+    gaps — a uniform grid presents five equal offers, which is a
+    layout ignoring the business.
+
+  services.items[].image           string
+  services.items[].imageAlt        string
+    Per-service photography. Gated on features.hasPhotos as well
+    as a path: a per-service photo asserts the client did THAT
+    job. A path to a file that was never supplied is not a photo.
+    Gates services/split-scroll (needs one on EVERY service) and
+    services/feature-lead (needs one on the LEAD service).
+
+  services.items[].longDescription string
+  services.items[].includes[]      string[]
+    Gate services/list-detail, which needs a longDescription AND
+    two or more includes on EVERY service. Without that depth it
+    renders a panel of whitespace.
+
+  whyUs.type                       "benefits" | "process"
+    Default "benefits". Set "process" ONLY when the items are a
+    real sequence, and it unlocks whyUs/process-rail — the only
+    variant in the template that asserts an order.
+    The test: can the items be reordered without losing meaning?
+    If yes they are a list, not a process, and numbering them
+    claims something the content does not support.
+
+  whyUs.pairs[]                    { them, us }[]
+  whyUs.themLabel                  string
+  whyUs.usLabel                    string
+    Gate whyUs/contrast-pair. Two or more pairs required. This is
+    a DIFFERENT shape from whyUs.items[] and is not derivable
+    from it — the "them" column must come from the client, never
+    be invented, because it puts words in a competitor's mouth.
+    Labels default to "The cheap quote" / "Us".
+
+  hero.stats[]                     { value, label }[]
+    Already read by the HeroStats strip; from v3.16 it also gates
+    hero/stat-lede, where stats[0] becomes the oversized lede and
+    stats[1..3] the strip beneath. stat-lede has NO placeholder
+    state: no real stat, no variant.
+
+  sections: "areas"
+    The homepage service-area block became its own section. It
+    previously lived inside Story.astro, so switching story off
+    silently removed the suburb coverage — a live local SEO
+    signal on every one of these sites. It reads the same `usage`
+    block. Intakes written before v3.16 that list "usage" still
+    mount it.

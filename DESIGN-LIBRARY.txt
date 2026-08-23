@@ -1,0 +1,417 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   LELLI DIGITAL — DESIGN LIBRARY                                              ║
+║   Permanent design reference for the universal template.                     ║
+║   Attach to project. This is the single source of truth for how a site       ║
+║   is made to look intentional instead of AI-generated.                       ║
+║                                                                              ║
+║   v1.0  ·  8 trade verticals  ·  palettes + type + signatures                ║
+║   All hex values WCAG-checked (text >=4.5:1, large/UI >=3:1).                 ║
+║   All fonts are Google Fonts (zero licensing friction).                      ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  0.  HOW TO USE THIS FILE                                                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  There are three layers. Two are built once. One runs per client.
+
+    LAYER 1 — THE LIBRARY (this file). A curated menu of vetted directions,
+              one set per vertical. Built once. This is it.
+
+    LAYER 2 — THE GUARDRAILS (Section 1). Rules the shared components and the
+              QA gate must enforce so no build can ship the AI tells.
+              Wired into the template once.
+
+    LAYER 3 — THE SELECTION (Section 2). ~10 minutes of judgment per client:
+              pick the preset, confirm/nudge, choose ONE signature, load real
+              content, run the critique gate. This is the part that cannot be
+              automated. It is small. It is also the whole game.
+
+  Core truth this file exists to enforce:
+
+    Combinatorics produces PERMUTATIONS of one base. Permutations of a generic
+    base are still generic. VARIETY IS NOT DISTINCTIVENESS. The tell was never
+    the colour — it is every section sharing the same bones. Presets give each
+    vertical DIFFERENT BONES; the guardrails stop any build from collapsing
+    back to the template default.
+
+  When making improvements: cite the preset and the guardrail by name. Never
+  say "make it look better" — say "apply LANDSCAPING preset, enforce
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  1.  THE GUARDRAILS  —  the quality floor (enforced every build)             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  ── BANNED BY DEFAULT (a build with any of these must be fixed or justified in
+     a _comment before it ships) ─────────────────────────────────────────────
+
+    B1  The uniform section header. Every section using centered eyebrow ->
+        serif H2 -> muted one-line subtitle. This is the #1 AI tell.
+
+    B2  Card-everything. All content sections as identical white rounded cards
+        on a tint. Uniform radius + shadow + padding reads as machine-made.
+
+
+    B4  CLUSTER #1 — the single most common AI-design fingerprint. WIDENED in
+        v3.16 from a palette rule to a COMBINATION rule, and it is now
+        typeface-agnostic:
+            pale-warm background (~#F4F1EA)
+          + centred heading block (eyebrow -> heading -> subtitle, all centred)
+          + warm-earth accent (~#C67B5C / #B5651D)
+        Any two of those three, plus centred, is already suspect. All three is
+        BANNED regardless of what typeface sits on top. (Note: the
+        ui-ux-pro-max pack's "Nature Distilled" style IS this combination — do
+        not use it. It is the trap, not the answer.)
+
+    B5  DELETED in v3.16 — "serif display as a default" was banned here, and it
+        measured the wrong thing.
+        Take the offending pattern and swap the serif for a grotesque: the tell
+        survives, because it was never the typeface. Keep the serif and change
+        the background, the alignment and the accent: the tell is gone.
+        The variables are alignment, background temperature and accent hue —
+        which is what the widened B4 now measures. The `press` kit (Fraunces)
+        stays, and a serif H1 is a judgement call about the client, not a rule.
+
+    B6  Decorative filler with no job: floating monogram circles, emoji as
+        section icons (leaf / calendar / tick), ornamental glyphs.
+
+    B7  Placeholder rendering live: TODO strings, lorem, "REQUIRED", empty
+        image boxes. A placeholder on a live page is a critical defect.
+
+    B8  Dead vertical space: no empty band taller than ~160px, especially
+
+    B9  Template hero: "big number + small label + gradient accent" unless the
+        data genuinely IS the story.
+
+  ── ENFORCED FLOOR (true of every build, no exceptions) ─────────────────────
+
+    G1  ALIGNMENT VARIATION. At most half the sections centered. At least two
+        sections lead left-aligned or content-first. Section.astro must NOT
+        default every section to center.
+
+    G2  CONTAINER VARIATION. Max 2 card-grid sections per page. Others use
+        editorial blocks, text lists, or full-bleed treatments.
+
+        ENCODE THE SUBJECT (roofline, horizon contour, rule-line) — never
+        generic decoration.
+
+    G4  ONE SIGNATURE. Exactly one memorable element per site, taken from the
+        preset. Everything else stays quiet. (Chanel rule: before it ships,
+        remove one accessory.)
+
+    G5  REAL CONTENT ONLY. Real copy, real photos, or an honest photo-free
+        layout. hasPhotos is an explicit boolean; it flips true only when
+        files physically exist in public/images/.
+
+    G6  TYPE SCALE. One display face, one body face. Scale defined for
+        display / h2 / body / caption and used consistently.
+
+    G7  QUALITY BASELINE. Responsive to 360px. Visible keyboard focus.
+        prefers-reduced-motion respected. Contrast per the checked palettes.
+
+  ── QA GATE (impeccable + this checklist; failing = do not ship) ────────────
+
+        [ ] Are >50% of sections centered?            -> fail (G1)
+        [ ] More than 2 card-grid sections?           -> fail (G2)
+        [ ] Pale-warm bg + centred head + earth accent? -> fail (B4)
+        [ ] Any emoji/monogram/placeholder visible?   -> fail (B6/B7)
+        [ ] More than one signature element?          -> fail (G4)
+        [ ] Any dead band >160px?                     -> fail (B8)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  2.  THE SELECTION PROCESS  —  ~10 min of judgment per client                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+    STEP 1  Pick the vertical preset (Section 3).
+    STEP 2  Confirm/nudge the palette. Swap the ACCENT if the client's own
+            brand demands it; keep the BASE — the base carries the identity.
+    STEP 3  Confirm/nudge the type. Keep unless there is a real reason.
+    STEP 4  Choose the ONE signature element for THIS business (from the
+            preset's options, or a client-specific one you can justify).
+    STEP 5  Load real content + photos. No lorem, no placeholders.
+    STEP 6  CRITIQUE GATE. Ask out loud: "Would I produce this exact page for
+            any other client in this vertical?" If yes -> change one axis
+            (palette shade, a layout inversion, or the signature) and record
+            what changed and why in a _comment.
+    STEP 7  Record the decision as designDirection in client-intake.json.
+
+  ── designDirection block (drop into client-intake.json) ────────────────────
+
+    "designDirection": {
+      "preset": "landscaping",
+      "palette": {
+        "brand":      "#14532D",
+        "surface":    "#F4F7F2",
+        "surfaceAlt": "#E8F0E9",
+        "accent":     "#A16207",
+        "highlight":  "#15803D",
+        "text":       "#14532D"
+      },
+      "type": { "display": "Bricolage Grotesque", "body": "Inter" },
+      "signature": "deep-green full-bleed hero + topographic contour line",
+      "_comment": "GreenEdge. Locked direction, not seeded. Gold accent chosen
+                   over template terracotta to break cluster-1."
+    }
+
+  ── palette role -> template token mapping ──────────────────────────────────
+
+        brand      ->  --brand-dark   (bg-brand-dark, dark hero, footer)
+        surface    ->  --paper        (bg-paper, primary light surface)
+        surfaceAlt ->  --tint         (bg-tint, alternating sections)
+        accent     ->  --accent       (CTA buttons, key actions)
+        highlight  ->  --highlight    (eyebrows, small detail marks)
+        text       ->  --brand        (text-brand, headings on light)
+
+    Rule: the ACCENT is for action only (CTAs). It is never a section
+    background. The BRAND owns the identity surfaces.
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  3.  THE VERTICAL PRESETS                                                     ║
+║      Each is deliberately different in BONES — palette family, type          ║
+║      personality, and signature device — so two demos never converge.        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.1  LANDSCAPING / PROPERTY CARE            [ GreenEdge — LOCKED reference ] │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        Green OWNS the whole surface, not just the header. Left-aligned,
+               editorial, photography-led. NOT green-header-on-cream-body.
+
+  PALETTE      brand      #14532D   deep forest (hero, footer, headings)
+               surface    #F4F7F2   near-white, faint green tint
+               surfaceAlt #E8F0E9   soft sage band
+               accent     #A16207   harvest gold  (CTA only)
+               highlight  #15803D   mid green (eyebrows/marks)
+               text       #14532D   / on dark: #F0FDF4
+               (source: ui-ux-pro-max colours #50, gold WCAG-adjusted)
+
+  TYPE         display    Bricolage Grotesque   (warm, contemporary, not serif)
+               body       Inter
+               import  https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Inter:wght@400;500;600&display=swap
+
+  SIGNATURE    Full-bleed deep-green hero owning the identity + a subtle
+               TOPOGRAPHIC CONTOUR line (replaces decorative waves — it encodes
+               land/terrain). Real job photography becomes the hero device once
+               photos exist. Seasonal before/after for transformations.
+
+  DO           Left-align section intros. Show the work. Let green dominate.
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.2  PAINTING & DECORATING                       [ Mitchell White / A1 ]    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        Crisp, high-contrast, ink-on-white. The subject is COLOUR and
+               FINISH, so colour itself is the signature.
+
+  PALETTE      brand      #18181B   ink/near-black
+               surface    #FFFFFF   clean white (painted wall)
+               surfaceAlt #F5F5F7   pale grey
+               accent     #2563EB   precision blue (CTA)
+               highlight  #18181B   ink
+               text       #18181B
+               (source: colours #11 monochrome + blue accent)
+
+  TYPE         display    Outfit          (geometric, precise)
+               body       Work Sans
+               import  https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap
+
+  SIGNATURE    BEFORE/AFTER SLIDER as the hero device (paint is transformation).
+               Paint-swatch colour blocks as section accents. The blue accent
+               can be swapped to the painter's own brand colour per client.
+
+  DO           Lead with the before/after. Big crisp photos. Lots of white.
+  DON'T        Cream. Serif. Cards for everything.
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.3  PLUMBING                                                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        Industrial, dependable, fast. Conversion is a PHONE CALL, so the
+               number and an emergency bar are structural, not decorative.
+
+  PALETTE      brand      #1E293B   slate
+               surface    #F8FAFC   cool white
+               surfaceAlt #EBF0F5   pale slate
+               accent     #EA580C   safety orange (CTA)   [WCAG-adjusted]
+               highlight  #64748B   steel grey
+               text       #1E293B
+               (source: colours #51 industrial grey + safety orange)
+
+  TYPE         display    Archivo         (sturdy grotesque)
+               body       IBM Plex Sans
+               import  https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap
+
+  SIGNATURE    Persistent EMERGENCY CALL-BAR + oversized phone number in the
+               hero. A single pipe/flow line motif, used once.
+
+  DO           Make the number impossible to miss. "24/7" if true.
+  DON'T        Generic water-blue gradient. Cutesy droplet emoji.
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.4  ELECTRICAL                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        DARK UI (differentiates from every light preset here). Safety +
+               precision + power. Licence number is a trust device.
+
+  PALETTE      brand      #171717   charcoal (this is the SURFACE too — dark site)
+               surface    #171717   dark base
+               surfaceAlt #232323   raised panel
+               accent     #F59E0B   electric amber (CTA, on dark)
+               highlight  #F59E0B   amber
+               text       #F5F5F5   / muted #A3A3A3
+               (source: colours #84 minimal black + accent gold, brightened)
+
+  TYPE         display    Space Grotesk   (technical)
+               body       DM Sans
+               import  https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap
+
+  SIGNATURE    Dark canvas + amber accent. Prominent LICENCE-NUMBER trust strip
+               (electricians must display it — real content as a device). One
+               spark/circuit micro-motif, used once.
+
+  DO           Own the dark. Amber only for action + one highlight.
+  DON'T        Neon everything. Lightning-bolt emoji spam.
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.5  ROOFING / RESTORATION                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        Strong, structural, protective. The ROOFLINE is the graphic
+               device — angled cuts encode the subject (this is a legitimate
+
+  PALETTE      brand      #1E293B   deep slate
+               surface    #F8FAFC   cool white
+               surfaceAlt #E9EDF1   pale slate
+               accent     #DC2626   structural red (CTA)
+               highlight  #1E293B   slate
+               text       #1E293B
+               (source: colours #52 premium dark + action red)
+
+  TYPE         display    Anton           (heavy condensed — reads "solid")
+               body       Inter
+               import  https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap
+
+               before/after of restorations.
+
+  DO           Big heavy headlines. Diagonal energy. Show restorations.
+  DON'T        Terracotta roof-tile cream cliche. Rounded soft cards.
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.6  CARPENTRY / BUILDING / RENOVATION                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        Craft + precision. Near-monochrome espresso; warmth comes ONLY
+               from photography of timber and finish, never from a cream fill
+               (that would trip B4). Strict grid = joinery precision.
+
+  PALETTE      brand      #1C1917   espresso-ink
+               surface    #FAFAF9   warm near-white (NOT cream)
+               surfaceAlt #F0EEEA   pale stone
+               accent     #A16207   brass (CTA)   [WCAG-adjusted]
+               highlight  #78716C   warm stone
+               text       #1C1917
+               (source: colours #4 premium dark + gold)
+
+  TYPE         display    Big Shoulders Display   (industrial condensed, craft)
+               body       Public Sans
+               import  https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Public+Sans:wght@400;500;600&display=swap
+
+  SIGNATURE    MEASUREMENT RULE-LINE motif + strict modular grid. Macro detail
+               photography of joinery and finish.
+
+  DO           Precision spacing. Detail close-ups. Restrained brass.
+  DON'T        Cream + serif (this is the vertical most likely to drift into
+               cluster-1 — hold the line). Rustic clip-art.
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.7  CLEANING (domestic / commercial)                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        Bright and airy — here WHITESPACE is on-brand (cleanliness =
+               space). Friendly, human, approachable. Rounded type.
+
+  PALETTE      brand      #0D9488   deep teal
+               surface    #FFFFFF   pure white
+               surfaceAlt #F0FDFA   faint teal wash
+               accent     #F97316   warm friendly orange (CTA)
+               highlight  #0D9488   teal
+               text       #134E4A
+               (source: colours #16 teal + warm orange)
+
+  TYPE         display    Plus Jakarta Sans   (friendly, modern)
+               body       Plus Jakarta Sans
+               import  https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap
+
+  SIGNATURE    Generous airy whitespace as the identity. Sharp BEFORE/AFTER.
+               A minimal checklist device, used sparingly.
+
+  DO           Let it breathe. Warm, human copy. Bright photos.
+  DON'T        Clinical/sterile coldness. Dense card walls.
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3.8  HVAC / AIR-CONDITIONING / HEATING                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+  BONES        Comfort + climate + precision. Blue+amber literally encodes
+               cool/warm — the hot/cold duality is the signature.
+
+  PALETTE      brand      #1E40AF   deep blue (cool)
+               surface    #F8FAFC   cool white
+               surfaceAlt #E9EEF6   pale blue
+               accent     #D97706   amber (warm/heat, CTA)   [WCAG-adjusted]
+               highlight  #1E40AF   blue
+               text       #0F172A
+               (source: colours #7 blue data + amber)
+
+  TYPE         display    Lexend          (trustworthy, engineered legibility)
+               body       Source Sans 3
+               import  https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap
+
+  SIGNATURE    HOT/COLD split visual. Seasonal comfort framing. One big comfort
+               stat if the data is real.
+
+  DO           Play cool-blue vs warm-amber deliberately. Seasonal messaging.
+  DON'T        Snowflake/flame emoji. Generic HVAC stock of a wall unit only.
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  4.  NOTES / MAINTENANCE                                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  · v1 covers 8 verticals. Add a preset the same way: distinct BASE colour
+    family + distinct type personality + a signature that ENCODES the subject.
+    Before adding, check it does not share bones with an existing preset.
+
+  · Accents overlap across some presets (orange family: plumbing/cleaning/HVAC).
+    That is fine — the BASE differentiates (slate vs teal vs blue). The accent
+    is swappable per client; the base is not.
+
+  · Fonts are all Google Fonts. For a premium upgrade, Fontshare faces
+    (Satoshi, General Sans, Clash Display) are free alternatives — but keep the
+    Google set as the default to avoid @font-face friction on the frozen stack.
+
+  · This file is the frame of reference. When asking for improvements, name the
+    preset + guardrail. "Apply 3.5 ROOFING, enforce G1/G2/G3, signature =
+    angled roofline." No ambiguity.
+
+  · Source data: github.com/nextlevelbuilder/ui-ux-pro-max-skill (colours.csv,
+    typography.csv). Curated and de-clustered — the pack's own cluster-1 entry
+    ("Nature Distilled") was deliberately excluded.
+
+╚══════════════════════════════════════════════════════════════════════════════╝

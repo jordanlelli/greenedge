@@ -1,0 +1,78 @@
+---
+/**
+ * Section.astro — the single layout primitive for every page section.
+ *
+ * This is your "preset" system. Every section on every site should go through
+ * this component so width, gutters, and vertical rhythm are defined in ONE place.
+ *
+ *   width: "content" -> capped at --w-content (text + standard sections)   [default]
+ *          "wide"    -> capped at --w-wide (galleries, 3-4 col grids)
+ *          "full"    -> no cap (full-bleed band; put your own Container inside)
+ *   bg:    "bg" | "tint" | "card" | "brand" | "none"
+ *          Prefer "bg" for section fills; "card" is the raised card surface.
+ *          for card surfaces. "tint" aliases cream (sage band retired).
+ *          "brand" = full-bleed --c-band band (Why us is the mid-page use).
+ *          The band colour and its text colour are both derived per client
+ *          and contrast-checked; see src/lib/palette.mjs.
+ *   pad:   "default" (5.5rem — DESIGN.md spacing.section) | "tight" (3.5rem) | "loose" (7rem) | "none"
+ *
+ * Gutters are responsive: 1rem mobile / 1.5rem >=sm / 2rem >=lg.
+ *
+ * USAGE:
+ *   <Section id="services" width="content">...</Section>
+ *   <Section bg="brand" pad="loose" width="wide">...</Section>
+ *   <Section width="full" pad="none"> ...full-bleed media, Container inside... </Section>
+ */
+interface Props {
+  id?: string;
+  width?: "content" | "wide" | "full";
+  bg?: "bg" | "tint" | "card" | "brand" | "none";
+  pad?: "default" | "tight" | "loose" | "none";
+  class?: string;
+  innerClass?: string;
+}
+
+const {
+  id,
+  width = "content",
+  bg = "bg",
+  pad = "default",
+  class: className = "",
+  innerClass = "",
+} = Astro.props;
+
+const bgMap: Record<string, string> = {
+  bg: "bg-bg",
+  tint: "bg-tint",
+  card: "bg-card",
+  brand: "bg-band text-on-band",
+  none: "",
+};
+
+const padMap: Record<string, string> = {
+  default: "sec-pad-default",
+  tight: "sec-pad-tight",
+  loose: "sec-pad-loose",
+  none: "",
+};
+
+// Width caps map to CSS vars defined in global.css (see snippet) via Tailwind's
+// max-w-* — using arbitrary values keeps it tunable from one place.
+const widthMap: Record<string, string> = {
+  content: "max-w-[var(--w-content)]",
+  wide: "max-w-[var(--w-wide)]",
+  full: "max-w-none",
+};
+---
+
+<section id={id} class:list={[bgMap[bg], padMap[pad], className]}>
+  <div
+    class:list={[
+      "mx-auto w-full px-4 sm:px-6 lg:px-8",
+      widthMap[width],
+      innerClass,
+    ]}
+  >
+    <slot />
+  </div>
+</section>

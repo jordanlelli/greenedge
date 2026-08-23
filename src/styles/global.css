@@ -1,0 +1,252 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   THEME TOKENS
+   Colour comes from each CLIENT'S palette (the --c-* vars, injected per
+   build by Layout.astro from the intake `style` block + theme). Type,
+   radius and shadow come from the active KIT (the --kit-* vars set by the
+   .kit-* class on <html>). Components only ever use the semantic utilities
+   below — never raw hex, never a hardcoded font.
+   ===================================================================== */
+@theme {
+  /* colour — semantic tokens map to per-client custom properties.
+     FALLBACKS ARE ACHROMATIC ON PURPOSE. Layout.astro always injects every
+     --c-* var, so these only fire if that injection breaks; when it does, the
+     page must degrade to greyscale rather than to a previous client's palette.
+     Any hue in this block is a bug — see scripts/check-universal.mjs. */
+  --color-bg:         var(--c-bg, #ffffff);
+  --color-tint:       var(--c-surface-alt, var(--c-bg, #f5f5f5));
+  --color-card:       var(--c-card, #ffffff);
+  --color-brand:      var(--c-brand, #16181b);
+  --color-brand-dark: var(--c-brand-dark, #101215);
+  --color-brand-secondary-ink: var(--c-brand-secondary-ink, var(--c-brand, #16181b));
+  --color-accent:     var(--c-accent, #16181b);
+  --color-accent-ink: var(--c-accent-ink, #16181b);
+  --color-accent-ondark: var(--c-accent-ondark, #f7f7f8);
+  --color-highlight:  var(--c-highlight, var(--c-accent, #16181b));
+  --color-ink:        var(--c-ink, #16181b);
+  --color-muted:      var(--c-muted, #5c6066);
+  --color-border:     var(--c-border, #e4e4e6);
+  --color-ondark:     var(--c-ondark, #f7f7f8);
+  /* text/icon colour for surfaces painted in accent or highlight — chosen by
+     measured contrast in Layout.astro, never assumed to be white. */
+  --color-on-accent:  var(--c-on-accent, #ffffff);
+  --color-on-highlight: var(--c-on-highlight, #ffffff);
+  /* full-bleed section band. Separate from --color-brand because the two
+     roles diverge on a dark theme: the band stays dark for on-band text
+     while the heading colour goes light. */
+  --color-band:       var(--c-band, var(--c-brand, #16181b));
+  --color-on-band:    var(--c-on-band, var(--c-ondark, #f7f7f8));
+
+  /* type — Astro Fonts API owns --font-display / --font-body; heading aliases display */
+  --font-heading: var(--font-display), system-ui, sans-serif;
+  /* --font-body is set by <Font cssVariable="--font-body" /> — do not redefine here */
+
+  /* radius + shadow */
+  --radius-card: var(--kit-radius, 0.75rem);
+  --shadow-card: var(--kit-shadow, 0 1px 2px rgb(0 0 0 / 0.05));
+
+  /* FLUID RAILS. Fixed caps left ~40% of a 1920px monitor as empty margin while
+     a phone was unaffected. clamp() keeps the small/mid range EXACTLY as it was
+     (the vw term does not overtake the min until ~1515px) and only opens up on
+     large displays. Measure is capped separately, inside the components, so a
+     wider rail buys layout room without lengthening a line of prose. */
+  --w-content: clamp(72rem, 76vw, 84rem);
+  --w-wide:    clamp(80rem, 86vw, 96rem);
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+}
+
+/* =====================================================================
+   DESIGN KITS  — radius / shadow / tracking / rhythm personality only.
+   The kit class is set on <html> by Layout.astro. TYPE is loaded per kit by
+   astro.config.mjs via the Astro Fonts API (--font-display / --font-body) —
+   never declare font-family here. Five personalities; colour stays client-driven.
+   ===================================================================== */
+
+/* Ledger — editorial/journalistic. Transitional serif + tight grotesque body. */
+.kit-ledger {
+  --kit-radius: 0.5rem;
+  --kit-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  --kit-tracking: -0.02em;
+  --kit-rhythm: 4rem;
+}
+
+/* Workshop — industrial trade. Heavy Archivo + Public Sans, hard offset shadow. */
+.kit-workshop {
+  --kit-radius: 0.25rem;
+  --kit-shadow: 4px 4px 0 rgb(0 0 0 / 0.12);
+  --kit-tracking: -0.01em;
+  --kit-rhythm: 3.5rem;
+}
+
+/* Coast — soft & approachable. Archivo + Source Sans 3 via Astro Fonts API. */
+.kit-coast {
+  --kit-radius: 1.25rem;
+  --kit-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.18);
+  --kit-tracking: -0.015em;
+  --kit-rhythm: 4.5rem;
+}
+
+/* Press — classic & refined. Fraunces + Inter. */
+.kit-press {
+  --kit-radius: 0.75rem;
+  --kit-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  --kit-tracking: -0.025em;
+  --kit-rhythm: 4.25rem;
+}
+
+/* Signal — modern & geometric. Space Grotesk + Inter, medium radius, minimal shadow. */
+.kit-signal {
+  --kit-radius: 0.75rem;
+  --kit-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  --kit-tracking: -0.02em;
+  --kit-rhythm: 4rem;
+}
+
+/* =====================================================================
+   BASE
+   ===================================================================== */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  letter-spacing: var(--kit-tracking, -0.01em);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* =====================================================================
+   KIT RHYTHM — one padding scale from DESIGN.md spacing.section (5.5rem).
+   Section.astro pad presets map here. Default is the design-system section
+   rhythm; tight/loose are deliberate half-step and expanded variants of the
+   same token, not ad-hoc Tailwind py-* values.
+   ===================================================================== */
+.sec-pad-default { padding-block: clamp(2.5rem, calc(1.25rem + 3vw), var(--kit-rhythm, 4.5rem)); }
+.sec-pad-tight   { padding-block: clamp(1.75rem, calc(0.75rem + 2.2vw), calc(var(--kit-rhythm, 4.5rem) * 0.7)); }
+.sec-pad-loose   { padding-block: clamp(3rem, calc(1.5rem + 3.75vw), calc(var(--kit-rhythm, 4.5rem) * 1.3)); }
+/* Heroes bypass Section and set their own block padding; this is the one place
+   they read from so the hero and the first section share a rhythm. */
+.hero-pad        { padding-block: clamp(2.75rem, calc(1.5rem + 3.4vw), calc(var(--kit-rhythm, 4.5rem) * 1.2)); }
+
+/* =====================================================================
+   FLUID DISPLAY TYPE — headings scale with the viewport instead of stopping
+   dead at the lg breakpoint. Ten components carry the same `text-3xl
+   sm:text-4xl` pair; rather than edit ten files, these rules are ELEMENT+CLASS
+   (0,1,1) so they beat those Tailwind utilities (0,1,0) without !important.
+   Sizes are unitless-safe: at 375px each clamp returns its min, so mobile is
+   byte-identical to the stepped scale it replaces.
+   ===================================================================== */
+/* NOTE: the hero H1 scale deliberately does NOT live here. It sits in
+   HeroCopy.astro as a Tailwind arbitrary value so the headline is correct even
+   if this file is out of date — a mismatched pair silently drops the H1 to the
+   inherited 1rem, because Tailwind's preflight resets h1 font-size to inherit.
+   Section heads can rely on this file; the single largest element on the page
+   should not depend on two files being in sync. */
+
+h2.section-heading,
+h3.section-heading { font-size: clamp(1.75rem, calc(1.15rem + 1.7vw), 2.75rem); line-height: 1.12; }
+
+/* Subordinate heads (Areas) deliberately sit a step below the section heads.
+   Same specificity as the rule above, so this must stay AFTER it. */
+h2.section-heading-sub,
+h3.section-heading-sub { font-size: clamp(1.5rem, calc(1rem + 1.2vw), 2.125rem); }
+
+/* =====================================================================
+   SECTION-HEAD GRAMMAR — per-kit eyebrow/heading treatments.
+   Component markup only gained two hook classes (.section-eyebrow /
+   .section-heading); ALL variation lives here, scoped by the kit class on
+   <html>. Kit rules are (0,2,0) specificity and beat Tailwind utilities
+   (0,1,0), so no !important is needed. Pure CSS — no markup restructure.
+   ===================================================================== */
+
+/* ledger — hairline lead-rule before the eyebrow, tight heading */
+.kit-ledger .section-eyebrow::before {
+  content: ""; display: inline-block; width: 1.75rem; height: 1px;
+  background: var(--color-accent); vertical-align: middle; margin-right: 0.6rem;
+}
+
+/* workshop — heavy accent bar, blockier eyebrow */
+.kit-workshop .section-eyebrow {
+  border-left: 3px solid var(--color-accent); padding-left: 0.6rem; font-weight: 800;
+}
+
+/* coast — quiet Mid Canopy label (never Harvest Gold — CTA Gold Rule) */
+.kit-coast .section-eyebrow {
+  display: inline-block;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  color: var(--color-highlight);
+}
+
+/* press — uppercase highlight labels */
+.kit-press .section-eyebrow {
+  text-transform: uppercase; letter-spacing: 0.025em; font-style: normal; font-weight: 600;
+  color: var(--color-highlight);
+}
+/* press runs its heads a step larger than the shared scale — fluid, so it does
+   not freeze at 40rem the way the old two-step version did. (0,2,0) beats the
+   base h2.section-heading rule (0,1,1), which is why it has to restate clamp
+   rather than just nudge a size.) */
+.kit-press .section-heading { font-size: clamp(1.875rem, calc(1.2rem + 1.9vw), 3rem); line-height: 1.1; }
+
+/* signal — plus-prefixed, wide-tracked technical tag */
+.kit-signal .section-eyebrow::before { content: "+ "; }
+.kit-signal .section-eyebrow { letter-spacing: 0.2em; }
+
+/* =====================================================================
+   COLOUR BAND — one seeded mid-page section inverts to a dark brand band.
+   It works by REMAPPING the semantic colour tokens on the wrapper, so every
+   component inside flips correctly with ZERO per-component edits. The engine
+   luminance guard ensures this class is only ever applied when white text is
+   readable on the client's dark brand.
+   ===================================================================== */
+.band-dark {
+  /* One full-bleed dark band per page, position seeded per client.
+     Painted from --c-band, NOT --color-brand-dark. The previous version set
+     `background-color: var(--color-brand-dark)` and then redeclared
+     --color-brand-dark to #ffffff two lines below; custom properties declared on
+     an element apply to that element's own var() lookups, so the band resolved
+     to WHITE on white text. It was never caught because nothing ever applied
+     the class — see TEMPLATE-CHANGES v3.4.
+     Everything below is a token REMAP for the subtree: components inside the
+     band keep using text-ink / bg-card / border-border and get band-appropriate
+     values without knowing they are in a band. */
+  background-color: var(--c-band);
+  --color-bg: var(--c-band);
+  --color-tint: var(--c-band);
+  --color-card: var(--c-on-band-card);
+  --color-ink: var(--c-on-band);
+  --color-ondark: var(--c-on-band);
+  --color-on-band: var(--c-on-band);
+  --color-brand: var(--c-on-band);
+  --color-brand-secondary-ink: var(--c-on-band);
+  --color-muted: var(--c-on-band-soft);
+  --color-border: var(--c-on-band-rule);
+  /* Accent inside the band steps to its on-dark tint, and text on that accent
+     steps back to the band colour — the CTA stays legible either way. */
+  --color-accent: var(--c-accent-ondark, var(--c-accent));
+  --color-highlight: var(--c-accent-ondark, var(--c-highlight));
+  --color-on-accent: var(--c-on-accent-ondark, var(--c-band));
+}
+.band-dark > section {
+  background-color: var(--c-band);
+}

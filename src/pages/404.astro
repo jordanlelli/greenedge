@@ -1,0 +1,24 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { site, formatPhone } from "../config";
+---
+
+<Layout title="Page not found" pageType="other">
+  <Header />
+  <section class="flex min-h-[60vh] items-center justify-center bg-bg px-4 py-20">
+    <div class="text-center">
+      <p class="font-heading text-7xl font-bold text-brand">404</p>
+      <h1 class="mt-4 font-heading text-3xl font-semibold text-ink sm:text-4xl">Page not found</h1>
+      <p class="mx-auto mt-3 max-w-md text-muted">We couldn't find that page. Head back home or get in touch.</p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <a href="/" class="rounded-card bg-brand px-7 py-3 font-semibold text-white shadow-card transition hover:bg-brand-dark">Back to home</a>
+        {site.contact?.phone && (
+          <a href={`tel:${formatPhone(site.contact.phone)}`} class="rounded-card border border-border px-7 py-3 font-semibold text-ink transition hover:bg-card">Call {site.contact.phone}</a>
+        )}
+      </div>
+    </div>
+  </section>
+  <Footer />
+</Layout>

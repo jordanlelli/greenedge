@@ -1,0 +1,99 @@
+---
+import { Image } from "astro:assets";
+import type { GalleryEntry, GalleryImageKind, GalleryService } from "../data/gallery";
+import { galleryServiceNames } from "../data/gallery";
+
+interface Props {
+  entries: GalleryEntry[];
+  variant?: "strip" | "full";
+}
+
+const { entries, variant = "full" } = Astro.props;
+
+/* Image placeholder tone (shown while the photo decodes). Was a hardcoded map
+   of three landscaping service keys, so every other trade got
+   `background-color:undefined`. Now one client-palette token for all trades. */
+const placeholderTone = "var(--c-surface-alt, var(--c-border))";
+
+/* Service label. galleryServiceNames is empty in the template, so an unmapped
+   key used to render the literal string "undefined" as the eyebrow and inside
+   the aria-label. Fall back to a title-cased version of the key itself. */
+const titleCase = (key: string): string =>
+  String(key || "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+const serviceLabel = (key: GalleryService): string =>
+  galleryServiceNames[key] || titleCase(key) || "Recent work";
+
+const kindLabels: Record<GalleryImageKind, string> = {
+  before: "Before",
+  after: "After",
+  single: "Photo",
+};
+
+const listClass =
+  variant === "strip"
+    ? "grid gap-x-5 gap-y-10 md:grid-cols-2 xl:grid-cols-3"
+    : "space-y-12";
+
+const imageSizes =
+  variant === "strip"
+    ? "(max-width: 639px) calc(100vw - 2rem), (max-width: 1279px) 50vw, 33vw"
+    : "(max-width: 639px) calc(100vw - 2rem), (max-width: 1152px) 50vw, 560px";
+---
+
+<ul class={listClass}>
+  {entries.map((entry) => {
+    const isPair = entry.images.some((image) => image.kind === "before") &&
+      entry.images.some((image) => image.kind === "after");
+
+    return (
+      <li>
+        <article aria-labelledby={`gallery-${entry.id}`}>
+          <div class:list={["grid gap-3", isPair && "sm:grid-cols-2"]}>
+            {entry.images.map((image) => (
+              <figure class="min-w-0">
+                <a
+                  href={image.src.src}
+                  class="group block overflow-hidden rounded-card border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  aria-label={`Open full ${kindLabels[image.kind].toLowerCase()} image for ${serviceLabel(entry.service)} in ${entry.suburb}`}
+                >
+                  <div class="relative aspect-[4/3] overflow-hidden" style={`background-color:${placeholderTone}`}>
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      widths={[360, 640, 960]}
+                      sizes={imageSizes}
+                      width={960}
+                      height={720}
+                      loading="lazy"
+                      decoding="async"
+                      class="h-full w-full object-cover"
+                      style={`background-color:${placeholderTone}`}
+                    />
+                    <span class="absolute left-3 top-3 bg-brand-dark px-3 py-1.5 text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-white">
+                      {kindLabels[image.kind]}
+                    </span>
+                  </div>
+                </a>
+              </figure>
+            ))}
+          </div>
+
+          <div class="mt-4">
+            <p class="text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-highlight">
+              {serviceLabel(entry.service)}
+            </p>
+            <h3 id={`gallery-${entry.id}`} class="mt-2 font-heading text-xl font-semibold text-brand">
+              {entry.suburb}
+              <span class="font-body text-base font-normal text-muted"> · {entry.monthCompleted}</span>
+            </h3>
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">{entry.oneLineDescription}</p>
+          </div>
+        </article>
+      </li>
+    );
+  })}
+</ul>

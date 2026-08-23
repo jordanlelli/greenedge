@@ -1,0 +1,40 @@
+---
+/**
+ * HeroFullbleed — photo behind, copy over it.
+ *
+ * The composition both landscape references use, and the one that needs the
+ * most care: text over a photograph fails contrast the moment the photo is
+ * bright. The scrim is therefore not optional and not a taste decision — it is
+ * a two-stop gradient in the client's own brand-dark, heavy enough that the
+ * on-dark tokens hold whatever the photo does. Requires a real photo.
+ */
+import HeroCopy from "./HeroCopy.astro";
+import { site } from "../../config";
+
+const h = site.hero || {};
+---
+
+<section class="relative isolate overflow-hidden bg-[var(--c-brand-900)]" data-no-reveal>
+  <img
+    src={h.image}
+    alt={h.imageAlt || site.business?.name || ""}
+    width="2400"
+    height="1600"
+    loading="eager"
+    fetchpriority="high"
+    decoding="async"
+    class="absolute inset-0 -z-10 h-full w-full object-cover"
+  />
+  <div
+    class="absolute inset-0 -z-10"
+    aria-hidden="true"
+    style="background-image: linear-gradient(to right, var(--c-brand-dark) 0%, color-mix(in srgb, var(--c-brand-dark) 82%, transparent) 46%, color-mix(in srgb, var(--c-brand-dark) 30%, transparent) 100%);"
+  >
+  </div>
+
+  <div class="mx-auto max-w-[var(--w-wide)] px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
+    <div class="max-w-2xl">
+      <HeroCopy tone="ondark" size="large" />
+    </div>
+  </div>
+</section>
