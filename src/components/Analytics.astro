@@ -5,13 +5,21 @@
  * is required, analytics_storage/ad_storage DEFAULT to "denied" and ConsentBanner
  * flips them to "granted" on accept. When no banner is required (consentRequired
  * false), GA4 runs normally. Leave analytics.provider empty to render nothing.
+ *
+ * Vercel Web Analytics and Speed Insights always render. Both are cookieless
+ * and only report once enabled on the Vercel project.
  */
+import VercelAnalytics from "@vercel/analytics/astro";
+import SpeedInsights from "@vercel/speed-insights/astro";
 import { site, consentRequired } from "../config";
 
 const analytics = site.analytics || { provider: "" };
 const provider = analytics.provider || "";
 const defaultConsent = consentRequired ? "denied" : "granted";
 ---
+
+<VercelAnalytics />
+<SpeedInsights />
 
 {provider === "plausible" && analytics.plausibleDomain && (
   <script
