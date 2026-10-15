@@ -433,6 +433,44 @@ export const slugifyAnchor = (s) =>
   String(s || "").toLowerCase().trim().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 /**
+ * Detail pages built from the intake: one /services/<slug> page for every
+ * `services.items[]` entry that sets `slug`.
+ *
+ * Only when src/data/services.ts is EMPTY. Rich records own those routes when
+ * a client has them, and they replace the intake list everywhere, so mixing
+ * the two would hide every service without a record. This path gives one
+ * service a page of its own while the rest stay intake cards.
+ *
+ * Before/after sliders for the page are `beforeAfter.items[]` whose `service`
+ * equals the slug. The homepage beforeAfter section still renders every item.
+ */
+export function resolveServiceDetailPages(site = {}, records = []) {
+  if (arr(records).length) return [];
+  const pairs = arr(site.beforeAfter?.items).filter((b) => b && typeof b === "object");
+  const seen = new Set();
+  return arr(site.services?.items)
+    .filter((it) => it && typeof it === "object" && str(it.slug) && str(it.title))
+    .map((it) => {
+      const slug = slugifyAnchor(it.slug);
+      return {
+        slug,
+        name: str(it.title),
+        heading: str(it.pageHeading) || str(it.title),
+        shortLine: str(it.description),
+        longDescription: str(it.longDescription),
+        includes: arr(it.includes).map(str).filter(Boolean),
+        price: str(it.price),
+        seoTitle: str(it.seoTitle),
+        seoDescription: str(it.seoDescription),
+        beforeAfterHeading: str(it.beforeAfterHeading),
+        beforeAfterSubhead: str(it.beforeAfterSubhead),
+        beforeAfter: pairs.filter((b) => slugifyAnchor(str(b.service)) === slug),
+      };
+    })
+    .filter((p) => p.slug && !seen.has(p.slug) && seen.add(p.slug));
+}
+
+/**
  * The /services page model, shared by all four servicesPage variants.
  *
  * GROUPS ARE OPTIONAL AND INTAKE-DRIVEN. `services.groups[]` defines them

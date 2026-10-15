@@ -100,8 +100,10 @@ const panelHasRows = panelPhone || panelEmail || Boolean(contact.address) || Boo
                   />
                 </div>
                 )}
-              </div>
 
+              {/* Short fields share the two-column grid. Email and suburb each
+                  took a full row, which made the form ~180px taller than the
+                  details panel beside it (check-layout column-gap). */}
               {showField("email") && (
               <div>
                 <label for="email" class="mb-1.5 block text-sm font-medium text-ink">Email</label>
@@ -129,6 +131,7 @@ const panelHasRows = panelPhone || panelEmail || Boolean(contact.address) || Boo
                 />
               </div>
               )}
+              </div>
 
               {showField("enquiryType") && enquiryTypes.length > 0 && (
               <div>

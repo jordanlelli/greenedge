@@ -1,41 +1,111 @@
 ---
 /**
- * Service detail: src/data/services.ts is the single source of truth.
- * Zero client JS. Images via astro:assets.
+ * Service detail, from one of two sources:
+ *  - src/data/services.ts records (rich: process, exclusions, photos), or
+ *  - when that file is empty, intake services.items[] that set `slug`
+ *    (resolveServiceDetailPages in content.mjs), with their before/after
+ *    sliders from beforeAfter.items[].service.
+ * Images via astro:assets. The only client JS is the slider's.
  */
 import { Image } from "astro:assets";
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import GalleryEntries from "../../components/GalleryEntries.astro";
+import BeforeAfter from "../../components/BeforeAfter.astro";
+import ServicesPageHead from "../../components/servicespage/ServicesPageHead.astro";
+import ServiceIncludes from "../../components/servicespage/ServiceIncludes.astro";
+import ServicesQuoteBand from "../../components/servicespage/ServicesQuoteBand.astro";
 import { site, formatPhone } from "../../config";
 import { services } from "../../data/services";
+import { galleryEntries } from "../../data/gallery";
+import { recentJobs } from "../../data/recent-jobs";
 import { getServiceBySlug, formatServicePrice, getGalleryByService } from "../../lib/data";
 import type { GalleryService } from "../../lib/types";
+// @ts-ignore — plain-JS helpers shared with the Node check scripts
+import { resolveServiceDetailPages, resolveServicesPage, midSentence } from "../../lib/content.mjs";
+// @ts-ignore
+import { pageIsBuilt } from "../../lib/pages.mjs";
 
 export function getStaticPaths() {
-  return services.map((service) => ({
-    params: { slug: service.slug },
-  }));
+  const fromIntake = resolveServiceDetailPages(site, services).map((p: any) => ({ params: { slug: p.slug } }));
+  return [...services.map((service) => ({ params: { slug: service.slug } })), ...fromIntake];
 }
 
 const { slug } = Astro.params;
 const service = getServiceBySlug(slug || "");
+const detail: any = service ? null : resolveServiceDetailPages(site, services).find((p: any) => p.slug === slug);
 
-if (!service) {
+if (!service && !detail) {
   throw new Error(`Unknown service slug: ${slug}`);
 }
 
 const phone = site.contact?.phone || "";
-const title = `${service.name} | ${site.business?.name || ""}`;
-const description = service.shortLine;
-const [hero, ...serviceImages] = service.images;
-const longDescriptionParagraphs = service.longDescription.split(/\n\n+/);
-const workEntries = getGalleryByService(service.slug as GalleryService);
+const businessName = site.business?.name || "";
+const title = service ? `${service.name} | ${businessName}` : detail.seoTitle || `${detail.heading} | ${businessName}`;
+const description = service ? service.shortLine : detail.seoDescription || detail.shortLine;
+const [hero, ...serviceImages] = service?.images || [];
+const longDescriptionParagraphs = (service?.longDescription || detail?.longDescription || "").split(/\n\n+/).filter(Boolean);
+const workEntries = service ? getGalleryByService(service.slug as GalleryService) : [];
+/* The note is for placeholder photos only; real work never carries it. */
+const workIsPlaceholder = workEntries.some((entry) => entry.isPlaceholder);
+const quote = resolveServicesPage(site, services);
+const galleryBuilt = pageIsBuilt("gallery", site, { galleryEntries, recentJobs });
 ---
 
 <Layout title={title} description={description} pageType="services">
   <Header />
+
+  {detail && (
+    <main id="main">
+      <ServicesPageHead eyebrow="" heading={detail.heading} subhead={detail.shortLine} />
+
+      <section class="bg-bg">
+        <div class="mx-auto grid max-w-[var(--w-content)] gap-10 border-t border-border px-4 py-12 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-16">
+          <div class="min-w-0">
+            {longDescriptionParagraphs.map((paragraph: string) => (
+              <p class="mt-4 text-base leading-relaxed text-muted first:mt-0 lg:text-[1.0625rem]">{paragraph}</p>
+            ))}
+            {detail.price && <p class="mt-6 text-sm font-bold uppercase tracking-wide text-brand-secondary-ink">{detail.price}</p>}
+          </div>
+          <div class="min-w-0 lg:border-l lg:border-border lg:pl-16">
+            {detail.includes.length > 0 && (
+              <>
+                <p class="text-[0.75rem] font-bold uppercase tracking-[0.14em] text-muted">What's included</p>
+                <ServiceIncludes items={detail.includes} class="mt-4" />
+              </>
+            )}
+            <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <a href="/#contact" class="inline-flex min-h-[3.25rem] items-center justify-center rounded-card bg-accent px-7 py-3 font-heading text-base font-bold tracking-tight text-on-accent transition hover:brightness-95">Get a quote for {midSentence(detail.name)}</a>
+              {phone && (
+                <a href={`tel:${formatPhone(phone)}`} class="inline-flex min-h-11 items-center justify-center font-heading text-base font-bold tracking-tight text-brand underline-offset-4 hover:underline sm:px-3">Call {phone}</a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <BeforeAfter
+        items={detail.beforeAfter}
+        heading={detail.beforeAfterHeading || `${detail.name}: before and after`}
+        subhead={detail.beforeAfterSubhead}
+      />
+
+      {galleryBuilt && (
+        <section class="bg-bg">
+          <div class="mx-auto max-w-[var(--w-content)] px-4 pb-14 sm:px-6 lg:px-8 lg:pb-20">
+            <a href="/gallery" class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline">
+              See more of our work <span class="ml-2" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </section>
+      )}
+
+      <ServicesQuoteBand heading={quote.quoteHeading} body={quote.quoteBody} />
+    </main>
+  )}
+
+  {service && (<>
 
   <section class="bg-bg" data-no-reveal>
     <div class="mx-auto max-w-[var(--w-content)] px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
@@ -162,9 +232,11 @@ const workEntries = getGalleryByService(service.slug as GalleryService);
     <section class="sec-pad-default bg-bg">
       <div class="mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
         <h2 class="font-heading text-3xl font-semibold tracking-tight text-brand">Work gallery</h2>
-        <p class="mt-3 max-w-2xl text-base leading-relaxed text-muted">
-          PLACEHOLDER gallery. These images are placeholders, not completed work, and must be replaced before launch.
-        </p>
+        {workIsPlaceholder && (
+          <p class="mt-3 max-w-2xl text-base leading-relaxed text-muted">
+            PLACEHOLDER gallery. These images are placeholders, not completed work, and must be replaced before launch.
+          </p>
+        )}
         <div class="mt-8">
           <GalleryEntries entries={workEntries} variant="full" />
         </div>
@@ -195,6 +267,8 @@ const workEntries = getGalleryByService(service.slug as GalleryService);
       </div>
     </section>
   )}
+
+  </>)}
 
   <Footer />
 </Layout>

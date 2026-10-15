@@ -2,16 +2,31 @@
 /**
  * BeforeAfter — drag-to-reveal comparison. Real images when present;
  * labelled SVG BEFORE/AFTER frames otherwise (photoless demo-safe).
+ *
+ * Props (all optional) let a service detail page show only its own pairs
+ * under its own heading; without them it reads site.beforeAfter as before.
+ * `items[].aspect: "portrait"` frames a pair at 4:5 instead of 8:5, for
+ * phone photos taken upright (an 8:5 crop of a 3:4 photo keeps under half
+ * of it).
  */
 import { site } from "../config";
 import Section from "./Section.astro";
 import Img from "./Img.astro";
 
+interface Props {
+  items?: any[];
+  heading?: string;
+  subhead?: string;
+}
+
 const ba = site.beforeAfter || {};
-const items: any[] = ba.items || [];
+const items: any[] = Astro.props.items ?? (ba.items || []);
 const eyebrow = ba.eyebrow || "";
-const heading = ba.heading || "Before & after";
-const subhead = ba.subhead || "";
+const heading = Astro.props.heading || ba.heading || "Before & after";
+const subhead = Astro.props.subhead ?? (ba.subhead || "");
+/* Portrait is capped on desktop: two 4:5 frames side by side are ~780px tall
+   at 1440, so the pair and its caption never fit one screen. */
+const aspectClass = (item: any) => (item?.aspect === "portrait" ? "aspect-[4/5] w-full lg:max-h-[38rem]" : "aspect-[8/5]");
 
 /* Placeholder frames are painted from the CLIENT's injected palette vars, not
    from literals. "before" reads as the muted/neutral state, "after" as the
@@ -37,7 +52,7 @@ function placeholderSvg(label: string, side: "before" | "after") {
       {items.map((item: any, i: number) => (
         <figure class="min-w-0" data-ba-root data-reveal-from={i % 2 ? "right" : "left"}>
           <div
-            class="relative aspect-[8/5] touch-none overflow-hidden rounded-card border border-border bg-brand-dark shadow-card select-none"
+            class:list={["relative touch-none overflow-hidden rounded-card border border-border bg-brand-dark shadow-card select-none", aspectClass(item)]}
             data-ba-frame
           >
             {/* After — full frame */}

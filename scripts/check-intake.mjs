@@ -444,7 +444,15 @@ if (legalPageState("privacy", intake).live === false && intake.legal?.privacy?.e
     faqs: "faqs", tiers: "tiers", gallery: "gallery", beforeAfter: "beforeAfter",
   };
   for (const [sec, key] of Object.entries(SECTION_BLOCKS)) {
-    const block = intake[key];
+    let block = intake[key];
+    /* Rendered elsewhere, not by the homepage section: beforeAfter items with
+       a `service` go on that /services/<slug> page, and gallery.images go on
+       /gallery when that page is on. */
+    if (key === "beforeAfter" && block && Array.isArray(block.items)) {
+      block = { ...block, items: block.items.filter((it) => !(it && it.service)) };
+      if (!has(block.items)) block = null;
+    }
+    if (key === "gallery" && intake.pages?.gallery !== false) continue;
     const filled = block && (Array.isArray(block) ? block.length : Object.keys(block).filter((k) => !k.startsWith("_")).some((k) => has(block[k])));
     if (filled && !sections.includes(sec)) {
       warnings.push(
