@@ -3,5 +3,8 @@
   "ref": "template/main",
   "commit": "ec392146906cda22b34209c769285243e47601bb",
   "version": "3.34.0",
-  "syncedAt": "2026-10-15"
+  "syncedAt": "2026-10-15",
+  "locked": true,
+  "lockedAt": "2026-10-15",
+  "lockNote": "Live at greenedgepc.com.au; synced to v3.34.0 on 2026-10-15"
 }
