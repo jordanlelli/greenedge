@@ -60,5 +60,27 @@ const cover = site.hero?.cover !== false;
     set();
     window.addEventListener("resize", set, { passive: true });
     window.addEventListener("load", set, { once: true });
+
+    /* Once the content below covers it, the hero goes transparent. It stays
+       pinned behind the WHOLE page, so anything later that is not fully
+       opaque showed it: every section's scroll-in (faded, and 12px short of
+       the section above while it rises) and translucent hairlines such as
+       the contact divider. Opacity, not visibility, so its h1 stays in the
+       accessibility tree. Not sticky (reduced motion, motion "off"): the
+       next block never reaches the hero's top, so this never fires. */
+    let next = hero.nextElementSibling as HTMLElement | null;
+    while (next && (next.offsetHeight === 0 || getComputedStyle(next).position === "fixed")) {
+      next = next.nextElementSibling as HTMLElement | null;
+    }
+    if (!next) return;
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const covered = next.getBoundingClientRect().top <= hero.getBoundingClientRect().top + 1;
+      hero.style.opacity = covered ? "0" : "";
+    };
+    window.addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(check); }, { passive: true });
+    window.addEventListener("resize", check, { passive: true });
+    check();
   })();
 </script>
