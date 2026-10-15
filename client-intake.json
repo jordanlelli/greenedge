@@ -150,7 +150,13 @@
         ],
         "featured": true,
         "price": "From $65 a visit",
-        "href": "",
+        "href": "/services/lawn-mowing-adelaide",
+        "slug": "lawn-mowing-adelaide",
+        "pageHeading": "Lawn mowing and garden maintenance in eastern Adelaide",
+        "seoTitle": "Lawn Mowing Eastern Adelaide | Mowing, Edging & Weeding | GreenEdge Property Care",
+        "seoDescription": "Lawn mowing, edging and weeding across Newton, Campbelltown, Norwood, Magill and Adelaide's eastern suburbs. One-off tidy-ups or a weekly or fortnightly run, no lock-in contract.",
+        "beforeAfterHeading": "Lawn mowing before and after",
+        "beforeAfterSubhead": "Two GreenEdge jobs, photographed before and after. Drag the handle to compare.",
         "image": "/images/services/gardening-06.jpg",
         "imageAlt": "A freshly mown lawn beside a rendered retaining wall and planted garden bed.",
         "imageIsStock": true
@@ -472,6 +478,12 @@
     "ogImage": "/images/hero.jpg",
     "ogImageAlt": "A mown lawn with a curved garden bed edge beside a suburban Adelaide house.",
     "noindex": false,
+    "pages": {
+      "gallery": {
+        "title": "Lawn Mowing & Garden Maintenance Photos | GreenEdge Property Care",
+        "description": "Before and after photos of lawn mowing, edging and garden tidy-ups by GreenEdge Property Care, owner-operated in Adelaide's eastern suburbs."
+      }
+    },
     "_comment": "noindex is FALSE so the gate passes on the real domain. If this ships to a throwaway Vercel URL for review before Harrison signs off the copy, flip it back to true first \u2014 an indexable demo competes with his own GBP listing."
   },
   "analytics": {
@@ -500,8 +512,52 @@
   },
   "_comment_serviceAreas": "serviceAreas[] builds a PAGE per suburb and each needs a 60+ word unique intro. Twenty thin pages is a doorway-site pattern. Left empty deliberately; the suburb list lives in usage.items[] and renders as chips plus the /areas list. Populate this only when there is genuinely a page's worth to say about a suburb.",
   "pages": {
-    "gallery": false,
+    "gallery": true,
     "areas": true
   },
-  "_comment_pages": "areas page ON: usage.items[] carries 21 real suburbs, so the page has genuine content. serviceAreas[] stays empty, so no per-suburb pages are generated \u2014 those need 60+ words each and twenty thin ones is a doorway pattern."
+  "_comment_pages": "areas page ON: usage.items[] carries 21 real suburbs, so the page has genuine content. serviceAreas[] stays empty, so no per-suburb pages are generated \u2014 those need 60+ words each and twenty thin ones is a doorway pattern. gallery page ON since 2026-10-15: GreenEdge's own job photos (Messenger, from Harrison). Pairs are in src/data/gallery.ts, single after photos in gallery.images[].",
+  "gallery": {
+    "_comment": "Real GreenEdge job photos, received 2026-10-15. Suburbs and job dates were not supplied, so none are shown.",
+    "heading": "Lawn mowing and garden maintenance: our work",
+    "subhead": "Before and after photos from GreenEdge jobs.",
+    "images": [
+      {
+        "src": "/images/gallery/backyard-lawn-mown-edged-concrete.jpg",
+        "alt": "A backyard lawn freshly mown, with a clean edge along the concrete path."
+      },
+      {
+        "src": "/images/gallery/back-lawn-mown-beside-shed.jpg",
+        "alt": "A mown back lawn beside a garden shed, seen from under the pergola."
+      },
+      {
+        "src": "/images/gallery/front-garden-bed-path-tidy.jpg",
+        "alt": "A tidied front garden bed of native plants beside a paved path."
+      }
+    ]
+  },
+  "beforeAfter": {
+    "_comment": "Not a homepage section here: items with service \"lawn-mowing-adelaide\" render on /services/lawn-mowing-adelaide. Pairs chosen by Jordan 2026-10-15.",
+    "items": [
+      {
+        "service": "lawn-mowing-adelaide",
+        "aspect": "portrait",
+        "label": "Front paving weeded",
+        "caption": "Weeds cleared from between the pavers in a front yard.",
+        "beforeImage": "/images/before-after/front-paving-weeds-before.jpg",
+        "beforeAlt": "Brick paving in a front yard with weeds growing between the pavers, lawn beyond.",
+        "afterImage": "/images/before-after/front-paving-weeded-lawn-edged-after.jpg",
+        "afterAlt": "The same front paving with the weeds cleared from between the pavers."
+      },
+      {
+        "service": "lawn-mowing-adelaide",
+        "aspect": "portrait",
+        "label": "Side path mown",
+        "caption": "Long grass along the fence line mown down beside the concrete path.",
+        "beforeImage": "/images/before-after/side-path-lawn-overgrown-before.jpg",
+        "beforeAlt": "Long grass and weeds growing along a fence beside a concrete side path.",
+        "afterImage": "/images/before-after/side-path-lawn-mown-after.jpg",
+        "afterAlt": "The same side path with the grass along the fence mown short."
+      }
+    ]
+  }
 }
