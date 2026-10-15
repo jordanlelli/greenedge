@@ -1,7 +1,16 @@
 ---
 /**
- * WhyUsIconGrid — tick cards on the dark band. The safe fallback: works with
- * any number of points, needs no extra intake shape.
+ * WhyUsIconGrid — a ruled checklist on the dark band. The safe fallback: works
+ * with any number of points, needs no extra intake shape.
+ *
+ * NO BOXES, NO BADGES (v3.28). This used to be "tick cards": every point in
+ * its own outlined rounded box with a tick inside an outlined circle stacked
+ * above the title. That exact unit — badge icon, bold title, grey sentence,
+ * bordered card, repeated in a grid — is the most recognisable machine-made
+ * pattern on the web, and it sat directly under a services grid built from
+ * the same box. The points are a checklist, so they are set as one: a hanging
+ * tick in the margin, the title and its sentence on a shared left edge, and a
+ * hairline above each entry doing the job the four borders did.
  *
  * Column count follows the same principle as the services grid — pick a shape
  * the item count actually fills, rather than leaving a hole at the end of the
@@ -18,11 +27,9 @@ const cols = n <= 2 ? n : n === 3 ? 3 : n === 4 ? 2 : n === 5 ? 5 : n === 6 ? 3 
 <ul class="why-grid" style={`--why-cols:${cols}`}>
   {items.map((it) => (
     <li class="why-grid-item">
-      <span class="why-grid-tick" aria-hidden="true">
-        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 111.4-1.4l3.8 3.8 6.8-6.8a1 1 0 011.4 0z" clip-rule="evenodd"></path></svg>
-      </span>
+      <svg class="why-grid-tick" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 111.4-1.4l3.8 3.8 6.8-6.8a1 1 0 011.4 0z" clip-rule="evenodd"></path></svg>
       <p class="why-grid-title">{it.title}</p>
-      <p class="why-grid-desc">{it.description}</p>
+      {it.description && <p class="why-grid-desc">{it.description}</p>}
     </li>
   ))}
 </ul>
@@ -30,49 +37,59 @@ const cols = n <= 2 ? n : n === 3 ? 3 : n === 4 ? 2 : n === 5 ? 5 : n === 6 ? 3 
 <style>
   .why-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 2.5rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  /* Tick hangs in its own track so the title and the sentence under it share
+     one left edge. The rule sits on the entry, not the row, so the column
+     gutter breaks it — which is what makes the columns read as columns. */
   .why-grid-item {
-    padding: 1.5rem 1.375rem;
-    border: 1px solid var(--c-ondark-rule);
-    border-radius: var(--radius-card);
+    display: grid;
+    grid-template-columns: 1.125rem minmax(0, 1fr);
+    column-gap: 0.75rem;
+    align-content: start;
+    padding: 1.25rem 0 1.75rem;
+    border-top: 1px solid var(--c-ondark-rule);
   }
 
   .why-grid-tick {
-    display: flex;
-    height: 1.875rem;
-    width: 1.875rem;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    border: 1px solid var(--c-ondark-rule);
+    grid-column: 1;
+    grid-row: 1;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: 0.2em;
     color: var(--color-accent-ondark);
-    margin-bottom: 0.875rem;
   }
-  .why-grid-tick svg { height: 0.875rem; width: 0.875rem; }
 
   .why-grid-title {
+    grid-column: 2;
     margin: 0;
     font-family: var(--font-heading);
-    font-size: 1.0625rem;
+    font-size: var(--text-lead);
     font-weight: 600;
     line-height: 1.3;
     color: var(--color-ondark);
   }
 
   .why-grid-desc {
+    grid-column: 2;
     margin: 0.5rem 0 0;
     font-family: var(--font-body);
-    font-size: 0.9375rem;
-    line-height: 1.65;
+    font-size: var(--text-body);
+    line-height: 1.6;
     color: var(--c-ondark-soft);
   }
 
   @media (min-width: 40rem) { .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (min-width: 64rem) { .why-grid { grid-template-columns: repeat(var(--why-cols), minmax(0, 1fr)); } }
+  @media (min-width: 64rem) {
+    .why-grid { grid-template-columns: repeat(var(--why-cols), minmax(0, 1fr)); column-gap: 3.5rem; }
+    /* Five across is the one count where the track is too narrow for body
+       size; step the sentence down rather than break the row. */
+    .why-grid[style*="--why-cols:5"] { column-gap: 2rem; }
+    .why-grid[style*="--why-cols:5"] .why-grid-desc { font-size: var(--text-small); }
+  }
 </style>

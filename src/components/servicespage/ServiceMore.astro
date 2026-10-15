@@ -1,0 +1,23 @@
+---
+/**
+ * "More details" disclosure for compact service cards.
+ *
+ * Keeps the FULL longDescription on the page (it is in the HTML, so crawlers
+ * read it) without making every card 80 words tall. <details> works with
+ * JavaScript off and needs no script at all.
+ */
+// @ts-ignore — plain-JS helper shared with the Node check scripts
+import { midSentence } from "../../lib/content.mjs";
+interface Props { title: string; body?: string; price?: string; }
+const { title, body = "", price = "" } = Astro.props;
+---
+{(body || price) && (
+  <details class="svc-more group mt-4 border-t border-border pt-3">
+    <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-brand [&::-webkit-details-mark]:hidden">
+      <span>More about {midSentence(title)}</span>
+      <svg class="h-4 w-4 shrink-0 transition-transform group-open:rotate-45" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 4a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V5a1 1 0 011-1z"></path></svg>
+    </summary>
+    {body && <p class="mt-2 text-[0.9375rem] leading-relaxed text-muted">{body}</p>}
+    {price && <p class="mt-3 text-sm font-bold uppercase tracking-wide text-brand-secondary-ink">{price}</p>}
+  </details>
+)}

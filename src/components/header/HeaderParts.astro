@@ -6,6 +6,15 @@
  * link, the CTA and the burger across three files is how a fix lands in one
  * header and not the other two; the hero already taught us that.
  *
+ * TAP TARGETS (v3.17). Every interactive part carries .tap-target, which
+ * raises the hit area to 44x44 via a centred ::after WITHOUT changing layout
+ * (see global.css). Measured at 390px, the header was the ONLY place on the
+ * site under the floor: wordmark 28px, phone link and menu links 40px, burger
+ * a hardcoded h-10. The header phone number is the most-tapped element on a
+ * trade site, so this is a conversion issue before it is a compliance one.
+ * The mobile panel links are the exception and take real min-h-11 height: a
+ * vertical menu is a list, and 44px rows are what a list should be.
+ *
  * `part` selects which piece to render. Astro has no multi-export component,
  * and three tiny files would be worse to navigate than one switch.
  */
@@ -16,8 +25,10 @@ interface Props {
   tone?: "light" | "ondark";
   size?: "sm" | "md" | "lg";
   class?: string;
+  /** phone part only: render nothing when the CTA beside it already dials. */
+  unlessCtaCalls?: boolean;
 }
-const { part, tone = "light", size = "md", class: extra = "" } = Astro.props;
+const { part, tone = "light", size = "md", class: extra = "", unlessCtaCalls = false } = Astro.props;
 
 const navLinks = headerNavLinks();
 const business = site.business || {};
@@ -34,17 +45,23 @@ const phone = contact.phone || "";
 const phoneHref = phone ? `tel:${formatPhone(phone)}` : "";
 const ctaLabel = contact.headerCtaLabel || "Get a free quote";
 const ctaHref = resolveLinkHref(contact.headerCtaHref || "#contact");
+/* ONE CALL ACTION PER BAR. When the header CTA is itself a tel: link ("Call
+   0411 ...") the plain number beside it is the same action printed twice, six
+   words apart. A page that repeats its phone number four times above the fold
+   reads as generated, not as urgent. The number is dropped only where the CTA
+   is visible next to it; below that breakpoint the pill still carries it. */
+const ctaCalls = /^tel:/i.test(String(contact.headerCtaHref || "").trim());
 
 const onDark = tone === "ondark";
 const linkInk = onDark ? "text-ondark/85 hover:text-ondark" : "text-brand/85 hover:text-brand";
 const strongInk = onDark ? "text-ondark" : "text-brand";
-const ring = onDark ? "focus-visible:ring-ondark/50" : "focus-visible:ring-brand";
+const ring = onDark ? "" : "";
 const markSize = size === "lg" ? "h-9 sm:h-11" : size === "sm" ? "h-6 sm:h-7" : "h-7 sm:h-8";
-const wordSize = size === "lg" ? "text-lg sm:text-2xl" : size === "sm" ? "text-sm sm:text-base" : "text-base sm:text-lg";
+const wordSize = size === "lg" ? "text-lg sm:text-2xl" : size === "sm" ? "text-sm sm:text-base" : "text-base sm:text-lg lg:text-[1.375rem]";
 ---
 
 {part === "brand" && (
-  <a href="/" class:list={["flex min-w-0 shrink-0 items-center gap-2", extra]} aria-label={name}>
+  <a href="/" class:list={["tap-target flex min-w-0 shrink-0 items-center gap-2", extra]} aria-label={name}>
     {logo ? (
       <img src={logo} alt={name} width="180" height="48" class:list={["w-auto max-w-[8.5rem] object-contain sm:max-w-[11rem]", markSize]} />
     ) : (
@@ -61,21 +78,21 @@ const wordSize = size === "lg" ? "text-lg sm:text-2xl" : size === "sm" ? "text-s
 {part === "nav" && navLinks.length > 0 && (
   <nav class:list={["hidden items-center lg:flex", extra]} aria-label="Primary">
     {navLinks.map((l) => (
-      <a href={l.href} class:list={["text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2", linkInk, ring]}>
+      <a href={l.href} class:list={["tap-target text-sm font-medium transition lg:text-[0.9375rem]", linkInk, ring]}>
         {l.label}
       </a>
     ))}
   </nav>
 )}
 
-{part === "phone" && phoneHref && (
-  <a href={phoneHref} class:list={["font-semibold transition hover:opacity-80", strongInk, extra]}>
+{part === "phone" && phoneHref && !(unlessCtaCalls && ctaCalls) && (
+  <a href={phoneHref} class:list={["tap-target font-semibold transition hover:opacity-80", strongInk, extra]}>
     {phone}
   </a>
 )}
 
 {part === "cta" && (
-  <a href={ctaHref} class:list={["rounded-card bg-accent px-3.5 py-1.5 text-sm font-semibold text-on-accent transition hover:brightness-95", extra]}>
+  <a href={ctaHref} class:list={["tap-target rounded-card bg-accent px-3.5 py-1.5 font-heading text-sm font-bold tracking-tight text-on-accent transition hover:brightness-95 lg:px-5 lg:py-2.5 lg:text-[0.9375rem]", extra]}>
     {ctaLabel}
   </a>
 )}
@@ -84,7 +101,7 @@ const wordSize = size === "lg" ? "text-lg sm:text-2xl" : size === "sm" ? "text-s
   <button
     id="menu-toggle"
     type="button"
-    class:list={["flex h-10 w-10 items-center justify-center rounded-lg transition lg:hidden", strongInk, onDark ? "hover:bg-ondark/10" : "hover:bg-brand/5", extra]}
+    class:list={["tap-target flex h-10 w-10 items-center justify-center rounded-card transition lg:hidden", strongInk, onDark ? "hover:bg-ondark/10" : "hover:bg-brand/5", extra]}
     aria-label="Open menu"
     aria-expanded="false"
     aria-controls="mobile-menu"
@@ -99,7 +116,7 @@ const wordSize = size === "lg" ? "text-lg sm:text-2xl" : size === "sm" ? "text-s
   <div id="mobile-menu" class="hidden border-t border-brand/[0.12] bg-bg px-4 pb-4 lg:hidden">
     <nav class="flex flex-col gap-1 pt-2" aria-label="Mobile">
       {navLinks.map((l) => (
-        <a href={l.href} class="rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-brand/5" data-menu-link>
+        <a href={l.href} class="flex min-h-11 items-center rounded-card px-3 text-sm font-medium text-brand hover:bg-brand/5" data-menu-link>
           {l.label}
         </a>
       ))}
@@ -107,7 +124,7 @@ const wordSize = size === "lg" ? "text-lg sm:text-2xl" : size === "sm" ? "text-s
         <a href={ctaHref} class="rounded-card bg-accent px-3 py-3 text-center text-sm font-semibold text-on-accent transition hover:brightness-95" data-menu-link>
           {ctaLabel}
         </a>
-        {phoneHref && (
+        {phoneHref && !ctaCalls && (
           <a href={phoneHref} class="rounded-card border-2 border-brand/25 px-3 py-3 text-center text-sm font-semibold text-brand transition hover:border-brand/50 hover:bg-brand/5" data-menu-link>
             Call {phone}
           </a>

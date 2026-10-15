@@ -1,0 +1,41 @@
+---
+/**
+ * Full-bleed quote band — closes every servicesPage variant.
+ *
+ * Hi-vis on purpose: the accent colour edge to edge, the loudest element on
+ * the page after the H1. It replaced a small tinted box that sat inside the
+ * container and read as a footnote. Text colour is --c-on-accent, which the
+ * palette engine fits per client, so it holds contrast on any accent.
+ *
+ * tone="dark" is the mid-page variant (brand-dark ground, accent button) —
+ * used where a second accent band would shout over the closing one.
+ *
+ * The heading is an H2 and should carry the keyword + city ("Need concrete
+ * or civil work in Adelaide?"), not "Contact us".
+ */
+import { site, formatPhone } from "../../config";
+interface Props { heading: string; body?: string; tone?: "accent" | "dark"; compact?: boolean; }
+const { heading, body = "", tone = "accent", compact = false } = Astro.props;
+const dark = tone === "dark";
+const phone = site.contact?.phone || "";
+const ctaLabel = site.contact?.headerCtaLabel || "Get a free quote";
+---
+<section class:list={[dark ? "bg-brand-dark text-ondark" : "bg-accent text-on-accent"]} aria-label="Get a quote">
+  <div class:list={["mx-auto flex max-w-[var(--w-content)] flex-col gap-7 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-8", compact ? "py-10 lg:py-12" : "py-12 sm:py-14 lg:py-16"]}>
+    <div class="min-w-0 max-w-3xl">
+      <h2 class:list={["font-heading leading-[1.1] tracking-tight", dark ? "text-ondark" : "text-on-accent", compact ? "text-2xl sm:text-3xl lg:text-4xl" : "text-3xl sm:text-4xl lg:text-[2.75rem]"]}>{heading}</h2>
+      {body && <p class:list={["mt-3 max-w-2xl text-base leading-relaxed lg:text-lg", dark ? "text-[var(--c-ondark-soft)]" : "text-on-accent/90"]}>{body}</p>}
+    </div>
+    <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+      <a href="/#contact" class:list={["inline-flex min-h-[3.25rem] items-center justify-center rounded-card px-8 font-heading text-base font-bold tracking-tight transition", dark ? "bg-accent text-on-accent hover:brightness-95" : "bg-brand-dark text-ondark hover:opacity-90"]}>
+        {ctaLabel}
+      </a>
+      {phone && (
+        <a href={`tel:${formatPhone(phone)}`} class:list={["inline-flex min-h-[3.25rem] py-3 items-center justify-center gap-2 rounded-card border-2 px-7 font-heading text-base font-bold tracking-tight transition", dark ? "border-ondark/40 text-ondark hover:border-ondark" : "border-on-accent/70 text-on-accent hover:border-on-accent"]}>
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M2 3a1 1 0 011-1h2.15a1 1 0 01.99.84l.74 4.44a1 1 0 01-.54 1.06l-1.55.77a11.04 11.04 0 006.1 6.1l.77-1.55a1 1 0 011.06-.54l4.44.74a1 1 0 01.84.99V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path></svg>
+          {phone}
+        </a>
+      )}
+    </div>
+  </div>
+</section>

@@ -72,9 +72,24 @@ npm run dev
 #   (leave blank to let the engine pick one from the seed)
 
 # Force one section's layout (otherwise the engine picks):
-#   _brief.layoutVariants.hero: "editorial"
+#   _brief.layoutVariants.hero: "docket"
 #   _brief.layoutVariants.services: "grid-icons"
-#   (valid names are in VARIANTS.txt)
+#   (valid names are in VARIANTS.txt / VARIANT-CHEAT-SHEET.txt §4)
+#
+# /services page layout — MANUAL, the engine never picks it:
+#   _brief.layoutVariants.servicesPage: "stacked" | "grouped" | "featured" | "index"
+#   (1-6 services: stacked; 7-14 with photos: featured;
+#    grouped needs services.groups[] + items[].group; 10+: index)
+#
+# Group services (grouped / index layouts):
+#   services.groups: [{ "id": "excavation", "heading": "Excavation and civil works", "intro": "" }]
+#   services.items[].group: "excavation"     (heading = the H2 on /services)
+#
+# Deep link to one service:  /services#<items[].anchor>
+#   e.g. anchor "core-drilling-adelaide"
+#
+# Per-page <title> + meta description:
+#   seo.pages.services / areas / gallery / faq  -> { "title": "", "description": "" }
 
 # Reshuffle a site's WHOLE look (new random spin):
 #   set _brief.variantSeed: "v2"  (any new string)
@@ -87,7 +102,8 @@ npm run dev
 #   theme: "light" | "dark"
 
 # Unlock photo-based layouts (split-media / fullbleed / carousel /
-# founder) — ONLY when real photos exist in public/images:
+# founder) — ONLY when real photos exist in src/assets/images
+# (optimised; public/images also works, unoptimised):
 #   features.hasPhotos: true
 
 # Enable the contact form:
@@ -154,7 +170,7 @@ business.name and contact.phone present; if
 contactSection.form.enabled, that contact.formEndpoint or
 contact.email exists (else it's phone-only — confirm intended);
 features.hasPhotos is true ONLY if real photos are in
-public/images; no REQUIRED/placeholder/lorem text; phones are
+src/assets/images or public/images; no REQUIRED/placeholder/lorem text; phones are
 click-to-call; the sections array lists exactly the sections
 wanted; nothing from _brief renders on the page. List what to fix.
 
@@ -181,13 +197,13 @@ if it needs photos/stats) and document it in VARIANTS.txt. Do not
 edit any client-intake.json.
 
 
----- 4H. BATCH-PROCESS / OPTIMISE IMAGES ----
-(Requires ImageMagick: https://imagemagick.org)
-
-Write a script for my OS that loops every jpg/png in
-public/images, sharpens subtly, resizes anything wider than
-1600px down to 1600px, and outputs WebP at 80% quality alongside
-the originals. Give me the command to run it.
+---- 4H. IMAGES ----
+(v3.21: no manual resizing needed.) Put each photo under
+src/assets/ at the same path the intake uses — /images/services/
+x.webp lives at src/assets/images/services/x.webp. The build makes
+the 480-2400px WebP srcset. Only two things to do by hand:
+rotate phone photos upright and strip GPS before committing, and
+cap masters at ~2400px so the repo stays small.
 
 
 ================================================================

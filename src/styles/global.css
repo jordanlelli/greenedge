@@ -24,6 +24,9 @@
   --color-accent-ink: var(--c-accent-ink, #16181b);
   --color-accent-ondark: var(--c-accent-ondark, #f7f7f8);
   --color-highlight:  var(--c-highlight, var(--c-accent, #16181b));
+  /* highlight fitted for use as TEXT (palette.mjs). --color-highlight is a
+     fill and is not contrast-checked as text: never set `color` to it. */
+  --color-highlight-ink: var(--c-highlight-ink, var(--color-highlight));
   --color-ink:        var(--c-ink, #16181b);
   --color-muted:      var(--c-muted, #5c6066);
   --color-border:     var(--c-border, #e4e4e6);
@@ -42,17 +45,53 @@
   --font-heading: var(--font-display), system-ui, sans-serif;
   /* --font-body is set by <Font cssVariable="--font-body" /> — do not redefine here */
 
-  /* radius + shadow */
-  --radius-card: var(--kit-radius, 0.75rem);
+  /* radius + shadow.
+
+     RADIUS HAS TWO ROLES, and only two (v3.17):
+       --radius-card  THINGS YOU CLICK  — buttons, CTAs, cards, tiles, chips.
+                      Kit-driven, so a sharp kit stays sharp and a soft kit
+                      stays soft. This is where the personality lives.
+       --radius-input THINGS YOU TYPE INTO — text fields, textareas, selects.
+                      FIXED across every kit by deliberate choice: a form
+                      field is a utility, not a place to express the brand.
+
+     Before this split there was no rule at all. Measured on a built page:
+     12px on 13 elements and 8px on 6, assigned by which component the author
+     happened to write — so a text field and the Send button beside it had
+     different corners for no reason a reader could name. Two radii is a
+     system only when each one MEANS something.
+
+     Never introduce a third role. If something needs a radius, decide whether
+     a person clicks it or types into it. */
+  --radius-card:  var(--kit-radius, 0.75rem);
+  --radius-input: 0.5rem;
+  --radius-pill:  999px;      /* chips only — an idiom, not a third role */
   --shadow-card: var(--kit-shadow, 0 1px 2px rgb(0 0 0 / 0.05));
 
-  /* FLUID RAILS. Fixed caps left ~40% of a 1920px monitor as empty margin while
-     a phone was unaffected. clamp() keeps the small/mid range EXACTLY as it was
-     (the vw term does not overtake the min until ~1515px) and only opens up on
-     large displays. Measure is capped separately, inside the components, so a
-     wider rail buys layout room without lengthening a line of prose. */
-  --w-content: clamp(72rem, 76vw, 84rem);
-  --w-wide:    clamp(80rem, 86vw, 96rem);
+  /* TYPE SCALE. Five steps, named so a component never has to guess. Before
+     this, component <style> blocks carried raw rem values in 30+ places and
+     the set had drifted to seven sizes — 11/13/14/15/16/17/18px — where 14
+     and 15 did the same job, as did 16 and 17. Nobody could tell whether
+     0.9375rem meant "small body" or was somebody's guess, so every new
+     component added another near-duplicate. Use these, never a raw rem. */
+  --text-eyebrow: 0.6875rem;  /* 11px — uppercase labels, docket keys */
+  --text-micro:   0.8125rem;  /* 13px — chips, captions, per-zone notes */
+  --text-small:   0.875rem;   /* 14px — secondary body, card descriptions */
+  --text-body:    1rem;       /* 16px — body copy, answers, list entries */
+  --text-lead:    1.125rem;   /* 18px — sub-headings, question text */
+  --text-title:   1.5rem;     /* 24px — group headings on long documents */
+
+  /* v3.18 (A&J pass): 72/80 -> 84/84. At 72rem the page sat in a 1088px
+     column on a 1440 screen with 176px of dead margin either side, and the
+     header (content) and hero (wide) started 64px apart so nothing lined up.
+     Hero copy now sits on --w-content too, so header, hero and every section
+     share one left edge. */
+  --w-content: 84rem;
+  --w-wide:    84rem;   /* = content on purpose: at 90rem the "wide" services
+                            layouts sat 32px from the edge at 1440 while the
+                            header and hero sat at 80px. One left edge beats a
+                            few extra pixels of width. Kept as a token so a
+                            future variant can diverge deliberately. */
 
   --breakpoint-sm: 40rem;
   --breakpoint-md: 48rem;
@@ -65,14 +104,24 @@
    The kit class is set on <html> by Layout.astro. TYPE is loaded per kit by
    astro.config.mjs via the Astro Fonts API (--font-display / --font-body) —
    never declare font-family here. Five personalities; colour stays client-driven.
+
+   WEIGHT TOKENS (v3.18). --weight-display (hero h1) and --weight-heading
+   (every h1-h3) are set per kit because each kit loads different weights:
+   Archivo and Bricolage Grotesque ship 800, Newsreader / Fraunces top out at 700.
+   A weight the kit does not load is not "a bit lighter", it is the browser
+   snapping to the nearest file — so every value here must exist in that
+   kit's KIT_FONT_FACES entry in src/lib/variants.mjs. Change both together.
    ===================================================================== */
 
-/* Ledger — editorial/journalistic. Transitional serif + tight grotesque body. */
+/* Ledger — editorial/journalistic. Newsreader + Public Sans (v3.28; body was Inter Tight). */
 .kit-ledger {
   --kit-radius: 0.5rem;
   --kit-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
   --kit-tracking: -0.02em;
-  --kit-rhythm: 4rem;
+  --kit-rhythm: 4.5rem;
+  --weight-display: 700;
+  --weight-heading: 600;
+  --tracking-display: -0.015em;
 }
 
 /* Workshop — industrial trade. Heavy Archivo + Public Sans, hard offset shadow. */
@@ -80,7 +129,10 @@
   --kit-radius: 0.25rem;
   --kit-shadow: 4px 4px 0 rgb(0 0 0 / 0.12);
   --kit-tracking: -0.01em;
-  --kit-rhythm: 3.5rem;
+  --kit-rhythm: 4rem;
+  --weight-display: 800;
+  --weight-heading: 700;
+  --tracking-display: -0.03em;
 }
 
 /* Coast — soft & approachable. Archivo + Source Sans 3 via Astro Fonts API. */
@@ -88,23 +140,35 @@
   --kit-radius: 1.25rem;
   --kit-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.18);
   --kit-tracking: -0.015em;
-  --kit-rhythm: 4.5rem;
+  --kit-rhythm: 5.5rem;
+  --weight-display: 800;
+  --weight-heading: 700;
+  --tracking-display: -0.03em;
 }
 
-/* Press — classic & refined. Fraunces + Inter. */
+/* Press — classic & refined. Fraunces + DM Sans (v3.28; body was Inter). */
 .kit-press {
   --kit-radius: 0.75rem;
   --kit-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
   --kit-tracking: -0.025em;
-  --kit-rhythm: 4.25rem;
+  --kit-rhythm: 5rem;
+  --weight-display: 700;
+  --weight-heading: 600;
+  --tracking-display: -0.02em;
 }
 
-/* Signal — modern & geometric. Space Grotesk + Inter, medium radius, minimal shadow. */
+/* Signal — modern. Bricolage Grotesque + DM Sans (v3.28; was Space Grotesk +
+   Inter), medium radius, minimal shadow. Bricolage ships 800, so the hero
+   takes it; its letterfit is tighter than Space Grotesk's was, so the display
+   tracking eases from -0.035em to -0.025em. */
 .kit-signal {
   --kit-radius: 0.75rem;
   --kit-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
   --kit-tracking: -0.02em;
-  --kit-rhythm: 4rem;
+  --kit-rhythm: 4.5rem;
+  --weight-display: 800;
+  --weight-heading: 700;
+  --tracking-display: -0.025em;
 }
 
 /* =====================================================================
@@ -122,7 +186,83 @@ body {
 }
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
+}
+/* Style Picker "section headings match the headline": --font-headings is
+   set on <html> only then. */
+h1, h2, h3 {
+  font-family: var(--font-headings, var(--font-heading));
+}
+h1, h2, h3, h4 {
   letter-spacing: var(--kit-tracking, -0.01em);
+  text-wrap: balance;
+}
+p { text-wrap: pretty; }
+
+/* DISPLAY TYPE — all kits (v3.18, generalised from the AJM workshop tuning).
+   Trade sites read as solid when the display type is heavy: AJM's 68px/800
+   headline looked bigger than A&J's 72px/600. Weights come from the kit
+   tokens above. These rules are unlayered, so they beat Tailwind's
+   font-semibold utilities on headings everywhere — a font-weight utility on
+   an h1-h3 is dead code; change the kit token instead. */
+body {
+  line-height: 1.65;
+}
+h1, h2, h3 {
+  font-weight: var(--weight-heading, 700);
+  font-feature-settings: "kern" 1, "liga" 1;
+  /* Style Picker (src/lib/stylepicks.mjs). Unset on a kit-only site, so the
+     fallbacks below are the old behaviour. */
+  font-stretch: var(--stretch-heading, normal);
+  font-style: var(--style-heading, normal);
+  text-transform: var(--case-heading, none);
+  font-variation-settings: var(--vs-heading, normal);
+}
+.section-heading {
+  letter-spacing: -0.02em;
+}
+.hero-display {
+  font-family: var(--font-hero, var(--font-heading));
+  font-weight: var(--weight-display, 800);
+  font-stretch: var(--hero-stretch, var(--stretch-heading, normal));
+  font-style: var(--hero-style, normal);
+  text-transform: var(--hero-case, none);
+  font-variation-settings: var(--hero-vs, normal);
+  letter-spacing: var(--tracking-display, -0.03em);
+  line-height: var(--hero-leading, 1.05);
+}
+/* The homepage hero sets its size through --hero-size so the picker's
+   headline scale (font factor x the client's size slider) can multiply it. */
+.hero-display-sized {
+  font-size: calc(var(--hero-size) * var(--hero-scale, 1));
+}
+.hero-display-kicker {
+  font-weight: var(--weight-heading, 700);
+}
+/* hero.displayLine: a short line in the headline font, with the keyword
+   heading set small beneath it. Both sit inside the one h1. */
+.hero-keyword {
+  display: block;
+  margin-top: 0.8rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-stretch: normal;
+  font-style: normal;
+  text-transform: none;
+  font-variation-settings: normal;
+  letter-spacing: 0;
+  line-height: 1.35;
+  font-size: clamp(var(--text-body, 1.0625rem), 0.98rem + 0.35vw, var(--text-lead, 1.3125rem));
+}
+
+/* Hero lede — all kits. 18px mobile, 20px desktop, 40rem measure. */
+.hero-lede {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  max-width: 40rem;
+}
+@media (min-width: 64rem) {
+  .hero-lede { font-size: 1.25rem; max-width: 42rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -139,35 +279,77 @@ h1, h2, h3, h4 {
    rhythm; tight/loose are deliberate half-step and expanded variants of the
    same token, not ad-hoc Tailwind py-* values.
    ===================================================================== */
-.sec-pad-default { padding-block: clamp(2.5rem, calc(1.25rem + 3vw), var(--kit-rhythm, 4.5rem)); }
-.sec-pad-tight   { padding-block: clamp(1.75rem, calc(0.75rem + 2.2vw), calc(var(--kit-rhythm, 4.5rem) * 0.7)); }
-.sec-pad-loose   { padding-block: clamp(3rem, calc(1.5rem + 3.75vw), calc(var(--kit-rhythm, 4.5rem) * 1.3)); }
-/* Heroes bypass Section and set their own block padding; this is the one place
-   they read from so the hero and the first section share a rhythm. */
-.hero-pad        { padding-block: clamp(2.75rem, calc(1.5rem + 3.4vw), calc(var(--kit-rhythm, 4.5rem) * 1.2)); }
+/* SECTION RHYTHM. The gap a reader actually sees between two sections is
+   A.padding-bottom + B.padding-top, so the SPREAD between these values matters
+   more than any one of them. At 3.5rem/5.5rem the homepage produced gaps of
+   88 / 176 / 144 / 112 / 144 / 176px — four values spanning 2:1, and no
+   section was individually wrong. That inconsistent sequence is what reads as
+   amateur; the eye catches an 88px gap sitting directly above a 176px one.
+
+   tight raised 3.5rem -> 4.5rem in v3.17. Gaps become 144 / 160 / 176: still
+   three steps so hierarchy survives, but a 1.22:1 spread instead of 2:1.
+   Changing these values changes vertical rhythm on every site built from this
+   template, which is why they live here and not in any component. */
+/* Section padding is driven by the kit, so a dense kit reads dense and an airy
+   one reads airy without any component knowing about it. */
+html {
+  --space-section:       calc(var(--kit-rhythm, 5.5rem) - 0.5rem);
+  /* HALF-STEP IS 0.75rem, NOT 1.5rem. Once the edges collapse, the gap between
+     two sections is a SINGLE token, so the tight/default difference is no
+     longer halved across two pads — it shows at full size. Measured with the
+     1.5rem step the homepage spread was 1.73:1, worse than the 1.23:1 the
+     old non-collapsing scale gave. A smaller step keeps the step meaningful
+     while holding the sequence tight. */
+  --space-section-tight: calc(var(--space-section) - 0.75rem);
+  --space-section-loose: calc(var(--space-section) + 0.75rem);
+}
+
+@media (min-width: 40rem) {
+  html {
+    --space-section:       var(--kit-rhythm, 5.5rem);
+    --space-section-tight: calc(var(--space-section) - 0.75rem);
+    --space-section-loose: calc(var(--space-section) + 0.75rem);
+  }
+}
+
+.sec-pad-default { padding-block: var(--space-section); }
+.sec-pad-tight   { padding-block: var(--space-section-tight); }
+.sec-pad-loose   { padding-block: var(--space-section-loose); }
+
+/* EDGE COLLAPSE — TRIED AND REJECTED IN v3.17, kept here as a warning.
+
+   A&J's fork collapsed the shared edge between same-ground sections so the gap
+   became ONE token instead of two stacked pads:
+
+       .sec.bg-bg + .sec.bg-bg { padding-top: 0 }   (and tint/card variants)
+
+   It reads as the better idea and it was absorbed on that basis. Measured, it
+   is worse: collapsed seams gave 80px while seams across a colour band still
+   gave 168px, so the homepage spread went from 1.23:1 to 1.91:1. The original
+   problem was not "two pads are too much" — it was "adjacent gaps differ by
+   2x". Collapsing only some seams relocates that difference, it does not
+   remove it.
+
+   What the template does instead: ONE scale, no collapse, a deliberately
+   narrow half-step so every gap lands close to its neighbours. Do not
+   reintroduce the collapse without re-measuring the gap sequence. */
+
+.sec-strip + .sec.sec-pad-default,
+.sec-strip + .sec.sec-pad-loose {
+  padding-top: var(--space-section-tight);
+}
 
 /* =====================================================================
-   FLUID DISPLAY TYPE — headings scale with the viewport instead of stopping
-   dead at the lg breakpoint. Ten components carry the same `text-3xl
-   sm:text-4xl` pair; rather than edit ten files, these rules are ELEMENT+CLASS
-   (0,1,1) so they beat those Tailwind utilities (0,1,0) without !important.
-   Sizes are unitless-safe: at 375px each clamp returns its min, so mobile is
-   byte-identical to the stepped scale it replaces.
+   MEASURE (v3.22) — one reading width for running text, site-wide.
+   40em is ~70-80 characters in every kit's body face and scales with the
+   element's own font size, so a text-xl lead and a text-sm caption both land
+   in range. It is a MAX: narrow cards and columns are unaffected. Layered as
+   base so any component can still widen it with a max-w-* utility — which it
+   should only do for headings or deliberately short lines.
    ===================================================================== */
-/* NOTE: the hero H1 scale deliberately does NOT live here. It sits in
-   HeroCopy.astro as a Tailwind arbitrary value so the headline is correct even
-   if this file is out of date — a mismatched pair silently drops the H1 to the
-   inherited 1rem, because Tailwind's preflight resets h1 font-size to inherit.
-   Section heads can rely on this file; the single largest element on the page
-   should not depend on two files being in sync. */
-
-h2.section-heading,
-h3.section-heading { font-size: clamp(1.75rem, calc(1.15rem + 1.7vw), 2.75rem); line-height: 1.12; }
-
-/* Subordinate heads (Areas) deliberately sit a step below the section heads.
-   Same specificity as the rule above, so this must stay AFTER it. */
-h2.section-heading-sub,
-h3.section-heading-sub { font-size: clamp(1.5rem, calc(1rem + 1.2vw), 2.125rem); }
+@layer base {
+  p, dd, blockquote, figcaption { max-width: 40em; }
+}
 
 /* =====================================================================
    SECTION-HEAD GRAMMAR — per-kit eyebrow/heading treatments.
@@ -177,40 +359,43 @@ h3.section-heading-sub { font-size: clamp(1.5rem, calc(1rem + 1.2vw), 2.125rem);
    (0,1,0), so no !important is needed. Pure CSS — no markup restructure.
    ===================================================================== */
 
-/* ledger — hairline lead-rule before the eyebrow, tight heading */
-.kit-ledger .section-eyebrow::before {
-  content: ""; display: inline-block; width: 1.75rem; height: 1px;
-  background: var(--color-accent); vertical-align: middle; margin-right: 0.6rem;
-}
-
-/* workshop — heavy accent bar, blockier eyebrow */
-.kit-workshop .section-eyebrow {
-  border-left: 3px solid var(--color-accent); padding-left: 0.6rem; font-weight: 800;
-}
-
-/* coast — quiet Mid Canopy label (never Harvest Gold — CTA Gold Rule) */
-.kit-coast .section-eyebrow {
-  display: inline-block;
-  text-transform: none;
-  letter-spacing: 0.02em;
+/* Eyebrow base (v3.22). Sentence case, untracked, 15px. The 11-12px tracked
+   uppercase label above a heading is the single most flagged pattern in
+   impeccable (kicker-above-heading / hero-eyebrow-chip / all-caps-body), and
+   on these sites it mostly restated the heading beneath it. Kits now vary it
+   by weight, style and colour only: no caps, no tracking, no side bars, no
+   accent dashes. Colour stays on the markup (text-brand-secondary-ink etc.)
+   so the band and on-dark remaps keep working. */
+.section-eyebrow {
+  font-size: 0.9375rem;
+  line-height: 1.4;
   font-weight: 600;
-  color: var(--color-highlight);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
-/* press — uppercase highlight labels */
-.kit-press .section-eyebrow {
-  text-transform: uppercase; letter-spacing: 0.025em; font-style: normal; font-weight: 600;
-  color: var(--color-highlight);
-}
-/* press runs its heads a step larger than the shared scale — fluid, so it does
-   not freeze at 40rem the way the old two-step version did. (0,2,0) beats the
-   base h2.section-heading rule (0,1,1), which is why it has to restate clamp
-   rather than just nudge a size.) */
-.kit-press .section-heading { font-size: clamp(1.875rem, calc(1.2rem + 1.9vw), 3rem); line-height: 1.1; }
+/* ledger — editorial italic */
+.kit-ledger .section-eyebrow { font-style: italic; font-weight: 500; }
 
-/* signal — plus-prefixed, wide-tracked technical tag */
-.kit-signal .section-eyebrow::before { content: "+ "; }
-.kit-signal .section-eyebrow { letter-spacing: 0.2em; }
+/* workshop — blockier: heading face, heavier */
+.kit-workshop .section-eyebrow { font-family: var(--font-heading); font-weight: 700; }
+
+/* coast — quiet highlight label (never the CTA gold).
+   The colour is --color-highlight-ink, the highlight fitted to read as text;
+   the raw highlight failed AA whenever a client's was pale. An eyebrow on a
+   dark hero (.text-accent-ondark, set by HeroCopy) keeps its on-dark colour:
+   a kit rule outranks the utility, so it has to step aside explicitly. */
+.kit-coast .section-eyebrow:not(.text-accent-ondark) { color: var(--color-highlight-ink); }
+
+/* press — classic italic highlight (same colour rule as coast) */
+.kit-press .section-eyebrow { font-style: italic; }
+.kit-press .section-eyebrow:not(.text-accent-ondark) { color: var(--color-highlight-ink); }
+.kit-press .section-heading { font-size: 1.875rem; line-height: 1.1; }
+@media (min-width: 40rem) { .kit-press .section-heading { font-size: 2.25rem; } }
+@media (min-width: 64rem) { .kit-press .section-heading { font-size: 2.75rem; } }
+
+/* signal — geometric, medium weight */
+.kit-signal .section-eyebrow { font-weight: 500; }
 
 /* =====================================================================
    COLOUR BAND — one seeded mid-page section inverts to a dark brand band.
@@ -245,8 +430,231 @@ h3.section-heading-sub { font-size: clamp(1.5rem, calc(1rem + 1.2vw), 2.125rem);
      steps back to the band colour — the CTA stays legible either way. */
   --color-accent: var(--c-accent-ondark, var(--c-accent));
   --color-highlight: var(--c-accent-ondark, var(--c-highlight));
+  /* Text-fitted inks are fitted against the LIGHT page, so inside the band
+     they are dark on dark (accent-ink measured 1.0:1 on story's step numbers).
+     Both step to the band's own text colour, the one pair the build checks. */
+  --color-highlight-ink: var(--c-on-band);
+  --color-accent-ink: var(--c-on-band);
   --color-on-accent: var(--c-on-accent-ondark, var(--c-band));
 }
 .band-dark > section {
   background-color: var(--c-band);
+}
+
+/* ── KEYBOARD FOCUS ────────────────────────────────────────────────────────
+   ONE global focus indicator for every interactive element on every site.
+
+   WHY THIS IS HERE AND NOT ON THE COMPONENTS. Until v3.17 each component
+   carried its own `focus-visible:outline-none focus-visible:ring-2
+   focus-visible:ring-brand focus-visible:ring-offset-2`. Measured in Chromium
+   by tabbing the built page, those produced NO visible indicator: the ring
+   custom properties resolved correctly (--tw-ring-shadow was
+   "0 0 0 calc(2px + 2px) #123A5E") but the composed box-shadow came out as
+   three transparent segments, so nothing painted — while the
+   `focus-visible:outline-none` in the same class string DID apply and removed
+   the browser's own default. The net effect was worse than writing no focus
+   style at all: the native indicator was suppressed and nothing replaced it.
+
+   outline has no custom-property chain to break, is not clipped by
+   overflow:hidden the way an inset shadow is, and follows the border-radius
+   in every current browser. --color-brand is remapped inside .band-dark, so
+   this stays visible on the inverted band with no extra rule.
+
+   G7 of DESIGN-LIBRARY.txt makes visible keyboard focus a floor, so this is
+   deliberately global: a new component cannot forget it.
+   ───────────────────────────────────────────────────────────────────────── */
+:is(a[href], button, summary, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* The sticky phone bar is full-bleed and sits flush against the viewport edge,
+   where a 2px outward offset is clipped. Pull it inside instead. */
+.sticky-phone-bar :is(a, button):focus-visible {
+  outline-color: var(--color-ondark);
+  outline-offset: -4px;
+}
+
+/* ── TAP TARGETS ───────────────────────────────────────────────────────────
+   .tap-target raises a control to the 44x44 floor (WCAG 2.5.5) WITHOUT
+   changing layout. The hit area is an absolutely-positioned ::after centred on
+   the control, so the wordmark, the phone link and the burger stay exactly
+   where they are and the header keeps its height.
+
+   The naive fix — min-h-11 on each part — was measured and rejected: it grew
+   the header from 57px to 89px at 390px and wrapped the right-hand group,
+   because the row already supplies its own padding. Hit area and visual size
+   are different problems; only one of them needed solving.
+
+   Inline links inside running prose are deliberately NOT given this: WCAG
+   2.5.8 exempts them, and a 44px strip behind a mid-sentence link would
+   overlap the lines above and below it.
+   ───────────────────────────────────────────────────────────────────────── */
+.tap-target { position: relative; }
+
+.tap-target::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* ── OVERFLOW FLOOR ────────────────────────────────────────────────────────
+   One unbreakable token — a client email like jobs@northpointplumbing.com.au,
+   a hyphen-free trading name, a URL pasted into About copy — sets the
+   MIN-CONTENT width of whatever column it sits in. A grid track cannot shrink
+   below that, so the column widens and runs off the viewport. body carries
+   overflow-x-clip, so no scrollbar ever appears and the text is simply cut.
+   That is why this class of bug survived sixteen releases: it is silent.
+
+   Measured instances before this rule existed: a 548px URL inside a 328px
+   Story column at 360px, and the contact grid rendering 348px wide inside a
+   328px container.
+
+   `anywhere` rather than `break-word` because only `anywhere` also shrinks the
+   min-content size, which is the number a grid track actually measures.
+   Global rather than per-component: every component that builds a grid would
+   otherwise have to remember, and the ones that forgot were invisible.
+   ───────────────────────────────────────────────────────────────────────── */
+:is(section, footer, header) :is(h1, h2, h3, h4, p, li, dd, dt, a, span, summary) {
+  overflow-wrap: anywhere;
+}
+
+/* ── TEXT WRAPPING ─────────────────────────────────────────────────────────
+   `balance` evens the line lengths of a short heading so it never leaves one
+   orphan word on its own line; `pretty` stops a paragraph ending in a single
+   short word. Both are one-line wins with no layout cost, and they remove the
+   most common reason someone hand-tweaks a heading's max-width per client. */
+:is(h1, h2, h3, h4) { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* =====================================================================
+   SCROLL MOTION (v3.25)
+   features.motion in the intake: "standard" (default) | "subtle" | "bold" | "off".
+   "bold" (v3.26) is standard plus side entrances: the two halves of a
+   two-part section (marked data-reveal-from) come in from left and right.
+   Layout.astro puts it on <html data-motion>; the reveal rules there read
+   these tokens. "off" also releases the pinned hero below.
+   ===================================================================== */
+/* "standard" eased in v3.28: 20px / 0.6s -> 12px / 0.4s. Every section rising
+   20px over 0.6s as it scrolls in, with its items cascading after it, is the
+   scroll behaviour a generated page ships by default; at 12px it reads as a
+   fade settling rather than a slide arriving. "bold" is untouched.
+   THE THREE NUMBERS BELOW ARE THE WHOLE DIAL: change them here for every
+   site, or set features.motion (subtle | standard | bold | off) per client. */
+:root {
+  --rv-dist: 0.75rem;
+  --rv-item-dist: 0.625rem;
+  --rv-dur: 0.4s;
+}
+html[data-motion="subtle"] {
+  --rv-dist: 0.5rem;
+  --rv-item-dist: 0.375rem;
+  --rv-dur: 0.4s;
+}
+html[data-motion="bold"] {
+  --rv-dist: 1.5rem;
+  /* Stated here since v3.28: bold used to inherit standard's 1rem, and
+     standard's eased. Pinned so bold renders exactly as it did. */
+  --rv-item-dist: 1rem;
+  --rv-dur: 0.75s;
+  --rv-side: 4.5rem;
+}
+/* A half waiting off to the right would widen the page and let it scroll
+   sideways (body clip alone does not stop that), so each section clips its
+   own horizontal overflow. Sections are full width: nothing visible is lost. */
+html[data-motion="bold"] .sec {
+  overflow-x: clip;
+}
+
+/* PINNED HERO (fullbleed variant, hero.cover). The hero sticks and whatever
+   follows it slides up over the top. Everything after the hero is lifted above
+   it and given the page background, so a section with no fill of its own
+   cannot show the hero through. In @layer base so a component's own
+   position / background utilities still win. Not applied under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="off"]) .hero-cover {
+    position: sticky;
+    top: var(--hero-pin-top, 0px);
+  }
+}
+@layer base {
+  .hero-cover ~ * {
+    position: relative;
+    z-index: 1;
+    background-color: var(--color-bg);
+  }
+}
+
+/* =====================================================================
+   PLACE-NAME LINE (v3.28) — how a list of suburbs is set, on the homepage
+   areas section and on /areas.
+   Suburbs used to be outlined pill chips: a tag cloud, which is how a
+   generated UI lists anything. They are place names, so they are set as a
+   line of them, in the heading colour, divided by hairlines.
+   The divider is each name's own left border. The clip wrapper hides the
+   border of whichever name starts a line, so a wrapped list never opens a
+   row with a stray rule and no count needs its own selector.
+   usage.areaStyle: "pills" in the intake puts the chips back.
+   ===================================================================== */
+.place-names-clip {
+  overflow: hidden;
+}
+.place-names {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 0.625rem;
+  margin: 0 0 0 calc(-0.875rem - 1px);
+  padding: 0;
+  list-style: none;
+}
+.place-name {
+  min-width: 0;
+  padding: 0 0.875rem;
+  border-left: 1px solid var(--color-border);
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-brand);
+}
+@media (min-width: 64rem) {
+  .place-name { font-size: var(--text-lead); }
+}
+
+/* =====================================================================
+   SAMPLE CONTENT TAG (v3.27)
+   A section listed in the intake's demo.sampleSections carries [data-sample]
+   (set by Layout.astro). The tag says its copy is an example of a finished
+   build, not something the business has said. Red on purpose and the same on
+   every client: it is a notice about the demo, not part of the brand.
+   ===================================================================== */
+:root {
+  --sample-ink: #b42318; /* universal-ok: a notice about the demo, identical on every client, never a brand colour */
+}
+[data-sample] {
+  position: relative;
+}
+[data-sample]::before {
+  content: "Sample content";
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  z-index: 2;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--sample-ink);
+  border-radius: 0.25rem;
+  background: var(--color-bg);
+  color: var(--sample-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-micro, 0.75rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  pointer-events: none;
 }

@@ -21,7 +21,7 @@ import { site, variantOf } from "../config";
 import Section from "./Section.astro";
 import SectionHead from "./SectionHead.astro";
 // @ts-ignore — plain-JS content normaliser shared with the Node check scripts
-import { resolveServices } from "../lib/content.mjs";
+import { resolveServices, HOMEPAGE_SERVICE_CAP } from "../lib/content.mjs";
 
 import ServicesGridIcons from "./services/ServicesGridIcons.astro";
 import ServicesLedger from "./services/ServicesLedger.astro";
@@ -29,7 +29,9 @@ import ServicesSplitScroll from "./services/ServicesSplitScroll.astro";
 import ServicesFeatureLead from "./services/ServicesFeatureLead.astro";
 import ServicesListDetail from "./services/ServicesListDetail.astro";
 
-const svc = resolveServices(site);
+/* The HOMEPAGE section takes the shortlist; /services renders the full
+   catalogue from its own call with no limit. See HOMEPAGE_SERVICE_CAP. */
+const svc = resolveServices(site, { limit: HOMEPAGE_SERVICE_CAP });
 const items = svc.items;
 
 /* Each variant's data requirement, checked against the resolved content rather
@@ -38,7 +40,7 @@ const items = svc.items;
 const CAN_RENDER: Record<string, boolean> = {
   "grid-icons": true,
   ledger: true,
-  "split-scroll": svc.everyItemHasImage,
+  "split-scroll": svc.mostItemsHaveImage,
   "feature-lead": Boolean(items[svc.leadIndex]?.image),
   "list-detail": svc.everyItemHasDetail,
 };
@@ -54,7 +56,7 @@ const width = variant === "grid-icons" || variant === "feature-lead" ? "wide" : 
 ---
 
 {items.length > 0 && (
-  <Section id="services" width={width} bg="bg">
+  <Section id="services" width={width} bg="bg" reveal="stagger">
     {showHead && (
       <SectionHead eyebrow={svc.eyebrow} heading={heading || "What we do"} subhead={svc.subhead} class="mb-10" />
     )}
@@ -67,8 +69,8 @@ const width = variant === "grid-icons" || variant === "feature-lead" ? "wide" : 
 
     {site.features?.servicesPage !== false && (
       <p class="mt-8">
-        <a href="/services" class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
-          View all services <span class="ml-2" aria-hidden="true">→</span>
+        <a href="/services" class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline">
+          {svc.truncated ? `View all ${svc.total} services` : "View all services"} <span class="ml-2" aria-hidden="true">→</span>
         </a>
       </p>
     )}

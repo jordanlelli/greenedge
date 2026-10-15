@@ -1,6 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import type { RecentJob } from "../data/recent-jobs";
+import type { RecentJob } from "../lib/types";
 import { galleryServiceNames } from "../data/gallery";
 
 interface Props {
@@ -14,7 +14,7 @@ const { jobs } = Astro.props;
   {jobs.map((job) => (
     <li class="min-w-0">
       {job.photo && (
-        <div class="overflow-hidden rounded-lg border border-border bg-card">
+        <div class="overflow-hidden rounded-card border border-border bg-card">
           <Image
             src={job.photo}
             alt={job.photoAlt || ""}
@@ -24,7 +24,7 @@ const { jobs } = Astro.props;
           />
         </div>
       )}
-      <h3 class="mt-4 font-heading text-lg font-semibold tracking-tight text-balance text-brand">
+      <h3 class="mt-4 font-heading text-lg font-semibold tracking-tight text-balance text-brand lg:text-xl">
         {job.suburb}
       </h3>
       <p class="mt-1 text-[0.6875rem] font-semibold leading-[1.4] text-brand">

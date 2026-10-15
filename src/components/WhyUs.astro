@@ -68,13 +68,13 @@ const hasContent = variant === "contrast-pair" ? pairs.length >= 2 : items.lengt
     innerClass="why-us-inner"
   >
     <div class="why-us-head max-w-2xl">
-      <h2 class="section-heading font-heading text-3xl font-semibold tracking-tight text-on-band sm:text-4xl">
+      <h2 class="section-heading font-heading text-3xl font-semibold tracking-tight text-on-band sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
         {heading}
       </h2>
     </div>
 
     {trustItems.length > 0 && (
-      <ul class="why-us-trust" aria-label="At a glance">
+      <ul class="why-us-trust" style={`--why-trust-n:${trustItems.length}`} aria-label="At a glance">
         {trustItems.map((label) => (
           <li class="why-us-trust-item">
             <span class="why-us-trust-label">{label}</span>
@@ -106,9 +106,20 @@ const hasContent = variant === "contrast-pair" ? pairs.length >= 2 : items.lengt
   /* DESIGN.md spacing: sm 0.5 / md 1 / lg 1.75 / section 5.5 (outer via sec-pad-default). */
   .why-us-head { margin: 0 0 1.75rem; }
 
+  /* EVEN SPACING, ANY COUNT. Equal columns driven by --why-trust-n, so three,
+     four or five claims all divide the row evenly and text length never
+     changes a column's width.
+
+     The divider lives in the GUTTER, not inside the box. When it was padding
+     on the item, the first item had none (so its label could sit flush with
+     the heading) and every other item had 20px — which made the gap between
+     label 1 and label 2 twenty pixels wider than every other gap. Measured at
+     1280px: labels at 96, 388, 660, 932 — boxes all exactly 272 wide, text
+     unevenly placed inside them. Now every label sits at its own column's left
+     edge and the rule floats halfway through the gutter. */
   .why-us-trust {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(var(--why-trust-n, 4), minmax(0, 1fr));
     margin: 0 0 1.75rem;
     padding: 0;
     list-style: none;
@@ -117,29 +128,47 @@ const hasContent = variant === "contrast-pair" ? pairs.length >= 2 : items.lengt
   }
 
   .why-us-trust-item {
-    flex: 1 1 10rem;
-    padding: 0.75rem 1.25rem;
-    border-right: 1px solid var(--why-rule);
+    position: relative;
+    min-width: 0;
+    padding: 0.75rem 2.5rem 0.75rem 0;
   }
-  .why-us-trust-item:last-child { border-right: none; }
+
+  .why-us-trust-item:last-child { padding-right: 0; }
+
+  .why-us-trust-item::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 1.25rem;
+    width: 1px;
+    background: var(--why-rule);
+  }
+
+  .why-us-trust-item:last-child::after { content: none; }
 
   .why-us-trust-label {
     display: block;
     font-family: var(--font-body);
-    font-size: 0.6875rem;
+    font-size: var(--text-small);
     font-weight: 600;
     line-height: 1.45;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--why-ink-soft);
   }
 
   @media (max-width: 39.99rem) {
+    /* Stacked: every claim is its own full-width row, so there is no gutter to
+       hold a divider and each row is separated by a rule beneath it instead. */
+    .why-us-trust { grid-template-columns: minmax(0, 1fr); }
+
     .why-us-trust-item {
-      border-right: none;
+      padding-right: 0;
       border-bottom: 1px solid var(--why-rule);
-      flex: 1 1 100%;
     }
+
     .why-us-trust-item:last-child { border-bottom: none; }
+
+    .why-us-trust-item::after { content: none; }
   }
+
 </style>

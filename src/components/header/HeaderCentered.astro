@@ -24,10 +24,10 @@ const licence = site.business?.licence || site.contact?.licence || "";
   </div>
 </div>
 
-<div class="mx-auto grid max-w-[var(--w-content)] grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-2 sm:px-6 lg:gap-6 lg:px-8 lg:py-3">
+<div class="mx-auto grid max-w-[var(--w-content)] grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-2 sm:px-6 lg:gap-6 lg:px-8 lg:py-4">
   <nav class="hidden items-center justify-start gap-5 lg:flex" aria-label="Primary">
     {left.map((l) => (
-      <a href={l.href} class="text-sm font-medium text-brand/85 transition hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{l.label}</a>
+      <a href={l.href} class="text-sm font-medium text-brand/85 transition hover:text-brand lg:text-[0.9375rem]">{l.label}</a>
     ))}
   </nav>
 
@@ -37,7 +37,7 @@ const licence = site.business?.licence || site.contact?.licence || "";
 
   <div class="col-start-2 flex items-center justify-end gap-2 lg:col-start-3 lg:gap-5">
     {right.map((l) => (
-      <a href={l.href} class="hidden text-sm font-medium text-brand/85 transition hover:text-brand lg:inline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{l.label}</a>
+      <a href={l.href} class="hidden text-sm font-medium text-brand/85 transition hover:text-brand lg:inline lg:text-[0.9375rem]">{l.label}</a>
     ))}
     <P part="cta" class="hidden lg:inline-flex" />
     <P part="phone" class="inline-flex min-h-10 items-center rounded-card bg-accent px-3 text-sm text-on-accent lg:hidden" />

@@ -5,39 +5,18 @@
  * (DESIGN-LIBRARY G5 / guardrail B7).
  *
  * Images: import from src/assets/images/gallery/ (astro:assets pipeline).
+ *
+ * Data only. The record shape is `GalleryEntry` in src/lib/types.ts (shared, synced).
  */
-import type { ImageMetadata } from "astro";
-
-/* Trade-agnostic: a service key is any string the client uses. */
-export type GalleryService = string;
-export type GalleryImageKind = "before" | "after" | "single";
-
-export type GalleryImage = {
-  src: ImageMetadata;
-  alt: string;
-  kind: GalleryImageKind;
-};
-
-export type GalleryEntry = {
-  id: string;
-  service: GalleryService;
-  suburb: string;
-  monthCompleted: string;
-  oneLineDescription: string;
-  images: GalleryImage[];
-  isPlaceholder: boolean;
-};
+import type { GalleryEntry } from "../lib/types";
 
 /* Optional human-readable names per service key. Fill per client if used. */
 export const galleryServiceNames: Record<string, string> = {};
 
+/* Optional heading + intro per service group on /gallery. The heading is the
+   H2 for that group, so write it as the service people search for
+   ("Exposed aggregate driveways"), not the internal key. */
+export const gallerySectionCopy: Record<string, { heading: string; intro: string }> = {};
+
 /* Empty by default. Real paired photos only. */
 export const galleryEntries: GalleryEntry[] = [];
-
-export function getRecentGalleryEntries(limit = 6): GalleryEntry[] {
-  return galleryEntries.slice(0, limit);
-}
-
-export function getGalleryByService(service: GalleryService): GalleryEntry[] {
-  return galleryEntries.filter((entry) => entry.service === service);
-}

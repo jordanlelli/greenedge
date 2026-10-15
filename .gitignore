@@ -7,3 +7,6 @@ dist/
 .DS_Store
 
 .cursor/skills/impeccable/
+.claude/skills/impeccable/
+.claude/settings.local.json
+CLAUDE.local.md

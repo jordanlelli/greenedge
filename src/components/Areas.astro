@@ -1,6 +1,6 @@
 ---
 /**
- * Areas — service-area coverage as its own homepage section.
+ * Areas — service-area coverage as its own homepage section. THREE variants (v3.17).
  *
  * It previously lived inside Story.astro as the right-hand column of the merged
  * about block, which meant turning story off silently removed the suburb
@@ -8,22 +8,54 @@
  * one of these sites and the single most-read block after the services list, so
  * it must not die with a section it has nothing to do with.
  *
+ *   chips      [DEFAULT, no prerequisite]  Head left, coverage line + chip row
+ *              right. The original layout, renamed only.
+ *   zoned      [needs 2+ real usage.zones]  One ruled block per zone: the zone
+ *              name left, its suburbs right.
+ *   directory  [needs 12+ collected areas]  Alphabetical ruled index in
+ *              columns; a suburb with its own page becomes a link.
+ *
  * Reads `usage`. Add "areas" to sections to place it. The full suburb list on
  * /areas still comes from Usage.astro — this is the homepage summary.
  *
- * Never invents a radius, a travel fee or a suburb. areasLine is composed only
- * from suburbs the client supplied; travelLine renders only if they wrote one.
+ * NEVER INVENTS a radius, a travel fee, a zone or a suburb. areasLine is
+ * composed only from suburbs the client supplied; travelLine renders only if
+ * they wrote one; zones are read from the intake and are never derived from
+ * suburb names, because deciding that Reynella is "southern" is a coverage
+ * claim the client did not make.
+ *
+ * DEFENSIVE FALLBACK: an explicit _brief.layoutVariants.areas skips the
+ * engine's prerequisite filter, so each branch re-checks its own data and
+ * degrades to chips rather than rendering a one-zone "grouping" or an index
+ * with four entries in it.
  */
-import { site } from "../config";
+import { site, variantOf } from "../config";
 import Section from "./Section.astro";
 import SectionHead from "./SectionHead.astro";
+// @ts-ignore — plain-JS resolver shared with the Node check scripts
+import { collectAreas, buildableAreas } from "../lib/areas.mjs";
+
+/* HOMEPAGE CAP. The landing page names a HANDFUL of suburbs to prove the
+   patch is real; /areas carries the full list. A&J shipped 23 on the homepage
+   and it read as a directory rather than as coverage — nobody scans 23 suburb
+   names looking for their own, they scan three or four, decide "that's my
+   area", and call.
+
+   The cap applies to every variant, including directory: the gate for
+   directory counts the client's TOTAL areas (a long list is what makes an
+   index layout the right shape) while the render stays capped, so the
+   homepage gets a ruled, linkable shortlist instead of a wall of chips.
+
+   Nine, not six: the directory runs three columns on desktop, and six left a
+   ragged two-and-a-bit rows. Nine fills three clean rows of three and still
+   reads as a shortlist rather than a list. */
+const HOMEPAGE_AREA_CAP = 9;
 
 const usage = site.usage || {};
 const allItems: string[] = usage.items || [];
-const featured: string[] =
-  (Array.isArray(usage.featured) && usage.featured.length > 0
-    ? usage.featured
-    : allItems.slice(0, 8)) as string[];
+const featured: string[] = (
+  Array.isArray(usage.featured) && usage.featured.length > 0 ? usage.featured : allItems
+).slice(0, HOMEPAGE_AREA_CAP) as string[];
 
 const homeBase = featured[0] || "";
 const nearbyAreas = featured.filter((area) => area !== homeBase);
@@ -35,48 +67,212 @@ const areasLine =
       ? `Based in ${homeBase}, covering the surrounding area by arrangement.`
       : "");
 
+/* SUBURB STYLE (v3.28). Default: a line of place names divided by hairlines.
+   usage.areaStyle: "pills" restores the outlined pill chips this section used
+   before. A style switch only: same suburbs, same order, same markup. */
+const pills = usage.areaStyle === "pills";
+const listClass = pills ? "areas-chips" : "place-names";
+const itemClass = pills ? "areas-chip" : "place-name";
+const clipClass = pills ? "" : "place-names-clip";
+
 const travelLine = usage.travelLine || "";
 const notCoveredLine = usage.notCoveredLine || "";
-const showAreasLink = allItems.length > featured.length;
+/* True whenever the homepage is showing less than the client covers — which
+   is now the normal case, so the link is the route to the rest rather than an
+   occasional extra. */
+const totalAreas = collectAreas(site).length;
+const showAreasLink = totalAreas > HOMEPAGE_AREA_CAP;
 const hasContent = allItems.length > 0 || Boolean(areasLine);
+
+/* ── variant resolution + defensive fallback ─────────────────────────────── */
+
+/* A zone is real only when it is named AND has at least one suburb in it. */
+const zones = (Array.isArray(usage.zones) ? usage.zones : [])
+  .map((z: any) => ({
+    name: String(z?.name || "").trim(),
+    areas: (Array.isArray(z?.areas) ? z.areas : [])
+      .map((a: any) => String(a || "").trim())
+      .filter(Boolean)
+      .slice(0, HOMEPAGE_AREA_CAP),
+    travelNote: String(z?.travelNote || "").trim(),
+  }))
+  .filter((z: any) => z.name && z.areas.length > 0);
+
+/* Suburbs the client listed in a zone but nowhere else still belong on the
+   page — the zone list is a grouping of coverage, not a second source of it. */
+const zonedNames = new Set(zones.flatMap((z: any) => z.areas));
+const unzoned = allItems.filter((a) => !zonedNames.has(a)).slice(0, HOMEPAGE_AREA_CAP);
+
+/* The directory indexes EVERY area, both plain list entries and full records,
+   sorted and deduped by the shared resolver so the homepage index and /areas
+   can never disagree about what is covered. */
+const directoryAll = collectAreas(site).sort((a: any, b: any) => a.name.localeCompare(b.name));
+/* Areas that have their own page come FIRST in the shortlist: they are the
+   entries that earn an internal link, and an internal link to a real suburb
+   page is worth more on the homepage than an unlinked name. */
+/* Only counts when the tier actually builds those pages — otherwise the
+   homepage would link six suburbs straight into a 404. */
+const suburbPagesOn = site.features?.suburbPages === true;
+const pageSlugsAll = new Set(
+  suburbPagesOn ? buildableAreas(site).map((a: any) => a.slug) : []
+);
+const directory = [
+  ...directoryAll.filter((a: any) => pageSlugsAll.has(a.slug)),
+  ...directoryAll.filter((a: any) => !pageSlugsAll.has(a.slug)),
+].slice(0, HOMEPAGE_AREA_CAP);
+const pageSlugs = pageSlugsAll;
+
+let variant = variantOf("areas", "chips");
+if (variant === "zoned" && zones.length < 2) variant = "chips";
+else if (variant === "directory" && directoryAll.length < 12) variant = "chips";
+else if (variant !== "zoned" && variant !== "directory") variant = "chips";
 ---
 
 {hasContent && (
   <Section id="areas" bg="bg" pad="tight">
-    <div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14 lg:items-start">
-      <SectionHead
-        eyebrow={usage.eyebrow || ""}
-        heading={usage.heading || "Where we work"}
-        subhead={usage.subhead || ""}
-        headingClass="section-heading section-heading-sub font-heading font-semibold tracking-tight text-brand"
-      />
+    {variant === "chips" && (
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14 lg:items-start">
+        <SectionHead
+          eyebrow={usage.eyebrow || ""}
+          heading={usage.heading || "Where we work"}
+          subhead={usage.subhead || ""}
+          headingClass="section-heading font-heading text-2xl font-semibold tracking-tight text-brand sm:text-3xl lg:text-4xl"
+        />
 
-      <div class="min-w-0">
-        {areasLine && <p class="max-w-[70ch] text-base leading-relaxed text-pretty text-muted">{areasLine}</p>}
+        <div class="areas-body min-w-0">
+          {areasLine && <p class="max-w-[40em] text-base leading-relaxed text-pretty text-muted">{areasLine}</p>}
 
-        {featured.length > 0 && (
-          <ul class="areas-chips">
-            {featured.map((area) => <li class="areas-chip">{area}</li>)}
-          </ul>
-        )}
+          {featured.length > 0 && (
+            <div class:list={[clipClass, "mt-5"]}>
+              <ul class:list={[listClass, pills && "areas-chips-flush"]}>
+                {featured.map((area) => <li class={itemClass}>{area}</li>)}
+              </ul>
+            </div>
+          )}
 
-        {travelLine && <p class="mt-4 text-sm leading-relaxed text-muted">{travelLine}</p>}
+          {travelLine && <p class="mt-4 text-sm leading-relaxed text-muted">{travelLine}</p>}
+          {notCoveredLine && <p class="mt-2 text-sm leading-relaxed text-muted">{notCoveredLine}</p>}
+
+          {showAreasLink && (
+            <p class="mt-5">
+              <a
+                href="/areas"
+                class="inline-flex min-h-11 items-center text-sm font-semibold text-brand underline-offset-4 transition hover:underline"
+              >See all service areas <span class="ml-2" aria-hidden="true">&#8594;</span></a>
+            </p>
+          )}
+        </div>
+      </div>
+    )}
+
+    {variant === "zoned" && (
+      <div class="areas-body">
+        <SectionHead
+          eyebrow={usage.eyebrow || ""}
+          heading={usage.heading || "Where we work"}
+          subhead={usage.subhead || ""}
+          headingClass="section-heading font-heading text-2xl font-semibold tracking-tight text-brand sm:text-3xl lg:text-4xl"
+        />
+
+        {areasLine && <p class="mt-4 max-w-[40em] text-base leading-relaxed text-pretty text-muted">{areasLine}</p>}
+
+        <div class="mt-8 space-y-6">
+          {zones.map((zone: any) => (
+            <div class="areas-zone">
+              <p class="areas-zone-name">{zone.name}</p>
+              <div class="min-w-0">
+                <div class={clipClass}>
+                <ul class:list={[listClass, pills && "areas-chips-flush"]}>
+                  {zone.areas.map((area: string) => <li class={itemClass}>{area}</li>)}
+                </ul>
+                </div>
+                {zone.travelNote && <p class="areas-zone-note">{zone.travelNote}</p>}
+              </div>
+            </div>
+          ))}
+
+          {/* Suburbs the client listed but did not place in a zone. They render
+              without a label — never swept into an invented "Other" zone. */}
+          {unzoned.length > 0 && (
+            <div class="areas-zone">
+              <p class="areas-zone-name areas-zone-name-blank" aria-hidden="true"></p>
+              <div class="min-w-0">
+                <div class={clipClass}>
+                <ul class:list={[listClass, pills && "areas-chips-flush"]}>
+                  {unzoned.map((area: string) => <li class={itemClass}>{area}</li>)}
+                </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {travelLine && <p class="mt-6 text-sm leading-relaxed text-muted">{travelLine}</p>}
         {notCoveredLine && <p class="mt-2 text-sm leading-relaxed text-muted">{notCoveredLine}</p>}
 
         {showAreasLink && (
           <p class="mt-5">
             <a
               href="/areas"
-              class="inline-flex min-h-11 items-center text-sm font-semibold text-brand underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              class="inline-flex min-h-11 items-center text-sm font-semibold text-brand underline-offset-4 transition hover:underline"
             >See all service areas <span class="ml-2" aria-hidden="true">&#8594;</span></a>
           </p>
         )}
       </div>
-    </div>
+    )}
+
+    {variant === "directory" && (
+      <div class="areas-body">
+        <SectionHead
+          eyebrow={usage.eyebrow || ""}
+          heading={usage.heading || "Where we work"}
+          subhead={usage.subhead || ""}
+          headingClass="section-heading font-heading text-2xl font-semibold tracking-tight text-brand sm:text-3xl lg:text-4xl"
+        />
+
+        {areasLine && <p class="mt-4 max-w-[40em] text-base leading-relaxed text-pretty text-muted">{areasLine}</p>}
+
+        <ul class="areas-directory mt-8">
+          {directory.map((area: any) => (
+            <li class="areas-directory-item">
+              {pageSlugs.has(area.slug) ? (
+                <a class="areas-directory-link" href={`/areas/${area.slug}`}>{area.name}</a>
+              ) : (
+                <span class="areas-directory-plain">{area.name}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {travelLine && <p class="mt-6 text-sm leading-relaxed text-muted">{travelLine}</p>}
+        {notCoveredLine && <p class="mt-2 text-sm leading-relaxed text-muted">{notCoveredLine}</p>}
+
+        {showAreasLink && (
+          <p class="mt-5">
+            <a
+              href="/areas"
+              class="inline-flex min-h-11 items-center text-sm font-semibold text-brand underline-offset-4 transition hover:underline"
+            >See all service areas <span class="ml-2" aria-hidden="true">&#8594;</span></a>
+          </p>
+        )}
+      </div>
+    )}
   </Section>
 )}
 
 <style>
+  /* Overflow floor. Same rule and reason as Story.astro and FAQ.astro: a long
+     hyphen-free suburb name or a URL in a travel note otherwise sets the
+     min-content width of its column. Scoped off classes declared in THIS file,
+     never off a class passed as a prop to Section.astro. */
+  .areas-body :is(p, li, a, span),
+  .areas-zone-name,
+  .areas-directory-item {
+    overflow-wrap: anywhere;
+  }
+
+  /* Pills: only when the intake asks for them (usage.areaStyle: "pills").
+     The default suburb list is the place-name line in global.css. */
   .areas-chips {
     display: flex;
     flex-wrap: wrap;
@@ -85,11 +281,110 @@ const hasContent = allItems.length > 0 || Boolean(areasLine);
     padding: 0;
     list-style: none;
   }
+  /* Inside a zone the chips already sit below their label, so the top margin
+     that separates them from the coverage line in `chips` is dead space. */
+  .areas-chips-flush { margin-top: 0; }
+
   .areas-chip {
+    min-width: 0;
     border: 1px solid var(--color-border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     padding: 0.3rem 0.7rem;
-    font-size: 0.8125rem;
+    font-size: var(--text-micro);
+    font-weight: 500;
+    color: var(--color-muted);
+  }
+
+  /* ── zoned ────────────────────────────────────────────────────────────── */
+  .areas-zone {
+    display: grid;
+    gap: 0.625rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 64rem) {
+    .areas-zone {
+      grid-template-columns: minmax(0, 0.28fr) minmax(0, 1fr);
+      gap: 2.5rem;
+      align-items: start;
+    }
+  }
+
+  .areas-zone-name {
+    margin: 0;
+    min-width: 0;
+    font-family: var(--font-body);
+    font-size: var(--text-eyebrow);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .areas-zone-name-blank { min-height: 0; }
+
+  .areas-zone-note {
+    margin: 0.625rem 0 0;
+    font-family: var(--font-body);
+    font-size: var(--text-micro);
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+
+  /* ── directory ────────────────────────────────────────────────────────── */
+  /* column-count here, unlike FAQ/open-columns which needed a grid. Each entry
+     is ONE short line, so there is no question/answer pair to be split across
+     the gutter — and column flow reads top-to-bottom per column, which is how
+     an alphabetical index is meant to be scanned. break-inside guards the
+     rare wrapped name. */
+  .areas-directory {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--color-border);
+    column-gap: 2.5rem;
+  }
+
+  @media (min-width: 40rem) { .areas-directory { column-count: 2; } }
+  @media (min-width: 64rem) { .areas-directory { column-count: 3; } }
+
+  .areas-directory-item {
+    break-inside: avoid;
+    min-width: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .areas-directory-link,
+  .areas-directory-plain {
+    display: flex;
+    align-items: center;
+    /* 44px touch target, per the accessibility floor. */
+    min-height: 2.75rem;
+    padding: 0.4rem 0;
+    font-family: var(--font-body);
+    font-size: var(--text-small);
+    line-height: 1.4;
+  }
+
+  .areas-directory-link {
+    font-weight: 600;
+    color: var(--color-brand);
+    text-decoration: none;
+    text-underline-offset: 4px;
+  }
+
+  .areas-directory-link:hover { text-decoration: underline; }
+
+  .areas-directory-link:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  /* A suburb with no page of its own is still covered — it reads as an entry,
+     not as a disabled link. Never render it as a dead <a>. */
+  .areas-directory-plain {
     font-weight: 500;
     color: var(--color-muted);
   }

@@ -16,49 +16,66 @@
  * in `sections` from the start of a build without leaving a hole in the page.
  * Fixed aspect boxes reserve layout space, so adding photos never shifts the
  * page while they decode.
+ *
+ * MOSAIC (v3.28). Six equal 4:3 boxes in a 3x2 grid is a thumbnail index: no
+ * photo is more important than another, and on a phone they stacked into six
+ * full-width photos, 1700px of scrolling. The first image now LEADS (the
+ * author picks it by order, same rule as testimonials) and the rest sit
+ * around it at a tighter gap, so the block reads as one piece of work rather
+ * than six cards. Every count from 1 to 6 has a shape with no hole in it.
  */
 import Section from "./Section.astro";
 import GalleryEntries from "./GalleryEntries.astro";
 import { site } from "../config";
-import { getRecentGalleryEntries } from "../data/gallery";
+import { getRecentGalleryEntries } from "../lib/data";
 // @ts-ignore — plain-JS content normaliser shared with the Node check scripts
 import { resolveGalleryImages, galleryCopy } from "../lib/content.mjs";
+import Img from "./Img.astro";
 
 const images = resolveGalleryImages(site);
 const entries = getRecentGalleryEntries(6);
 const copy = galleryCopy(site);
 const hasFullPage = entries.length > 0 || images.length > 6;
+const shown = images.slice(0, 6);
 ---
 
 {(images.length > 0 || entries.length > 0) && (
-  <Section id="gallery" bg="bg">
+  <Section id="gallery" bg="bg" reveal="stagger">
+    <div class="lg:flex lg:items-end lg:justify-between lg:gap-12">
     <div class="max-w-2xl">
       {copy.eyebrow && (
-        <p class="section-eyebrow text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">
+        <p class="section-eyebrow text-brand-secondary-ink">
           {copy.eyebrow}
         </p>
       )}
-      <h2 class="section-heading mt-2 font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+      <h2 class="section-heading mt-2 font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
         {copy.heading}
       </h2>
       {copy.subhead && <p class="mt-3 text-lg leading-relaxed text-muted">{copy.subhead}</p>}
     </div>
+      {hasFullPage && (
+        <a
+          href="/gallery"
+          class="hidden min-h-11 shrink-0 items-center font-semibold text-brand underline-offset-4 hover:underline lg:inline-flex"
+        >
+          View the full gallery <span class="ml-2" aria-hidden="true">&#8594;</span>
+        </a>
+      )}
+    </div>
 
-    {images.length > 0 && (
-      <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {images.slice(0, 6).map((img, i) => (
-          <li class="min-w-0">
-            <div class="relative aspect-[4/3] overflow-hidden rounded-card border border-border bg-tint">
-              <img
-                src={img.src}
-                alt={img.alt}
-                width="960"
-                height="720"
-                loading={i < 3 ? "eager" : "lazy"}
-                decoding="async"
-                class="h-full w-full object-cover"
-              />
-            </div>
+    {shown.length > 0 && (
+      <ul class="wg-grid mt-10" data-count={shown.length}>
+        {shown.map((img, i) => (
+          <li class:list={["wg-tile", i === 0 && "wg-tile--lead"]} data-reveal-item>
+            <Img sizes={i === 0 ? "(min-width: 1024px) 66vw, 100vw" : "(min-width: 1024px) 33vw, 50vw"}
+              src={img.src}
+              alt={img.alt}
+              width="960"
+              height="720"
+              loading={i < 3 ? "eager" : "lazy"}
+              decoding="async"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
           </li>
         ))}
       </ul>
@@ -73,10 +90,79 @@ const hasFullPage = entries.length > 0 || images.length > 6;
     {hasFullPage && (
       <a
         href="/gallery"
-        class="mt-10 inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        class="mt-8 inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline lg:hidden"
       >
         View the full gallery <span class="ml-2" aria-hidden="true">&#8594;</span>
       </a>
     )}
   </Section>
 )}
+
+<style>
+  /* Phone and tablet: two columns. The lead runs full width, the rest pair up,
+     and on an even count the last tile runs full width too, so there is never
+     a single tile sitting beside a blank. */
+  .wg-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-left: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .wg-tile {
+    position: relative;
+    min-width: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--color-tint);
+  }
+
+  .wg-tile--lead {
+    grid-column: span 2;
+    aspect-ratio: 3 / 2;
+  }
+
+  @media (max-width: 63.99rem) {
+    .wg-grid:is([data-count="2"], [data-count="4"], [data-count="6"]) .wg-tile:last-child {
+      grid-column: span 2;
+      aspect-ratio: 3 / 2;
+    }
+  }
+
+  /* Desktop shapes. Row height comes from the small 4:3 tiles; the lead takes
+     whatever two of those rows add up to, so it never needs its own ratio.
+       1  one wide frame            4  2 x 2, all equal
+       2  two halves                5  lead 2x2 + four      (4 columns)
+       3  lead 2x2 + two            6  lead 2x2 + two + a row of three */
+  @media (min-width: 64rem) {
+    .wg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+
+    .wg-grid .wg-tile--lead {
+      grid-column: span 2;
+      grid-row: span 2;
+      aspect-ratio: auto;
+      height: 100%;
+    }
+
+    .wg-grid[data-count="5"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .wg-grid:is([data-count="2"], [data-count="4"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .wg-grid:is([data-count="2"], [data-count="4"]) .wg-tile {
+      grid-column: auto;
+      grid-row: auto;
+      height: auto;
+      aspect-ratio: 3 / 2;
+    }
+
+    .wg-grid[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+    .wg-grid[data-count="1"] .wg-tile {
+      grid-column: auto;
+      grid-row: auto;
+      height: auto;
+      aspect-ratio: 2 / 1;
+    }
+  }
+</style>

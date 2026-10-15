@@ -5,10 +5,11 @@
  */
 import { site } from "../config";
 import Section from "./Section.astro";
+import Img from "./Img.astro";
 
 const ba = site.beforeAfter || {};
 const items: any[] = ba.items || [];
-const eyebrow = ba.eyebrow || "See the difference";
+const eyebrow = ba.eyebrow || "";
 const heading = ba.heading || "Before & after";
 const subhead = ba.subhead || "";
 
@@ -28,13 +29,13 @@ function placeholderSvg(label: string, side: "before" | "after") {
 {items.length > 0 && (
   <Section id="before-after" width="wide" bg="bg">
     <div class="max-w-2xl">
-      <h2 class="section-heading font-heading text-3xl font-semibold text-brand sm:text-4xl section-heading">{heading}</h2>
+      <h2 class="section-heading font-heading text-3xl font-semibold text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1] section-heading">{heading}</h2>
       {subhead && <p class="mt-4 text-lg leading-relaxed text-muted">{subhead}</p>}
     </div>
 
     <div class="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-8">
       {items.map((item: any, i: number) => (
-        <figure class="min-w-0" data-ba-root>
+        <figure class="min-w-0" data-ba-root data-reveal-from={i % 2 ? "right" : "left"}>
           <div
             class="relative aspect-[8/5] touch-none overflow-hidden rounded-card border border-border bg-brand-dark shadow-card select-none"
             data-ba-frame
@@ -42,7 +43,7 @@ function placeholderSvg(label: string, side: "before" | "after") {
             {/* After — full frame */}
             <div class="absolute inset-0">
               {item.afterImage && (
-                <img
+                <Img sizes="(min-width: 1024px) 50vw, 100vw"
                   src={item.afterImage}
                   alt={item.afterAlt || ""}
                   class="h-full w-full object-cover"
@@ -67,7 +68,7 @@ function placeholderSvg(label: string, side: "before" | "after") {
             >
               <div class="h-full w-full">
                 {item.beforeImage && (
-                  <img
+                  <Img sizes="(min-width: 1024px) 50vw, 100vw"
                     src={item.beforeImage}
                     alt={item.beforeAlt || ""}
                     class="h-full w-full object-cover"
@@ -84,13 +85,13 @@ function placeholderSvg(label: string, side: "before" | "after") {
             </div>
 
             <div
-              class="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-0.5 -translate-x-1/2 bg-white"
+              class="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-0.5 -translate-x-1/2 bg-ondark"
               data-ba-line
               aria-hidden="true"
             ></div>
             <button
               type="button"
-              class="absolute top-1/2 left-1/2 z-20 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark"
+              class="absolute top-1/2 left-1/2 z-20 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border-2 border-ondark bg-brand text-ondark shadow-card"
               data-ba-handle
               aria-label={`Compare before and after: ${item.label || `example ${i + 1}`}`}
               aria-valuemin="0"
@@ -105,7 +106,7 @@ function placeholderSvg(label: string, side: "before" | "after") {
           </div>
 
           <figcaption class="mt-4">
-            <p class="font-heading text-lg font-semibold text-brand">{item.label}</p>
+            <p class="font-heading text-lg font-semibold text-brand lg:text-xl">{item.label}</p>
             {item.caption && <p class="mt-1 text-sm text-muted">{item.caption}</p>}
           </figcaption>
         </figure>

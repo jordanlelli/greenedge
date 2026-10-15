@@ -1,5 +1,10 @@
 ---
-import { site, formatPhone } from "../config";
+import { site, layout, formatPhone } from "../config";
+
+/* True when the engine has already made this whole section the inverted band.
+   The details panel then takes the on-band card surface instead of the band
+   surface, because dark-on-dark would erase it. */
+const bandIsHere = layout?.bandSection === "contact";
 // @ts-ignore - plain-JS field resolver shared with the privacy page and check scripts
 import { resolveFormFields } from "../lib/content.mjs";
 import Section from "./Section.astro";
@@ -25,26 +30,42 @@ const enquiryTypes: string[] = contact.enquiryTypes || [];
 const endpoint = (contact.formEndpoint || "").trim();
 const formEnabled = form.enabled !== false;
 const formUsable = formEnabled && !!endpoint;
+/* With no form, the left column leads with the number (and names the email),
+   so the panel beside it carries only what is not already said: where the
+   business is and when it is open. Printing the number twice, a column apart,
+   is the same repetition the hero and header were cleaned of. */
+const panelPhone = formUsable && Boolean(phone);
+const panelEmail = formUsable && Boolean(email);
+const panelHasRows = panelPhone || panelEmail || Boolean(contact.address) || Boolean(contact.hours);
 ---
+
+{/* PERMANENT SECTION BREAK. The contact block is the last thing on the page
+    and the one the whole site is pointing at; without a rule it ran straight
+    out of whatever section preceded it. Full-bleed and 2px so it reads as a
+    deliberate end-of-page divider rather than as another hairline between
+    content blocks — every other rule on the site is 1px, which is what makes
+    2px read as different in kind. Uses the border token, so it inverts with
+    the section when the engine puts the colour band here. */}
+<div class="contact-break" aria-hidden="true"></div>
 
 <Section id="contact" bg="bg">
   <div>
     <div class="max-w-2xl">
       {eyebrow && (
-        <p class="section-eyebrow text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">{eyebrow}</p>
+        <p class="section-eyebrow text-brand-secondary-ink">{eyebrow}</p>
       )}
-      <h2 class:list={["section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl", eyebrow && "mt-2"]}>{heading}</h2>
+      <h2 class:list={["section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]", eyebrow && "mt-2"]}>{heading}</h2>
       {subhead && <p class="mt-3 text-lg leading-relaxed text-muted">{subhead}</p>}
     </div>
 
     <div class="mt-12 grid gap-10 lg:grid-cols-5">
-      <div class="lg:col-span-3">
+      <div class="contact-col min-w-0 lg:col-span-3" data-reveal-from="left">
         {formUsable ? (
           <>
             <form
               action={endpoint}
               method="POST"
-              class="space-y-5 rounded-card border border-border bg-card p-6 shadow-sm sm:p-8"
+              class="space-y-5"
               data-contact-form
               data-phone={phone || ""}
             >
@@ -62,7 +83,7 @@ const formUsable = formEnabled && !!endpoint;
                     name="name"
                     required
                     autocomplete="name"
-                    class="w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    class="w-full rounded-input border border-ink/55 bg-card px-4 py-3 text-base text-ink focus:border-brand"
                   />
                 </div>
                 {showField("phone") && (
@@ -75,7 +96,7 @@ const formUsable = formEnabled && !!endpoint;
                     required
                     inputmode="tel"
                     autocomplete="tel"
-                    class="w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    class="w-full rounded-input border border-ink/55 bg-card px-4 py-3 text-base text-ink focus:border-brand"
                   />
                 </div>
                 )}
@@ -90,7 +111,7 @@ const formUsable = formEnabled && !!endpoint;
                   name="email"
                   required
                   autocomplete="email"
-                  class="w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  class="w-full rounded-input border border-ink/55 bg-card px-4 py-3 text-base text-ink focus:border-brand"
                 />
               </div>
               )}
@@ -104,7 +125,7 @@ const formUsable = formEnabled && !!endpoint;
                   name="suburb"
                   required
                   autocomplete="address-level2"
-                  class="w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  class="w-full rounded-input border border-ink/55 bg-card px-4 py-3 text-base text-ink focus:border-brand"
                 />
               </div>
               )}
@@ -115,7 +136,7 @@ const formUsable = formEnabled && !!endpoint;
                 <select
                   id="enquiryType"
                   name="enquiryType"
-                  class="w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  class="w-full rounded-input border border-ink/55 bg-card px-4 py-3 text-base text-ink focus:border-brand"
                 >
                   <option value="">Select…</option>
                   {enquiryTypes.map((t) => <option value={t}>{t}</option>)}
@@ -131,7 +152,7 @@ const formUsable = formEnabled && !!endpoint;
                   name="message"
                   rows="4"
                   placeholder={messagePlaceholder}
-                  class="w-full resize-none rounded-lg border border-border px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  class="w-full resize-none rounded-input border border-ink/55 bg-card px-4 py-3 text-base text-ink focus:border-brand"
                 ></textarea>
               </div>
               )}
@@ -140,7 +161,7 @@ const formUsable = formEnabled && !!endpoint;
 
               <button
                 type="submit"
-                class="rounded-card bg-accent px-8 py-3.5 text-sm font-semibold text-on-accent shadow-card transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                class="rounded-card bg-accent px-8 py-3.5 text-sm font-semibold text-on-accent shadow-card transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
                 data-form-submit
               >
                 {form.submitLabel || "Send quote request"}
@@ -150,7 +171,7 @@ const formUsable = formEnabled && !!endpoint;
                 <p class="text-sm leading-relaxed text-muted">
                   Have a question before you get in touch?
                   {" "}
-                  <a href="/faq" class="font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                  <a href="/faq" class="font-semibold text-brand underline-offset-4 hover:underline">
                     See the FAQ
                   </a>
                   .
@@ -159,7 +180,7 @@ const formUsable = formEnabled && !!endpoint;
             </form>
 
             <div class="mt-4 hidden rounded-card border border-border bg-card p-6 shadow-sm sm:p-8" data-form-success role="status">
-              <p class="font-heading text-xl font-semibold text-brand">Thanks. We will be in touch.</p>
+              <p class="font-heading text-xl font-semibold text-brand lg:text-2xl">Thanks. We will be in touch.</p>
               <p class="mt-2 text-sm leading-relaxed text-muted">
                 We usually reply within one business day. Prefer faster? Call {phone || "us"}.
               </p>
@@ -167,14 +188,14 @@ const formUsable = formEnabled && !!endpoint;
                 {phone && (
                   <a
                     href={`tel:${formatPhone(phone)}`}
-                    class="inline-flex min-h-11 items-center rounded-card bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                    class="inline-flex min-h-11 items-center rounded-card bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:brightness-95"
                   >
                     Call {phone}
                   </a>
                 )}
                 <button
                   type="button"
-                  class="inline-flex min-h-11 items-center rounded-card border border-border bg-bg px-6 py-3 text-sm font-semibold text-brand transition hover:border-brand/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                  class="inline-flex min-h-11 items-center rounded-card border border-border bg-bg px-6 py-3 text-sm font-semibold text-brand transition hover:border-brand/30"
                   data-form-again
                 >
                   Send another quote request
@@ -183,40 +204,56 @@ const formUsable = formEnabled && !!endpoint;
             </div>
           </>
         ) : (
-          <div class="rounded-card border border-border bg-card p-8 shadow-sm">
-            <p class="text-lg font-medium text-brand">Call or email for a free quote.</p>
-            <p class="mt-2 text-sm text-muted">Fastest path: a quick call.</p>
+          <div class="contact-direct">
+            {phone ? (
+              <a href={`tel:${formatPhone(phone)}`} class="contact-direct-number hero-display font-heading text-brand underline-offset-8 hover:underline">{phone}</a>
+            ) : email ? (
+              <a href={`mailto:${email}`} class="font-heading text-2xl font-semibold text-brand underline underline-offset-4 lg:text-3xl">{email}</a>
+            ) : null}
+            <p class="mt-5 text-lg leading-relaxed text-muted">
+              {phone ? "Call for a free quote." : "Email for a free quote."}
+              {phone && email && <> Or email <a href={`mailto:${email}`} class="font-semibold text-brand underline underline-offset-4">{email}</a>.</>}
+            </p>
           </div>
         )}
       </div>
 
-      <div class="lg:col-span-2">
-        <div class="rounded-card border border-border bg-card p-5">
-          {phone && (
-            <a href={`tel:${formatPhone(phone)}`} class="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
+      <div class="contact-col min-w-0 lg:col-span-2" data-reveal-from="right">
+        {/* DARK PANEL. The details beside the form are reference, not input,
+            and giving them the band surface separates the two jobs at a glance
+            instead of running two near-identical white cards side by side.
+            `contact-panel--onband` is the fallback for when the engine has
+            already made this whole section the colour band: dark-on-dark would
+            lose the panel entirely, so there it takes the on-band card surface
+            instead. */}
+        {panelHasRows && (
+        <div class:list={["contact-panel rounded-card p-6", bandIsHere && "contact-panel--onband"]}>
+          {panelPhone && (
+            <a href={`tel:${formatPhone(phone)}`} class="block">
               <p class="text-sm font-medium text-muted">Prefer to call?</p>
               <p class="mt-1 text-xl font-semibold text-brand">{phone}</p>
             </a>
           )}
-          {email && (
-            <a href={`mailto:${email}`} class:list={["block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2", phone && "mt-5 border-t border-border pt-5"]}>
+          {panelEmail && (
+            <a href={`mailto:${email}`} class:list={["block", panelPhone && "contact-rule mt-5 pt-5"]}>
               <p class="text-sm font-medium text-muted">Email</p>
               <p class="mt-1 font-semibold text-brand">{email}</p>
             </a>
           )}
           {contact.address && (
-            <div class:list={[ (phone || email) && "mt-5 border-t border-border pt-5"]}>
+            <div class:list={[ (panelPhone || panelEmail) && "contact-rule mt-5 pt-5"]}>
               <p class="text-sm font-medium text-muted">Based in</p>
               <p class="mt-1 font-medium text-brand">{contact.address}</p>
             </div>
           )}
           {contact.hours && (
-            <div class:list={[ (phone || email || contact.address) && "mt-5 border-t border-border pt-5"]}>
+            <div class:list={[ (panelPhone || panelEmail || contact.address) && "contact-rule mt-5 pt-5"]}>
               <p class="text-sm font-medium text-muted">Hours</p>
               <p class="mt-1 text-sm text-ink">{contact.hours}</p>
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   </div>
@@ -276,3 +313,54 @@ const formUsable = formEnabled && !!endpoint;
     })();
   </script>
 )}
+
+<style>
+  /* Overflow floor (v3.17). A grid item's min-width defaults to `auto`, which
+     resolves to its MIN-CONTENT width — so one unbreakable string (a long
+     client email such as jobs@northpointplumbing.com.au, or a phone number
+     that will not wrap) sets the track's minimum and pushes the whole column
+     past the gutter. Measured at 360px: the column rendered 348px wide inside
+     a 328px container and ran 4px off the viewport. body carries
+     overflow-x-clip so no scrollbar appeared and the content was simply cut.
+     min-w-0 on the grid children lets the track shrink; this lets the text
+     inside it wrap rather than just clip. */
+  .contact-col :is(p, a, dd, li, span) {
+    overflow-wrap: anywhere;
+  }
+
+  /* Permanent end-of-page divider. 2px against the 1px used everywhere else,
+     so it reads as a different kind of rule rather than as one more hairline. */
+  .contact-break {
+    height: 2px;
+    width: 100%;
+    background: var(--color-border);
+  }
+
+  /* Reference, not input: the band surface separates the details panel from
+     the form rather than running two white cards beside each other. */
+  .contact-panel {
+    background: var(--c-band, var(--color-brand));
+    color: var(--c-on-band, var(--color-ondark));
+    border: 1px solid transparent;
+  }
+
+  .contact-panel :is(p, a, dt, dd, span) { color: inherit; }
+  /* The rule is a border on a square block. It used to sit on a rounded <a>,
+     so each divider curled up at both ends. */
+  .contact-panel .contact-rule { border-top: 1px solid var(--c-on-band-rule, var(--color-border)); }
+  .contact-panel--onband .contact-rule { border-top-color: var(--color-border); }
+
+  /* No form: the phone number at display size is the call to action. */
+  .contact-direct-number {
+    display: inline-block;
+    font-size: clamp(2.25rem, 1.4rem + 4vw, 4.5rem);
+  }
+
+  /* Already inverted by the engine — take the on-band card surface so the
+     panel is still visible against its own section. */
+  .contact-panel--onband {
+    background: var(--c-on-band-card, var(--color-card));
+    color: var(--color-ink);
+    border-color: var(--color-border);
+  }
+</style>

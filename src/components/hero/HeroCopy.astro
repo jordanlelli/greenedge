@@ -20,6 +20,9 @@ const { tone = "light", size = "default" } = Astro.props;
 const h = site.hero || {};
 const heading = h.heading || site.business?.tagline || "";
 const headingTint = h.headingTint || "";
+/* v3.24: optional short line set in the headline font, above the keyword
+   heading. Empty = the heading itself is the display line, as before. */
+const displayLine = h.displayLine || "";
 const subhead = h.subhead || "";
 const body = h.body || "";
 const eyebrow = h.eyebrow || "";
@@ -29,49 +32,66 @@ const primaryHref = h.primaryCtaHref || "#contact";
 const phone = site.contact?.phone || "";
 const trustMarks = resolveTrustMarks(site);
 const secondaryCta = resolveSecondaryCta(site);
+/* ONE CALL ACTION PER HERO. The trailing "Call 04xx" text link exists so a
+   quote-form hero still offers the phone. When the primary (or secondary)
+   button already dials, it printed the same number twice in one row. */
+const dials = (href: unknown) => /^tel:/i.test(String(href || "").trim());
+const showPhoneLink = Boolean(phone) && !dials(primaryHref) && !dials(secondaryCta?.href);
 
 const onDark = tone === "ondark";
 const inkClass = onDark ? "text-ondark" : "text-brand";
 const bodyClass = onDark ? "text-ondark/85" : "text-muted";
 const tintClass = onDark ? "text-accent-ondark" : "text-brand-secondary-ink";
-/* Fluid, and self-contained ON PURPOSE. The old scale (text-4xl / sm:text-5xl /
-   lg:text-6xl) capped at 60px from 1024px up, so the headline was identical on
-   a 13" laptop and a 32" monitor. These clamps keep growing. Kept as arbitrary
-   Tailwind values rather than a class in global.css because Tailwind preflight
-   resets h1 to font-size:inherit — if the two files ever fall out of sync, a
-   hook class would drop the largest element on the page to body size. */
-const headingSize =
-  size === "large"
-    ? "text-[clamp(2.75rem,calc(1.1rem+4.9vw),6.25rem)] leading-[1.02]"
-    : "text-[clamp(2.5rem,calc(1rem+4vw),5.25rem)] leading-[1.04]";
+/* v3.22: a LONG headline at full display size fills ~40% of a laptop screen
+   before any proof or CTA shows (impeccable oversized-h1: >=72px, >=40 chars,
+   >=28vh). Past 40 characters the large size caps at 68px — AJM's size, which
+   read as bold without swallowing the fold. Short punchy headlines keep 80px. */
+const headingChars = (displayLine || heading + (headingTint ? ` ${headingTint}` : "")).trim().length;
+const longHeading = headingChars >= 40;
+/* A displayLine is short by design, so it takes the Style Picker's own
+   headline size (what the client saw in the preview), capped a little lower. */
+const headingSize = displayLine
+  ? "[--hero-size:clamp(2.4rem,5vw+1.25rem,5.5rem)]"
+  : size === "large"
+    ? longHeading
+      ? "[--hero-size:clamp(2.5rem,4.4vw+0.5rem,4.25rem)]"
+      : "[--hero-size:clamp(2.5rem,5.2vw+0.5rem,5rem)]"
+    : "[--hero-size:clamp(2.25rem,4.2vw+0.5rem,3.75rem)]";
 ---
 
 {eyebrow && (
-  <p class:list={["text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em]", tintClass]}>
+  <p class:list={["section-eyebrow max-w-[40em]", tintClass]}>
     {eyebrow}
   </p>
 )}
 
-<h1 class:list={["font-heading font-semibold tracking-tight", eyebrow && "mt-3", headingSize, inkClass]}>
-  {heading}{headingTint && <> <span class={tintClass}>{headingTint}</span></>}
-</h1>
+{displayLine ? (
+  <h1 class:list={["hyphens-none", eyebrow && "mt-4 lg:mt-5", inkClass]}>
+    <span class:list={["hero-display hero-display-sized block", headingSize]}>{displayLine}</span>{" "}
+    <span class:list={["hero-keyword", tintClass]}>{heading}{headingTint && ` ${headingTint}`}</span>
+  </h1>
+) : (
+  <h1 class:list={["hero-display hero-display-sized font-heading hyphens-none", eyebrow && "mt-4 lg:mt-5", headingSize, inkClass]}>
+    {heading}{headingTint && <> <span class:list={["hero-display-kicker", tintClass]}>{headingTint}</span></>}
+  </h1>
+)}
 
-{subhead && <p class:list={["mt-5 max-w-prose text-lg leading-relaxed", onDark ? "text-ondark/90" : "text-ink"]}>{subhead}</p>}
-{body && <p class:list={["mt-4 max-w-prose text-base leading-relaxed", bodyClass]}>{body}</p>}
+{subhead && <p class:list={["hero-lede mt-6 lg:mt-7", onDark ? "text-ondark/90" : "text-ink"]}>{subhead}</p>}
+{body && <p class:list={["mt-4 max-w-[40rem] text-base leading-[1.65] lg:max-w-[42rem] lg:text-[1.0625rem]", bodyClass]}>{body}</p>}
 
 {locationLine && (
-  <p class:list={["mt-5 flex items-center gap-2 text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em]", tintClass]}>
-    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+  <p class:list={["mt-6 flex max-w-[40em] items-start gap-2 text-[0.9375rem] font-semibold leading-[1.5]", tintClass]}>
+    <svg class="mt-[0.1em] h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
     </svg>
     <span>{locationLine}</span>
   </p>
 )}
 
-<div class="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
+<div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
   <a
     href={primaryHref}
-    class="inline-flex min-h-11 items-center justify-center rounded-card bg-accent px-7 py-3 text-base font-semibold text-on-accent shadow-none transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+    class="inline-flex min-h-11 items-center justify-center rounded-card bg-accent px-7 py-3 font-heading text-[0.9375rem] font-bold tracking-tight text-on-accent shadow-none transition hover:brightness-95 lg:min-h-[3.25rem] lg:px-8 lg:text-base"
   >
     {primaryLabel}
   </a>
@@ -79,18 +99,18 @@ const headingSize =
     <a
       href={secondaryCta.href}
       class:list={[
-        "inline-flex min-h-11 items-center justify-center rounded-card border px-7 py-3 text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+        "inline-flex min-h-11 items-center justify-center rounded-card border px-7 py-3 font-heading text-[0.9375rem] font-bold tracking-tight transition lg:min-h-[3.25rem] lg:px-8 lg:text-base",
         onDark ? "border-ondark/35 text-ondark hover:border-ondark/60" : "border-border text-brand hover:border-brand/40",
       ]}
     >
       {secondaryCta.label}
     </a>
   )}
-  {phone && (
+  {showPhoneLink && (
     <a
       href={`tel:${formatPhone(phone)}`}
       class:list={[
-        "inline-flex min-h-11 items-center font-semibold underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+        "inline-flex min-h-11 items-center font-heading text-[0.9375rem] font-bold tracking-tight underline-offset-4 transition hover:underline lg:text-base",
         onDark ? "text-ondark" : "text-[var(--c-brand-900)]",
       ]}
     >
@@ -102,7 +122,7 @@ const headingSize =
 {trustMarks.length > 0 && (
   <ul
     class:list={[
-      "mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-t pt-5 text-sm font-medium",
+      "mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t pt-5 text-[0.8125rem] font-medium leading-snug tracking-[0.02em]",
       onDark ? "border-ondark/20 text-ondark/85" : "border-border text-muted",
     ]}
   >

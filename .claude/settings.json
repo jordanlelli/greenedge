@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm ci)",
+      "Bash(npm run *)",
+      "Bash(node scripts/*)",
+      "Bash(node -v)",
+      "Bash(npx --yes impeccable*)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git fetch *)",
+      "Bash(git branch *)",
+      "Bash(git switch *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git remote -v)",
+      "Bash(git ls-files *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr list *)"
+    ],
+    "ask": [
+      "Bash(npm install *)",
+      "Bash(npm update *)",
+      "Bash(npm uninstall *)",
+      "Bash(git push *)",
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git reset *)",
+      "Bash(git tag *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh repo create *)"
+    ],
+    "deny": [
+      "Bash(npm audit fix *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)"
+    ]
+  }
+}

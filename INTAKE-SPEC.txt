@@ -27,11 +27,43 @@
     _brief.variantSeed        any string; change to reshuffle the
                               whole look for one client.
     _brief.designKit          ledger | workshop | coast | press | signal
+    _brief.stylePicks         the client's Kova Style Picker code, e.g.
+                              anton.heavy.harbour.100. Sets the fonts,
+                              heading weights and headline size, in
+                              place of the kit's two typefaces (the kit
+                              still sets corners and shadows). Do not
+                              type it by hand: `npm run picks -- <code>`
+                              writes it and the colour set into `style`.
+                              Empty = kit fonts, as before.
+    demo.sampleSections       demos only: section keys whose copy is an
+                              example, not the business's own words.
+                              Each shows a red "Sample content" tag.
+                              Needs seo.noindex true. Empty on a live
+                              site.
+    services.items[].icon     optional line icon on the homepage service
+                              card (names in src/lib/icons.mjs).
+    usage.areaStyle           optional (v3.28). Empty = suburbs set
+                              as a line of place names. "pills" =
+                              the outlined chips used before.
+    features.motion           standard | subtle | bold | off. Scroll
+                              animation; default standard (eased in
+                              v3.28 to a 12px / 0.4s fade). bold adds
+                              left/right entrances to two-part sections
+                              (contact, story, before/after, why-us
+                              pair, split-scroll services), desktop only.
+    hero.cover                fullbleed hero only, default true: the
+                              hero is pinned and the next section
+                              slides up over it. false to turn off.
+    hero.displayLine          optional short line set large in the
+                              headline font; hero.heading then sits
+                              small beneath it, inside the same h1.
     _brief.surface            flat | tint | warm
     _brief.bandSection        a section key present in `sections`,
                               OR "none" to force no band.
     _brief.layoutVariants.X   force one section's variant (names
                               in VARIANTS.txt), else seeded.
+                              servicesPage is the exception: it
+                              is never seeded — see §9.
 
   Leave any of these EMPTY to let the seeded engine decide. The
   seed is business.name + _meta.domain (unless variantSeed set),
@@ -84,10 +116,19 @@
 ================================================================
   6. features.hasPhotos IS AN EXPLICIT BOOLEAN
 ================================================================
-  Set true ONLY when real photos exist in public/images. NEVER
+  Set true ONLY when real photos exist on disk. NEVER
   infer it from placeholder image paths — that reintroduces the
   broken-image-hero bug. With no photos, leave it false and the
   engine avoids photo-only variants automatically (gradients fill).
+
+  WHERE PHOTOS GO (v3.21). Intake paths are written public-style
+  ("/hero.jpg", "/images/services/slab.webp"). Put the FILE at the
+  same path under src/assets/ (src/assets/hero.jpg,
+  src/assets/images/services/slab.webp) and it is served as a
+  resized WebP srcset. The same file under public/ still works but
+  is sent full-size to every phone, and check-intake warns above
+  400 KB. Keep in public/ only what needs a fixed URL:
+  seo.ogImage (1200x630) and favicons.
 
 
 ================================================================
@@ -96,6 +137,12 @@
   - Testimonials: real reviews only. Leave the array empty until
     you have them. Placeholder reviews get REMOVED before launch,
     never invented and left live.
+  - Review stars and scores (v3.28): items[].rating is the
+    reviewer's OWN star rating (1-5) and is left out when the
+    platform has none (a Facebook recommendation). The block's
+    rating {score, count} is copied from the review profile; it
+    is never an average of the reviews shown on the page. No
+    value, no stars: the cards simply render without them.
   - Numbers/stats, licence numbers, ABNs, "5 years strong":
     only if true. The story stat-bar variant is filtered out when
     there is no real stats data.
@@ -149,6 +196,41 @@
     two or more includes on EVERY service. Without that depth it
     renders a panel of whitespace.
 
+  ── WHY US vs ABOUT: TWO VOICES, SET ONCE ────────────────────
+
+  The two sections answer DIFFERENT questions, and the fastest
+  way to make a site read as generated is to answer both with the
+  same sentences in a different order. Hard rule for every client:
+
+  whyUs   = TECHNICAL. Method and standards. What gets checked,
+            in what order, what decides whether the job lasts.
+            Base prep, reinforcement cover, joint spacing, curing,
+            tolerances, compliance. This carries the topical
+            authority for the whole site — it is what a search
+            engine and an AI assistant read to decide this
+            business does the work rather than subcontracts it.
+            NO owner biography here.
+
+  story   = CONVERSATIONAL. The trust section. Who they are, who
+            turns up, why the crew is the size it is, what they
+            will and will not take on. Written the way the owner
+            would say it across a kitchen table.
+            NO technical specifications here.
+
+  Overlap of FACTS is fine — the same 35 years can appear in both
+  — as long as each is doing a different job: in whyUs it backs a
+  method claim, in story it is reassurance. Overlap of SENTENCES
+  is the failure. The test: a reader should be able to read About
+  alone and want to call, and read Why Us alone and believe the
+  work will be done properly. If a whyUs point could sit in About
+  word-for-word, it was an About point all along.
+
+  Caught in the wild on A&J v1: three of four Why Us items were
+  the About section reworded — "35+ years behind the work" beside
+  "Roger has more than 35 years in concrete", "One crew from dig
+  to finish" beside "The business runs two sides". Two sections,
+  one message, neither doing its job.
+
   whyUs.type                       "benefits" | "process"
     Default "benefits". Set "process" ONLY when the items are a
     real sequence, and it unlocks whyUs/process-rail — the only
@@ -179,3 +261,146 @@
     signal on every one of these sites. It reads the same `usage`
     block. Intakes written before v3.16 that list "usage" still
     mount it.
+
+================================================================
+  9. THE /SERVICES PAGE (v3.19)
+================================================================
+
+  _brief.layoutVariants.servicesPage   stacked | grouped | featured | index
+    MANUAL. The seeded engine never picks it — you do, per client,
+    from the service count and how the work naturally splits.
+      1-6 services .................. stacked (default)
+      7-14, 3-6 good photos ......... featured
+      8-20 across 2-4 kinds of work . grouped
+      10+, people hunt for one job .. index
+    check-intake warns when 7+ services sit on stacked. Full
+    descriptions in VARIANT-CHEAT-SHEET.txt §4.
+
+  services.page { eyebrow, heading, subhead, quoteHeading,
+                  quoteBody, featuredHeading, moreHeading,
+                  midHeading, midBody }
+    heading = the /services H1. quoteHeading = H2 of the
+    full-bleed quote band that closes every layout. The featured*
+    / more* / mid* keys are read by the featured layout only.
+    Older intakes that set services.pageEyebrow / pageHeading /
+    subhead still work — page.* wins when both exist.
+
+  services.groups[]  { id, heading, intro, image, imageAlt }
+  services.items[].group   = a groups[].id
+    OPTIONAL. Empty array = no grouping. Used by grouped (rails)
+    and index (list headings + H2s). Group headings are LIVE:
+    rename a group in the intake and the H2 on the page changes
+    with it — nothing is hardcoded per trade. An item whose group
+    is blank or unknown renders last and unlabelled; nothing is
+    invented into an "Other" bucket. A group without its own
+    image borrows the first photo among its items.
+
+  services.items[].anchor
+    The URL fragment for that service: /services#<anchor>. Write
+    it as the search phrase with the city ("core-drilling-
+    adelaide", "hot-water-repairs-adelaide"). Empty = the title
+    slugified. Duplicates get -2, -3. In the index layout a deep
+    link opens that service directly — use them in Google Ads,
+    GBP posts and SMS replies.
+
+  Every layout keeps every service's FULL longDescription in the
+  HTML. Compact layouts put it behind a "More about ..." or
+  "Details" disclosure; they never drop it.
+
+  seo.pages.{services|areas|gallery|faq}.{title, description}
+    Per-page <title> and meta description. Empty = the old generic
+    fallback ("Service areas | Business"), which carries no
+    keyword. Fill all four on every build.
+
+================================================================
+  10. HEADINGS ARE KEYWORDS (every trade, every build)
+================================================================
+
+  A basic build gets no SEO retainer, so the keywords baked in at
+  build time are the ones the site lives with. Every heading field
+  is a search target. The rules:
+
+  1. ONE THEME PER PAGE, stated in the H1, the <title> and the
+     meta description. Pattern: <service family> in <city>.
+       Homepage  "Electricians in Adelaide for homes and shops"
+       /services "Plumbing services in Adelaide"
+       /areas    "Landscaping across Adelaide's eastern suburbs"
+       /gallery  "Recent roofing jobs around Adelaide"
+
+  2. SECTION H2s NAME WHAT A CUSTOMER SEARCHES FOR.
+       Instead of          Write
+       Why choose us   ->  Concrete poured to Australian Standards
+       About us        ->  Family-run concreters from Cavan
+       What we do      ->  Concrete and civil services in Adelaide
+       Get in touch    ->  Get a free concrete quote in Adelaide
+       Service areas   ->  Electricians across Adelaide's north
+       FAQ             ->  Hot water system questions
+     Clever lines ("How we get a slab that lasts", "Built
+     different") are fine as a SUBHEAD under a keyword H2, never
+     as the H2 itself.
+
+  3. THE CITY, SPARINGLY. H1, <title>, meta description and at most
+     two H2s per page. City in every heading reads as spam to
+     people and to Google, and dilutes the headings that matter.
+
+  4. SERVICE NAMES ARE THE SEARCHED TERM. "Core drilling", not
+     "Coring solutions". Put the common synonym in the description
+     once ("underground storage tank (UST) removal, also called
+     fuel tank removal").
+
+  5. TITLES 50-60 characters, keyword first, business last:
+     "Concrete Cutting & Core Drilling Adelaide | A&J Contractors".
+     META DESCRIPTIONS 140-155 characters: services + city + one
+     proof point + the action. "Free quotes. Call 0419 313 985."
+
+  6. EYEBROWS ARE OPTIONAL (v3.22: empty by default, render only
+     when set). Use one only for a fact the heading does not carry
+     (trade + suburb in the hero). "What we do" above "Plumbing
+     services in Adelaide" says nothing twice. Rendered as <p>, not
+     a heading — do not spend keywords there.
+
+  7. NO KEYWORD SLOP. The test for every heading: would the owner
+     say these words to a customer, and would a customer type
+     them into Google? "Adelaide concrete concreting services
+     Adelaide" fails the first; "Excellence in every pour" fails
+     the second.
+
+  Keyword choice without a tool: use the words customers use on
+  the phone ("driveway", not "residential hardstand"), check
+  Google's autocomplete and the "People also ask" box for the
+  service + city, and copy the phrasing of the top three local
+  results' page titles. When a paid tool is available, confirm
+  volumes and swap in the higher-volume synonym.
+
+================================================================
+  11. BUSINESS SCHEMA + SHARE IMAGE (v3.20)
+================================================================
+
+  business.schemaType          schema.org type for the JSON-LD.
+    GeneralContractor | HomeAndConstructionBusiness | Electrician |
+    Plumber | RoofingContractor | HousePainter | HVACBusiness |
+    Locksmith | MovingCompany | AutoRepair | AutomotiveBusiness |
+    ProfessionalService | LocalBusiness. Trades without their own
+    type (concreter, landscaper, tiler, fencer, carpenter) use
+    GeneralContractor or HomeAndConstructionBusiness.
+  business.googleBusinessUrl   GBP share link -> schema sameAs.
+  contact.facebook / instagram / tiktok / linkedin -> sameAs.
+  contact.openingHoursSpec[]   { days: ["Mo".."Su"], opens: "07:00",
+    closes: "17:00" } — 24h, one row per distinct day pattern.
+    contact.hours stays the human-readable line on the page.
+    Leave [] rather than guess.
+
+  Also emitted automatically: telephone in +61 form, logo
+  (business.logo), image (the share image), and every service as
+  an Offer in hasOfferCatalog, linked to /services#<anchor>.
+
+  FAQ schema is emitted ONLY where the questions are visible: the
+  homepage when "faqs" is in sections, and /faq. FAQs in the intake
+  with neither switched on produce no FAQ markup.
+
+  Share image (og:image) order: seo.ogImage -> hero.image unless
+  hero.imageIsStock -> first owned service photo -> none. A stock
+  hero is never the link preview.
+
+  usage.notCoveredHeading      H2 of the "outside our area" block on
+    /areas. Keyword it: "Need a plumber outside Adelaide?".

@@ -1,7 +1,7 @@
 ================================================================
   VARIANT CHEAT SHEET
   How to see what a client got, and how to change it.
-  Template v3.16.0
+  Template v3.20.0
 ================================================================
 
 Nothing here requires touching src/. Every override lives in the
@@ -35,10 +35,14 @@ Nothing here requires touching src/. Every override lives in the
     "bandSection":    "testimonials",
     "sectionsLocked": true,
     "layoutVariants": {
-      "hero":     "docket",
-      "services": "ledger",
-      "whyUs":    "ruled-rows",
-      "header":   "minimal"
+      "hero":         "docket",
+      "services":     "ledger",
+      "whyUs":        "ruled-rows",
+      "header":       "minimal",
+      "story":        "portrait-lede",
+      "faqs":         "accordion",
+      "areas":        "chips",
+      "servicesPage": "index"
     }
   }
 
@@ -68,11 +72,11 @@ Nothing here requires touching src/. Every override lives in the
   designKit
     Type, radius, shadow and rhythm personality. Not colour —
     colour comes from `style`, so no kit can impose a palette.
-      ledger    editorial / journalistic.  Newsreader + Inter Tight
+      ledger    editorial / journalistic.  Newsreader + Public Sans
       workshop  industrial trade.          Archivo + Public Sans
       coast     soft / approachable.       Archivo + Source Sans 3
-      press     classic / refined.         Fraunces + Inter
-      signal    modern / geometric.        Space Grotesk + Inter
+      press     classic / refined.         Fraunces + DM Sans
+      signal    modern.                    Bricolage Grotesque + DM Sans
 
   surface
     Page-level background treatment.
@@ -100,56 +104,109 @@ Nothing here requires touching src/. Every override lives in the
     so anything listed here renders. See VARIANTS.txt for the
     long-form description of each.
 
-  ---- HERO ----
+  ---- HERO ----  (homepage)
   typographic  [default, no assets]  Oversized H1, CTA row,
     inline trust marks, palette-derived motif right.
-  split-media  [needs hero image]  Content left, media right.
-  fullbleed    [needs hero image]  Full-viewport background photo
-    with a dark scrim.
-  docket       [no assets]  Copy left, ruled spec panel right —
-    services, areas, hours, licence, established. Every row is
-    sourced; empty rows are omitted, and under two rows the panel
-    drops entirely.
+  split-media  [needs hero image]  Copy left, photo right, edge
+    to edge.
+  fullbleed    [needs hero image]  Full-width photo behind the
+    copy with a dark scrim. Copy sits low, CTAs above the fold.
+  docket       [needs 4+ spec rows]  Copy left, ruled spec panel
+    right — services, areas, hours, licence, established. Every
+    row is sourced; empty rows are omitted. Under four rows it
+    falls back to index (4+ services), then typographic.
   index        [needs 4+ services]  Numbered service index on a
     tinted rail, copy right. Service list above the fold.
   stat-lede    [needs hero.stats]  Oversized figure leads. It
     ABSORBS the HeroStats strip, which is suppressed while active.
 
   ---- HEADER ----
-  standard  [default]  Logo left, nav, phone + CTA right.
-  minimal              Logo + single phone CTA, no link list.
-  centered             Stacked centred logo + links, CTA right.
+  standard  [default]  Logo left, nav centre, phone + quote
+    button right.
+  minimal              Logo, short nav, pill quote button.
+  centered             Logo centred between two nav halves, quote
+    button right, thin info bar above on desktop.
 
-  ---- SERVICES ----
-  grid-icons   [default, no assets]  Wrapping card grid. Column
-    count is sized for services PLUS the CTA card so no row has
-    a hole.
+  ---- SERVICES ----  (homepage section, max 6 shown)
+  grid-icons   [default, no assets]  One ruled sheet (not separate
+    cards); the quote action closes it as a full-width accent row.
+    No count leaves an empty cell.
   ledger       [no assets]  Ruled rows, optional "from" price
     column. Best when descriptions are very uneven in length.
-  split-scroll [photo on EVERY service]  Alternating image/text
-    rows.
+  split-scroll [photo on 2/3 of shown services]  Alternating
+    image/text rows; a service without a photo becomes a
+    full-width text row.
   feature-lead [photo on the LEAD service]  One large service,
     the rest stacked beside it. Lead = items[].featured.
   list-detail  [longDescription + 2 includes on EVERY service]
     Nav list + detail panel; accordion on mobile.
 
+  ---- SERVICES PAGE ----  (/services — MANUAL, never seeded)
+  Pick by hand from the service count. Unset = stacked. Every
+  layout ends with a full-bleed accent quote band, keeps every
+  full description in the page, and gives each service a deep
+  link (/services#<anchor>).
+  stacked   [default]  One service per row. Photo rows alternate
+    sides; rows without a photo run as two full-width text
+    columns. Best at 1-6 services.
+  grouped   [needs services.groups + items[].group]  Jump chips,
+    then per group: sticky rail (H2 group heading, intro, photo,
+    quote button) beside 2-column service cards. Best at 8-20
+    services across 2-4 kinds of work.
+  featured  [best with 3-6 photos]  Photo cards for the headline
+    services, a full-bleed dark quote band, then a 3-column
+    catalogue of the rest. Best at 7-14.
+  index     [no prerequisite]  Desktop: grouped list left, one
+    service in full right. Mobile: grouped accordion. Best at
+    10+ services where people come looking for one job. Groups
+    optional.
+
   ---- WHY US ----
   All four render inside the dark band. whyUs is the only
   permanent inverted section and the band engine depends on it.
-
   ruled-rows    [default]  Hairline rows, title left / desc
     right. No numbering.
-  icon-grid     Tick cards; column count divides the item count.
+  icon-grid     Ruled checklist, hanging ticks, no boxes; column
+    count divides the item count.
   contrast-pair [needs whyUs.pairs[]]  Them vs us, x against
     tick. Strongest seller in the set.
   process-rail  [needs whyUs.type: "process"]  Numbered steps on
     a connecting rail. The ONLY variant that asserts an order.
     Suppresses the story process strip when active.
 
-  ---- AREAS ----
-  One layout. Its own section from v3.16 — it used to live
-  inside Story, so turning story off removed the suburb
-  coverage. Add "areas" to sections.
+  ---- STORY / ABOUT ----
+  ruled-cards       [default]  Lede + copy side by side, then the
+    cards as one ruled strip. No boxes.
+  credentials-panel [needs 2+ credential rows: licence, ABN,
+    established, insurance, memberships]  Copy left, ruled spec
+    panel right. Empty rows omitted, never "Contact us".
+  portrait-lede     [needs hasPhotos + story.image]  Owner/crew
+    portrait left, copy right, cards as a pair grid beneath.
+
+  ---- FAQS ----  (homepage section and /faq)
+  accordion     [default]  Heading left, expandable questions
+    right.
+  open-columns  [needs 6+ complete Q&As]  Every answer printed
+    open across two columns. Best for search and AI assistants.
+  grouped       [needs 2+ distinct faqs.items[].group]  One ruled
+    block per category, label left, questions right.
+
+  ---- AREAS ----  (homepage section; /areas has one layout)
+  chips      [default]  Heading left, coverage line and the
+    suburbs right, set as a line of place names divided by
+    hairlines. usage.areaStyle: "pills" puts the pill chips back.
+  zoned      [needs 2+ named usage.zones with suburbs]  One ruled
+    block per zone with its suburbs and optional travel note.
+  directory  [needs 12+ areas]  Alphabetical 2-3 column index.
+    Suburbs with their own page become links; the rest plain text.
+
+  ---- NO VARIANT AXIS ----
+  testimonials, gallery, contact, footer and the HeroStats strip
+  have one layout each (VARIANTS.txt "Sections with one layout").
+  Testimonials are a scrollable row of review cards (initial,
+  name, platform mark, stars only if the intake states them).
+  The gallery LEADS with its first photo. Order the intake so
+  the best three reviews and the best photo come first.
 
 
 ================================================================
@@ -162,8 +219,9 @@ Nothing here requires touching src/. Every override lives in the
     same bones, not from the palette.
 
   "Two clients look too similar"
-    hero 6 x services 5 x whyUs 4 x header 3 = 360 structural
-    combinations, before 5 kits and 3 surfaces. If two builds
+    hero 6 x services 5 x whyUs 4 x header 3 x story 3 x faqs 3
+    x areas 3 = 9,720 structural combinations, before 5 kits and
+    3 surfaces (servicesPage is manual, so it is not counted). If two builds
     still collide, one of them has an explicit _brief override
     holding an axis still. Check npm run variants on both.
 

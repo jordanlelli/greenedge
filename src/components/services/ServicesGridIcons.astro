@@ -1,39 +1,70 @@
 ---
 /**
- * ServicesGridIcons — scannable card grid. The safe default: needs no photos,
- * no long copy, no per-service depth.
+ * ServicesGridIcons — scannable service sheet. The safe default: needs no
+ * photos, no long copy, no per-service depth.
  *
- * The grid WRAPS. It previously used grid-auto-flow: column, which put every
- * service in a single desktop row — five services plus the CTA card meant six
- * columns at roughly 180px each. Column count now comes from gridShape(), which
- * sizes for services PLUS the CTA card so no row is ever left with a hole.
+ * ONE RULED SHEET, NOT FLOATING CARDS (v3.28). Each service used to be its own
+ * bordered rounded box with a gap around it, which is the layout every
+ * generated site opens with. The cells now share their rules: one frame, one
+ * hairline between neighbours, like a rate sheet. Same content, same column
+ * maths, same reading order — only the container changed.
+ *
+ * THE QUOTE ACTION IS A ROW, NOT A CELL (v3.28). It was a service-shaped card
+ * at the end of the grid. Sized like a service it had a heading and one line
+ * to fill a cell built for a title, a paragraph and four inclusions, so it was
+ * mostly empty accent colour — and on a call-first site it printed the phone
+ * number twice. It now closes the sheet as a full-width action row.
+ *
+ * The grid WRAPS. Column count comes from gridShape(), sized for the services
+ * alone, and the last service runs to the end of its row so no count leaves an
+ * empty cell inside the frame.
  */
 import { site, formatPhone } from "../../config";
 // @ts-ignore — plain-JS content normaliser shared with the Node check scripts
 import { gridShape } from "../../lib/content.mjs";
+// @ts-ignore — plain-JS icon set shared with the Node check scripts
+import { iconPath } from "../../lib/icons.mjs";
 
 interface Props { items: any[]; }
 const { items } = Astro.props;
 
-const { cols, ctaSpan } = gridShape(items.length);
+/* services.showQuoteCard defaults TRUE — the card earns its place on most
+   builds. A client who has their own mid-page CTA, or whose grid reads better
+   without it, sets it false in the intake rather than anyone editing markup. */
+const showQuoteCard = site.services?.showQuoteCard !== false;
+const { cols } = gridShape(items.length, false);
 
 const primaryLabel =
   site.hero?.primaryCtaLabel || site.contact?.headerCtaLabel || "Get a free quote";
+const primaryHref = site.hero?.primaryCtaHref || "#contact";
 const phone = site.contact?.phone || "";
 const email = site.contact?.email || "";
+/* The action row must not say the same thing twice. When the site's primary
+   action is a phone call the label already IS the number ("Call 0411 ..."),
+   so the row is that one link (plus opening hours when the intake has them).
+   A quote CTA gets the label and, beside it, the number as the other way in. */
+const dials = /^tel:/i.test(String(primaryHref).trim());
+const digits = (v: string) => String(v || "").replace(/[^0-9]/g, "");
+const labelHasPhone = Boolean(phone) && digits(primaryLabel).includes(digits(phone));
+const hours = site.contact?.hours || "";
 ---
 
-<ul class="svc-grid" style={`--svc-cols:${cols};--svc-cta-span:${ctaSpan}`}>
+<div class="svc-sheet">
+<ul class="svc-grid" style={`--svc-cols:${cols}`}>
   {items.map((card: any, i: number) => {
     const includes = card.includes.slice(0, 4);
     const HeadingTag = card.href ? "a" : "span";
     return (
-      <li class="svc-card">
-        <p class="svc-ordinal" aria-hidden="true">{String(i + 1).padStart(2, "0")}</p>
-        <h3 class="font-heading text-xl font-semibold leading-tight text-brand">
+      <li class:list={["svc-card", i === items.length - 1 && "svc-card--last"]} data-reveal-item>
+        {iconPath(card.icon) ? (
+          <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={iconPath(card.icon)} /></svg>
+        ) : (
+          <p class="svc-ordinal" aria-hidden="true">{String(i + 1).padStart(2, "0")}</p>
+        )}
+        <h3 class="font-heading text-xl font-semibold leading-snug text-brand lg:text-2xl">
           <HeadingTag
             {...(card.href ? { href: card.href } : {})}
-            class:list={[card.href && "underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"]}
+            class:list={[card.href && "underline-offset-4 hover:underline"]}
           >{card.title}</HeadingTag>
         </h3>
         {card.description && (
@@ -50,28 +81,58 @@ const email = site.contact?.email || "";
           </ul>
         )}
         {card.price && (
-          <p class="svc-price font-heading text-lg font-semibold text-brand">{card.price}</p>
+          <p class="svc-price font-heading text-lg font-semibold text-brand lg:text-xl">{card.price}</p>
         )}
       </li>
     );
   })}
 
-  <li class="svc-card svc-card--cta">
-    <h3 class="font-heading text-2xl font-semibold leading-tight">{primaryLabel}</h3>
-    <p class="mt-2 text-base leading-relaxed">Tell us what needs doing and we'll get back to you.</p>
-    {phone ? (
-      <a href={`tel:${formatPhone(phone)}`} class="svc-price font-heading text-xl font-semibold underline underline-offset-4">{phone}</a>
-    ) : email ? (
-      <a href={`mailto:${email}`} class="svc-price break-all font-heading text-base font-semibold underline underline-offset-4">{email}</a>
+  {showQuoteCard && (
+  <li class="svc-action" data-reveal-item>
+    <a href={primaryHref} class="svc-action-main font-heading text-xl font-semibold leading-tight underline-offset-4 hover:underline lg:text-2xl">
+      {primaryLabel}<span class="ml-3" aria-hidden="true">&#8594;</span>
+    </a>
+    {phone && !labelHasPhone ? (
+      <a href={`tel:${formatPhone(phone)}`} class="svc-action-alt font-heading text-base font-semibold underline underline-offset-4 lg:text-lg">Call {phone}</a>
+    ) : !phone && email && !dials ? (
+      <a href={`mailto:${email}`} class="svc-action-alt break-all text-base font-semibold underline underline-offset-4">{email}</a>
+    ) : hours ? (
+      <span class="svc-action-alt text-base">{hours}</span>
     ) : null}
   </li>
+  )}
 </ul>
+</div>
 
 <style>
+  /* The frame. Its radius is the kit's, so a square kit gets a square sheet
+     and a soft kit a soft one. The outer rule is drawn by ::after ON TOP of the
+     cells rather than as a border around them: the cells are meant to run to
+     the edge of the sheet, and a real border would make every one of them
+     "content flush against a border" (impeccable cramped-padding). */
+  .svc-sheet {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    --svc-rule: color-mix(in srgb, var(--color-brand) 22%, transparent);
+  }
+
+  .svc-sheet::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--svc-rule);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* 1px gap, and each cell rings itself by 1px: neighbours' rings land in the
+     same pixel, so every internal divider is a single hairline however the
+     cells wrap. The frame clips the rings on the outside edge. */
   .svc-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -81,31 +142,62 @@ const email = site.contact?.email || "";
     display: flex;
     flex-direction: column;
     min-width: 0;
-    border-radius: var(--radius-card);
-    border: 1px solid color-mix(in srgb, var(--color-brand) 20%, transparent);
     background: var(--color-card);
-    padding: 1.5rem;
+    box-shadow: 0 0 0 1px var(--svc-rule);
+    padding: 1.75rem 1.5rem;
   }
 
+  /* The last service runs to the end of its row, so no count and no
+     breakpoint can leave an empty cell inside the frame. */
+  .svc-card--last { grid-column-end: -1; }
+
+  /* The action row closes the sheet across every column. */
+  .svc-action {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    box-shadow: 0 0 0 1px var(--svc-rule);
+  }
+
+  .svc-action-main,
+  .svc-action-alt {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    color: inherit;
+  }
+
+  /* services.items[].icon (v3.27): replaces the ordinal when it names an icon. */
+  .svc-icon {
+    display: block;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin: 0 0 0.875rem;
+    /* Brand, not accent: the accent is the action colour and belongs to the
+       action row and the buttons (DESIGN-LIBRARY §2). */
+    color: var(--color-brand);
+  }
   .svc-ordinal {
     margin: 0 0 0.75rem;
     font-family: var(--font-display, inherit);
-    font-size: 0.6875rem;
+    font-size: var(--text-eyebrow);
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: var(--color-accent-ink);
+    /* Muted, not accent-ink. accent-ink is fitted for LARGE accent text (3:1);
+       at 11px on a yellow-accent palette it measured 3.2:1 on the card. The
+       ordinal is an index mark, and muted is the token fitted for small text. */
+    color: var(--color-muted);
   }
 
   /* Pushed to the bottom so prices line up across a row without needing
      subgrid — which only worked because the old grid was a single row. */
   .svc-price { margin: auto 0 0; padding-top: 1rem; }
-
-  .svc-card--cta {
-    background: var(--color-accent);
-    border-color: color-mix(in srgb, var(--color-accent) 80%, black);
-    color: var(--color-on-accent);
-  }
-  .svc-card--cta .svc-price { color: var(--color-on-accent); }
 
   @media (min-width: 40rem) {
     .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -113,6 +205,13 @@ const email = site.contact?.email || "";
 
   @media (min-width: 64rem) {
     .svc-grid { grid-template-columns: repeat(var(--svc-cols), minmax(0, 1fr)); }
-    .svc-card--cta { grid-column: span var(--svc-cta-span); }
+    .svc-card { padding: 2rem 1.75rem; }
+    .svc-action {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      padding: 1rem 1.75rem;
+    }
   }
 </style>

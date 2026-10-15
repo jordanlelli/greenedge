@@ -21,6 +21,10 @@
  *   optional; the site is already deterministic without it.
  */
 
+import { resolveStoryCredentials, resolveDocketRows, DOCKET_MIN_ROWS } from "./content.mjs";
+import { resolveType } from "./stylepicks.mjs";
+import { collectAreas, buildableAreas } from "./areas.mjs";
+
 /* ----------------------------- catalogue ------------------------------ */
 /* Built on the project VARIANTS.txt (hero/services/story). testimonials + whyUs
    are new alternative layouts added in this rebuild — specced + built in later
@@ -41,16 +45,48 @@
  * Removed, available in git history if they get built:
  *   services     split-scroll | grid-icons | carousel | list-detail
  *   whyUs        ruled-rows | icon-grid | contrast-pair | process-rail
- *   (story, testimonials and footer have ONE layout each — no variant axis.
+ *   (testimonials and footer have ONE layout each — no variant axis.
  *    check-catalogue.mjs enforces that this comment, CATALOGUE and the
  *    components stay in agreement.)
+ *
+ * v3.17 added the STORY axis. Until then About was the only core page type with
+ * no structural variation at all: every client's About section shared one set
+ * of bones, which is the exact tell DESIGN-LIBRARY exists to stop. Its draw is
+ * appended at the END of the RNG stream (see LATE_DRAW) so adding it did not
+ * shift any already-built client's kit, variants, order, surface or band.
  */
 export const CATALOGUE = {
   hero:     ["typographic", "split-media", "fullbleed", "docket", "index", "stat-lede"],
   services: ["grid-icons", "ledger", "split-scroll", "feature-lead", "list-detail"],
   whyUs:    ["ruled-rows", "icon-grid", "contrast-pair", "process-rail"],
   header:   ["standard", "minimal", "centered"],
+  story:    ["ruled-cards", "credentials-panel", "portrait-lede"],
+  faqs:     ["accordion", "open-columns", "grouped"],
+  areas:    ["chips", "zoned", "directory"],
+  /* /services PAGE layout (v3.19). MANUAL axis — see MANUAL below. */
+  servicesPage: ["stacked", "grouped", "featured", "index"],
 };
+
+/* MANUAL axes are chosen by a person, never by the seeded engine.
+ *
+ * The /services page layout depends on how many services a client has and
+ * how they naturally group — facts a seed cannot know. Four services in a
+ * searchable index look broken; eighteen in a stacked list is 21 phone
+ * screens. So the engine never draws it: it takes _brief.layoutVariants
+ * .servicesPage when set, otherwise the first (safe) entry. It also consumes
+ * NO RNG, so adding the axis shifted nothing for any already-built client.
+ * check-intake warns when a long catalogue is left on the default. */
+export const MANUAL = new Set(["servicesPage"]);
+
+/* Sections whose variant is drawn AFTER order / surface / band.
+ *
+ * The per-section loop in resolveSite consumes one RNG value per section, so
+ * adding a key to CATALOGUE normally shifts every draw that follows it — every
+ * existing client would wake up with a different section order, surface and
+ * band. CURSOR-CONTEXT §13 states the rule: keep new draws appended at the end.
+ * A section listed here is a first-class axis in every other respect; only its
+ * POSITION in the stream differs. Add new sections here, not to the main loop. */
+const LATE_DRAW = new Set(["story", "faqs", "areas"]);
 
 /* Default homepage sections when an intake doesn't state them. Previously
    derived from CATALOGUE's keys, which silently became ["hero"] the moment the
@@ -63,6 +99,7 @@ const DEFAULT_SECTIONS = [
 const PREREQS = {
   "hero/split-media":       "heroImage",
   "hero/fullbleed":         "heroImage",
+  "hero/docket":            "docketRows",
   "hero/index":             "fourServices",
   "hero/stat-lede":         "heroStats",
   "services/split-scroll":  "serviceImages",
@@ -70,6 +107,12 @@ const PREREQS = {
   "services/list-detail":   "serviceDetail",
   "whyUs/contrast-pair":    "whyPairs",
   "whyUs/process-rail":     "whyProcess",
+  "story/credentials-panel": "storyCredentials",
+  "story/portrait-lede":     "storyPortrait",
+  "faqs/open-columns":       "faqsEnough",
+  "faqs/grouped":            "faqsGrouped",
+  "areas/zoned":             "areasZoned",
+  "areas/directory":         "areasMany",
 };
 
 /* ------------------------------- kits -------------------------------- */
@@ -100,24 +143,38 @@ const BAND_ELIGIBLE = ["tiers", "usage", "areas", "story", "testimonials"];
    API sets --font-display / --font-body (read by global.css), the rendered type
    ALWAYS matches the active kit. Do NOT re-declare font-family in .kit-* CSS —
    that path is dead and caused every non-coast kit to silently render Archivo.
-   `coast` weights are pinned to [600,800]/[400,600] to match the prior config
-   so its font-cache key is unchanged. */
+   v3.18: every kit now loads a 700 body weight (eyebrows, labels) and coast
+   gained Archivo 700 for h2/h3 — see --weight-display / --weight-heading in
+   global.css. That changes coast's font-cache key; an offline machine needs
+   one online build to refresh .astro/fonts. */
+/* v3.28: NO KIT LOADS INTER OR SPACE GROTESK ANY MORE. Three of the five kits
+   set their body in Inter (or Inter Tight) and signal set its headings in
+   Space Grotesk: the two faces a generated site reaches for first, so a kit
+   that was meant to be a personality opened with the default. Measured on a
+   signal build: 95 of 131 text elements in Inter. Each kit keeps its
+   character and its display face except signal; only the defaults went.
+     ledger  body Inter Tight -> Public Sans
+     press   body Inter       -> DM Sans   (the Style Picker's "warm" pairing)
+     signal  Space Grotesk + Inter -> Bricolage Grotesque + DM Sans
+   Every family here was already a dependency. To change a kit's type, edit
+   this table and the matching --weight-* tokens in global.css; to change ONE
+   client's type, set _brief.stylePicks instead (it overrides the kit). */
 export const KIT_FONT_FACES = {
-  ledger:   { display: { name: "Newsreader",    weights: [400, 600, 700] }, body: { name: "Inter Tight",   weights: [400, 500, 600] } },
-  workshop: { display: { name: "Archivo",       weights: [600, 700, 800] }, body: { name: "Public Sans",   weights: [400, 500, 600] } },
-  coast:    { display: { name: "Archivo",       weights: [600, 800] },      body: { name: "Source Sans 3", weights: [400, 600] } },
-  press:    { display: { name: "Fraunces",      weights: [400, 600, 700] }, body: { name: "Inter",         weights: [400, 500, 600] } },
-  signal:   { display: { name: "Space Grotesk", weights: [500, 600, 700] }, body: { name: "Inter",         weights: [400, 500, 600] } },
+  ledger:   { display: { name: "Newsreader",          weights: [400, 600, 700] }, body: { name: "Public Sans",   weights: [400, 500, 600, 700] } },
+  workshop: { display: { name: "Archivo",             weights: [600, 700, 800] }, body: { name: "Public Sans",   weights: [400, 500, 600, 700] } },
+  coast:    { display: { name: "Archivo",             weights: [600, 700, 800] }, body: { name: "Source Sans 3", weights: [400, 600, 700] } },
+  press:    { display: { name: "Fraunces",            weights: [400, 600, 700] }, body: { name: "DM Sans",       weights: [400, 500, 600, 700] } },
+  signal:   { display: { name: "Bricolage Grotesque", weights: [600, 700, 800] }, body: { name: "DM Sans",       weights: [400, 500, 600, 700] } },
 };
 
 /* Legacy Google-Fonts <link> hrefs — retained for reference/back-compat only.
    Rendering no longer uses these; astro.config + Fontsource own font loading. */
 export const KIT_FONTS = {
-  ledger:   { display: "Newsreader",          body: "Inter Tight",  href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" },
+  ledger:   { display: "Newsreader",          body: "Public Sans",  href: "" },
   workshop: { display: "Archivo",             body: "Public Sans",  href: "https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Public+Sans:wght@400;500;600;700&display=swap" },
   coast:    { display: "Archivo",             body: "Source Sans 3", href: "" },
-  press:    { display: "Fraunces",            body: "Inter",        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" },
-  signal:   { display: "Space Grotesk",       body: "Inter",        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" },
+  press:    { display: "Fraunces",            body: "DM Sans",      href: "" },
+  signal:   { display: "Bricolage Grotesque", body: "DM Sans",      href: "" },
 };
 
 /* --------------------------- section order --------------------------- */
@@ -226,6 +283,66 @@ function isWhyProcess(site) {
   return raw?.type === "process" && items.length >= 2;
 }
 
+/* ---- story prerequisites ---------------------------------------------------
+   credentials-panel renders a ruled panel of the business's own credentials.
+   The rows come from resolveStoryCredentials (content.mjs) so the gate and the
+   render can never disagree. Two is the floor, the same threshold as
+   hero/docket and for the same reason: a one-row panel reads as a mistake. */
+function hasStoryCredentials(site) {
+  return resolveStoryCredentials(site).length >= 2;
+}
+/* portrait-lede leads the section with a photograph of the operator. It needs
+   BOTH the explicit hasPhotos flag and a story image — a path alone proves
+   nothing, because intakes routinely carry paths for files never supplied. */
+function hasStoryPortrait(site) {
+  return hasImages(site) && Boolean(site.story?.image);
+}
+
+/* ---- faq prerequisites -------------------------------------------------
+   open-columns prints every answer open in the DOM. Below six questions a
+   two-column open list is shorter than the heading above it and reads as a
+   layout that ran out of content, so the accordion is the better default. */
+function faqItems(site) {
+  const items = site.faqs?.items;
+  return Array.isArray(items) ? items.filter((f) => f && f.question && f.answer) : [];
+}
+function hasEnoughFaqs(site) {
+  return faqItems(site).length >= 6;
+}
+/* grouped needs the client to have actually categorised the questions. Two
+   distinct groups is the floor: one group is not a grouping, it is a heading
+   with everything under it. Questions with no group are NOT auto-assigned to
+   an "Other" bucket — inventing a category is the same class of error as
+   inventing a credential row. */
+function hasFaqGroups(site) {
+  const groups = new Set(
+    faqItems(site).map((f) => String(f.group || "").trim()).filter(Boolean)
+  );
+  return groups.size >= 2;
+}
+
+/* ---- areas prerequisites -----------------------------------------------
+   zoned groups the coverage the way the client described it: "northern
+   suburbs", "Adelaide Hills", "south of the river". It needs the client to
+   have actually drawn those lines. Two named zones with at least one suburb
+   each is the floor — one zone is a heading, not a grouping, and zones are
+   NEVER derived from suburb names, because guessing that Reynella is "south"
+   is inventing a coverage claim the client never made. */
+function hasAreaZones(site) {
+  const zones = Array.isArray(site.usage?.zones) ? site.usage.zones : [];
+  const real = zones.filter(
+    (z) => z && String(z.name || "").trim() &&
+      Array.isArray(z.areas) && z.areas.filter(Boolean).length > 0
+  );
+  return real.length >= 2;
+}
+/* directory is the index layout. Below a dozen suburbs a chip row is shorter,
+   friendlier and reads better; past a dozen the chip wall becomes a blob and a
+   ruled alphabetical index is easier to scan and to link from. */
+function hasManyAreas(site) {
+  return collectAreas(site).length >= 12;
+}
+
 function prereqOk(section, variant, site) {
   const need = PREREQS[`${section}/${variant}`];
   if (!need) return true;
@@ -234,10 +351,17 @@ function prereqOk(section, variant, site) {
   if (need === "serviceImages") return hasServiceImages(site);
   if (need === "leadImage") return hasLeadImage(site);
   if (need === "serviceDetail") return hasServiceDetail(site);
+  if (need === "docketRows") return resolveDocketRows(site).length >= DOCKET_MIN_ROWS;
   if (need === "fourServices") return serviceItems(site).filter((it) => it.title).length >= 4;
   if (need === "heroStats") return hasHeroStats(site);
   if (need === "whyPairs") return hasWhyPairs(site);
   if (need === "whyProcess") return isWhyProcess(site);
+  if (need === "storyCredentials") return hasStoryCredentials(site);
+  if (need === "storyPortrait") return hasStoryPortrait(site);
+  if (need === "faqsEnough") return hasEnoughFaqs(site);
+  if (need === "faqsGrouped") return hasFaqGroups(site);
+  if (need === "areasZoned") return hasAreaZones(site);
+  if (need === "areasMany") return hasManyAreas(site);
   return true;
 }
 
@@ -282,12 +406,17 @@ export function resolveSite(site = {}) {
 
   // 2) per-section layout variants
   const layoutVariants = {};
-  for (const section of Object.keys(CATALOGUE)) {
+  const drawVariant = (section) => {
     const explicit = brief.layoutVariants?.[section];
-    if (explicit) { layoutVariants[section] = explicit; continue; }
+    if (explicit) { layoutVariants[section] = explicit; return; }
     let list = CATALOGUE[section].filter((v) => prereqOk(section, v, site));
     if (!list.length) list = [CATALOGUE[section][0]]; // default fallback
     layoutVariants[section] = pick(rng, list);
+  };
+  /* LATE_DRAW sections are deliberately skipped here — see step 6. */
+  for (const section of Object.keys(CATALOGUE)) {
+    if (LATE_DRAW.has(section) || MANUAL.has(section)) continue;
+    drawVariant(section);
   }
 
   // 3) section order: pin top + bottom, seeded-shuffle the middle —
@@ -334,5 +463,22 @@ export function resolveSite(site = {}) {
   }
   if (!canInvert(site)) bandSection = null;
 
-  return { kit, kitFonts: KIT_FONTS[kit], layoutVariants, order, surface, bandSection, seed: String(seedStr) };
+  // 6) LATE-DRAW axes — appended to the END of the stream so that introducing
+  //    them left every earlier draw byte-identical for already-built clients.
+  //    Anything added after this point goes here too, never in step 2.
+  for (const section of Object.keys(CATALOGUE)) {
+    if (LATE_DRAW.has(section)) drawVariant(section);
+  }
+
+  // 7) MANUAL axes — explicit or the safe default. No RNG, ever.
+  for (const section of MANUAL) {
+    const explicit = brief.layoutVariants?.[section];
+    layoutVariants[section] = CATALOGUE[section].includes(explicit) ? explicit : CATALOGUE[section][0];
+  }
+
+  /* Style Picker type (src/lib/stylepicks.mjs). null when the intake has no
+     _brief.stylePicks, and then the kit's own fonts load as before. */
+  const type = resolveType(site);
+
+  return { kit, kitFonts: KIT_FONTS[kit], layoutVariants, order, surface, bandSection, seed: String(seedStr), type };
 }

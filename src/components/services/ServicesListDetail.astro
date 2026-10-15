@@ -39,13 +39,13 @@ const uid = "svcld";
     {items.map((it: any, i: number) => (
       <details class="svc-ld-item" open={i === 0} id={`${uid}-panel-${i}`}>
         <summary class="svc-ld-summary">
-          <span class="font-heading text-lg font-semibold text-brand">{it.title}</span>
+          <span class="font-heading text-lg font-semibold text-brand lg:text-xl">{it.title}</span>
           <svg class="svc-ld-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
           </svg>
         </summary>
         <div class="svc-ld-body">
-          <h3 class="svc-ld-title font-heading text-2xl font-semibold leading-tight text-brand" hidden>{it.title}</h3>
+          <h3 class="svc-ld-title font-heading text-2xl font-semibold leading-tight text-brand lg:text-[1.75rem]" hidden>{it.title}</h3>
           {it.description && <p class="text-base leading-relaxed text-muted">{it.description}</p>}
           {it.longDescription && <p class="mt-3 text-base leading-relaxed text-muted">{it.longDescription}</p>}
           {it.includes.length > 0 && (
@@ -58,10 +58,10 @@ const uid = "svcld";
               ))}
             </ul>
           )}
-          {it.price && <p class="mt-4 font-heading text-lg font-semibold text-brand">{it.price}</p>}
+          {it.price && <p class="mt-4 font-heading text-lg font-semibold text-brand lg:text-xl">{it.price}</p>}
           {it.href && (
             <p class="mt-4">
-              <a href={it.href} class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
+              <a href={it.href} class="inline-flex min-h-11 items-center font-semibold text-brand underline-offset-4 hover:underline">
                 More on {it.title} <span class="ml-2" aria-hidden="true">→</span>
               </a>
             </p>
@@ -115,7 +115,7 @@ const uid = "svcld";
     padding: 0.9rem 1.25rem;
     min-height: 2.75rem;
     text-align: left;
-    font-size: 0.9375rem;
+    font-size: var(--text-small);
     font-weight: 500;
     color: var(--color-muted);
     background: transparent;
@@ -136,7 +136,7 @@ const uid = "svcld";
   @media (min-width: 64rem) {
     /* Two-pane only once the script has switched it on, so a no-JS desktop
        still gets the working accordion rather than an empty left rail. */
-    .svc-ld[data-enhanced="true"] { grid-template-columns: 0.36fr 0.64fr; }
+    .svc-ld[data-enhanced="true"] { grid-template-columns: minmax(0, 0.36fr) minmax(0, 0.64fr); }
     .svc-ld[data-enhanced="true"] .svc-ld-nav {
       border-bottom: 0;
       border-right: 1px solid var(--color-border);

@@ -20,6 +20,7 @@
  * drift apart.
  */
 import { site, variantOf } from "../config";
+import { resolveDocketRows, DOCKET_MIN_ROWS } from "../lib/content.mjs";
 import HeroSplit from "./hero/HeroSplit.astro";
 import HeroTypographic from "./hero/HeroTypographic.astro";
 import HeroFullbleed from "./hero/HeroFullbleed.astro";
@@ -47,13 +48,17 @@ const CAN_RENDER: Record<string, boolean> = {
   typographic: true,
   "split-media": hasRealPhoto,
   fullbleed: hasRealPhoto,
-  docket: true,
+  docket: resolveDocketRows(site).length >= DOCKET_MIN_ROWS,
   index: serviceCount >= 4,
   "stat-lede": stats.length >= 1,
 };
 
 const requested = variantOf("hero", hasRealPhoto ? "split-media" : "typographic");
-const variant = CAN_RENDER[requested] ? requested : "typographic";
+/* A docket too thin to render (v3.34) falls back to the service index when
+   there are four services, which keeps the copy-plus-list shape and the
+   no-photo look, and only then to typographic. */
+const fallback = requested === "docket" && CAN_RENDER.index ? "index" : "typographic";
+const variant = CAN_RENDER[requested] ? requested : fallback;
 
 const VARIANTS: Record<string, any> = {
   "split-media": HeroSplit,

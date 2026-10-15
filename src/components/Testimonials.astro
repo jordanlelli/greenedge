@@ -12,6 +12,23 @@
  * link covers the whole set in one line). Unsourced quotes are dropped and
  * reported by scripts/check-intake.mjs. That rule is the point: a fabricated
  * review on a live site carrying a real ABN is an ACCC problem, not a design one.
+ *
+ * LAYOUT (v3.28) — a scrollable row of REVIEW CARDS, set the way the review
+ * platforms set them, because that is the form people already trust: who
+ * said it (initial, name), where it was posted (platform mark, linked to the
+ * source), the stars if the reviewer gave any, then the words.
+ *
+ *   - Three or fewer: a plain row. More: the row scrolls sideways with
+ *     scroll-snap, exactly as before, now with previous / next buttons on
+ *     desktop and keyboard scrolling, so it is not a swipe-only control.
+ *   - A long review is clamped to seven lines with "Read more". The clamp is
+ *     applied by JS only, so with JS off every review is printed in full.
+ *
+ * NOTHING HERE IS INVENTED. Stars render only for an item that states
+ * `rating`; the summary score only when `testimonials.rating` states the
+ * profile's own score and count; the platform mark only for a source that is
+ * recognisably Google or Facebook. A Facebook recommendation has no stars,
+ * so it shows none.
  */
 import Section from "./Section.astro";
 import { site } from "../config";
@@ -19,90 +36,386 @@ import { testimonials as fromDataFile } from "../data/testimonials";
 // @ts-ignore — plain-JS content normaliser shared with the Node check scripts
 import { resolveTestimonials } from "../lib/content.mjs";
 
-const { items, heading, eyebrow, subhead } = resolveTestimonials(site, fromDataFile);
+const { items, heading, eyebrow, subhead, sourceUrl, platform, rating } = resolveTestimonials(site, fromDataFile);
+
+/* Platform marks: one path each on a 24x24 grid, drawn in currentColor so
+   they take the site's ink and need no colour literal. */
+const PLATFORMS: Record<string, { name: string; d: string }> = {
+  facebook: {
+    name: "Facebook",
+    d: "M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0022 12z",
+  },
+  google: {
+    name: "Google",
+    d: "M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z",
+  },
+};
+const STAR =
+  "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z";
+const stars = [1, 2, 3, 4, 5];
+
+const blockPlatform = PLATFORMS[platform] || null;
+const scrolls = items.length > 3;
+const initial = (name: string) => (name.trim()[0] || "").toUpperCase();
+/* Second line under the name: what the intake says about the reviewer, then
+   the date, then where it was posted. Whatever is missing is left out. */
+const detail = (t: any) => [t.meta, t.date, t.sourceLabel].filter(Boolean).join(" · ");
 ---
 
 {items.length > 0 && (
-  <Section id="testimonials" bg="bg">
-    <div class="max-w-2xl">
-      {eyebrow && <p class="section-eyebrow text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">{eyebrow}</p>}
-      <h2 class="section-heading mt-2 font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
-        {heading}
-      </h2>
-      {subhead && <p class="mt-3 text-lg leading-relaxed text-muted">{subhead}</p>}
+  <Section id="testimonials" bg="tint" reveal="stagger">
+    <div class="tst-head">
+      <div class="max-w-2xl">
+        {eyebrow && <p class="section-eyebrow text-brand-secondary-ink">{eyebrow}</p>}
+        <h2 class:list={["section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]", eyebrow && "mt-2"]}>
+          {heading}
+        </h2>
+        {subhead && <p class="mt-3 text-lg leading-relaxed text-muted">{subhead}</p>}
+      </div>
+
+      <div class="tst-tools">
+        {sourceUrl && (rating.score > 0 || blockPlatform) && (
+          <a href={sourceUrl} class="tst-source" rel="noopener noreferrer" target="_blank">
+            {blockPlatform && (
+              <svg class="tst-source-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={blockPlatform.d}></path></svg>
+            )}
+            {rating.score > 0 ? (
+              <span class="tst-source-text">
+                <span class="tst-score">{rating.score.toFixed(1)}</span>
+                <span class="tst-stars" role="img" aria-label={`Rated ${rating.score} out of 5`}>
+                  {stars.map((n) => (
+                    <svg class:list={[n <= Math.round(rating.score) ? "is-on" : "is-off"]} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d={STAR}></path></svg>
+                  ))}
+                </span>
+                {rating.count > 0 && (
+                  <span class="underline-offset-4">{rating.count} reviews{blockPlatform ? ` on ${blockPlatform.name}` : ""}</span>
+                )}
+              </span>
+            ) : (
+              <span class="tst-source-text underline-offset-4">Read the reviews on {blockPlatform?.name}</span>
+            )}
+          </a>
+        )}
+
+        {scrolls && (
+          <div class="tst-nav" data-tst-nav hidden>
+            <button type="button" class="tst-nav-btn" data-tst-prev aria-label="Previous reviews">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5"></path></svg>
+            </button>
+            <button type="button" class="tst-nav-btn" data-tst-next aria-label="More reviews">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5"></path></svg>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
 
-    <ul class:list={["tst-list mt-10", items.length > 3 && "tst-list--carousel"]}>
-      {items.map((t) => (
-        <li class="tst-item min-w-0">
-          <figure class="flex h-full flex-col rounded-card border border-border bg-card p-6 shadow-none">
-            <blockquote class="text-lg leading-relaxed text-ink">
-              &#8220;{t.quote}&#8221;
-            </blockquote>
-            <figcaption class="mt-6">
-              <a
-                href={t.sourceUrl}
-                class="font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {t.name || "Verified review"}
-              </a>
-              {(t.meta || t.sourceLabel) && (
-                <p class="mt-1 text-sm leading-relaxed text-muted">
-                  {[t.meta, t.sourceLabel].filter(Boolean).join(" \u00b7 ")}
+    <ul
+      class:list={["tst-list mt-10", scrolls && "tst-list--scroll"]}
+      data-tst-list
+      {...(scrolls ? { tabindex: "0", role: "group", "aria-label": "Customer reviews, scrollable" } : {})}
+    >
+      {items.map((t: any) => {
+        const mark = PLATFORMS[t.platform] || null;
+        return (
+          <li class="tst-item" data-reveal-item>
+            <figure class="tst-card" data-tst-card>
+              <figcaption class="tst-who">
+                <span class="tst-avatar" aria-hidden="true">
+                  {initial(t.name) || (
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 10a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM3.5 17a6.5 6.5 0 0113 0z"></path></svg>
+                  )}
+                </span>
+                <span class="tst-id">
+                  <a href={t.sourceUrl} class="tst-name underline-offset-4 hover:underline" rel="noopener noreferrer" target="_blank">{t.name || "Verified review"}</a>
+                  {detail(t) && <span class="tst-detail">{detail(t)}</span>}
+                </span>
+                {mark && (
+                  <svg class="tst-mark" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label={`Posted on ${mark.name}`}><path d={mark.d}></path></svg>
+                )}
+              </figcaption>
+
+              {t.rating > 0 && (
+                <p class="tst-stars tst-stars--card" role="img" aria-label={`Rated ${t.rating} out of 5`}>
+                  {stars.map((n) => (
+                    <svg class:list={[n <= Math.round(t.rating) ? "is-on" : "is-off"]} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d={STAR}></path></svg>
+                  ))}
                 </p>
               )}
-            </figcaption>
-          </figure>
-        </li>
-      ))}
+
+              <blockquote class="tst-quote text-pretty" data-tst-quote>{t.quote}</blockquote>
+            </figure>
+          </li>
+        );
+      })}
     </ul>
-    {items.length > 3 && (
-      <p class="mt-4 text-sm text-muted lg:hidden">Swipe for more reviews</p>
-    )}
+    {scrolls && <p class="mt-4 text-sm text-muted lg:hidden">Swipe for more reviews</p>}
   </Section>
 )}
 
+<script>
+  (() => {
+    const list = document.querySelector<HTMLElement>("[data-tst-list]");
+    if (!list) return;
+
+    /* READ MORE. The clamp class is added here, never in the markup, so a
+       page without JS prints every review in full. A review that already
+       fits has the clamp taken straight back off and gets no button. */
+    list.querySelectorAll<HTMLElement>("[data-tst-card]").forEach((card) => {
+      const quote = card.querySelector<HTMLElement>("[data-tst-quote]");
+      if (!quote) return;
+      card.classList.add("is-clamped");
+      if (quote.scrollHeight <= quote.clientHeight + 2) {
+        card.classList.remove("is-clamped");
+        return;
+      }
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tst-more";
+      btn.textContent = "Read more";
+      btn.setAttribute("aria-expanded", "false");
+      btn.addEventListener("click", () => {
+        const open = card.classList.toggle("is-clamped") === false;
+        btn.textContent = open ? "Show less" : "Read more";
+        btn.setAttribute("aria-expanded", String(open));
+      });
+      card.appendChild(btn);
+    });
+
+    /* PREVIOUS / NEXT. Shown only when the row really overflows, so a wide
+       screen that fits every card never offers buttons that do nothing. */
+    const nav = document.querySelector<HTMLElement>("[data-tst-nav]");
+    const prev = nav?.querySelector<HTMLButtonElement>("[data-tst-prev]");
+    const next = nav?.querySelector<HTMLButtonElement>("[data-tst-next]");
+    if (!nav || !prev || !next) return;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const step = () => {
+      const item = list.querySelector<HTMLElement>(".tst-item");
+      const gap = parseFloat(getComputedStyle(list).columnGap || "0") || 0;
+      return item ? item.getBoundingClientRect().width + gap : list.clientWidth * 0.8;
+    };
+    const sync = () => {
+      const max = list.scrollWidth - list.clientWidth;
+      nav.hidden = max <= 4;
+      prev.disabled = list.scrollLeft <= 4;
+      next.disabled = list.scrollLeft >= max - 4;
+    };
+    const go = (dir: number) => list.scrollBy({ left: dir * step(), behavior: reduce ? "auto" : "smooth" });
+    prev.addEventListener("click", () => go(-1));
+    next.addEventListener("click", () => go(1));
+    list.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
+    sync();
+  })();
+</script>
+
 <style>
-  /* min-h-72 forced every card to 288px, so three short reviews left a large
-     empty band above the attribution — B8. Cards now size to content and the
-     row stretches so a row stays even. */
+  .tst-head {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .tst-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+
+  /* Where the reviews live: the platform mark and a link to the profile. */
+  .tst-source {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: var(--text-body);
+    font-weight: 600;
+    color: var(--color-brand);
+  }
+
+  .tst-source:hover .underline-offset-4 { text-decoration: underline; }
+
+  .tst-source-mark { width: 1.5rem; height: 1.5rem; flex: none; }
+
+  .tst-source-text {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+  }
+
+  .tst-score {
+    font-family: var(--font-heading);
+    font-size: var(--text-lead);
+    font-weight: 700;
+  }
+
+  /* Stars take accent-ink, the accent's text-safe step, so the row reads on
+     every palette. An unlit star is the border colour, not a second hue. */
+  .tst-stars {
+    display: inline-flex;
+    gap: 0.125rem;
+    margin: 0;
+  }
+
+  .tst-stars svg { width: 1.125rem; height: 1.125rem; }
+  .tst-stars .is-on { color: var(--color-accent-ink); }
+  .tst-stars .is-off { color: var(--color-border); }
+  .tst-stars--card { margin-top: 1rem; }
+
+  .tst-nav { display: none; gap: 0.5rem; }
+
+  .tst-nav-btn {
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--color-ink) 55%, transparent);
+    border-radius: var(--radius-card);
+    background: var(--color-card);
+    color: var(--color-brand);
+    cursor: pointer;
+    transition: background-color 150ms ease-out, opacity 150ms ease-out;
+  }
+
+  .tst-nav-btn:hover:not(:disabled) { background: var(--color-tint); }
+  .tst-nav-btn:disabled { opacity: 0.4; cursor: default; }
+  .tst-nav-btn svg { width: 1.125rem; height: 1.125rem; }
+
+  /* ── the row ───────────────────────────────────────────────────────────
+     Phone and tablet: always a sideways scroller. Desktop: three across, and
+     past three the same scroller with each card a third of the row. */
   .tst-list {
-    display: grid;
-    gap: 1.25rem;
+    display: flex;
+    gap: 1rem;
     margin-left: 0;
-    padding: 0;
+    padding: 0 0 0.75rem;
     list-style: none;
     align-items: stretch;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+  }
+
+  .tst-item {
+    flex: 0 0 min(86%, 21rem);
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  /* ── the card ──────────────────────────────────────────────────────────── */
+  .tst-card {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    margin: 0;
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: var(--color-card);
+  }
+
+  .tst-who {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 0.75rem;
+  }
+
+  .tst-avatar {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    /* brand on page-bg, not brand on ondark: inside the colour band both
+       brand and ondark remap to the same light ink and the letter vanished.
+       bg remaps to the band, so this pair inverts correctly on its own. */
+    background: var(--color-brand);
+    color: var(--color-bg);
+    font-family: var(--font-heading);
+    font-size: var(--text-lead);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .tst-avatar svg { width: 1.25rem; height: 1.25rem; }
+
+  .tst-id { display: grid; min-width: 0; }
+
+  .tst-name {
+    font-size: var(--text-body);
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--color-ink);
+  }
+
+  .tst-detail {
+    font-size: var(--text-small);
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+
+  .tst-mark {
+    width: 1.375rem;
+    height: 1.375rem;
+    color: var(--color-muted);
+  }
+
+  .tst-quote {
+    margin: 1rem 0 0;
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-ink);
+  }
+
+  .tst-card.is-clamped .tst-quote {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 7;
+    line-clamp: 7;
+    overflow: hidden;
+  }
+
+  /* The button is created by the script, so it carries no scope attribute. */
+  .tst-card :global(.tst-more) {
+    align-self: flex-start;
+    min-height: 2.75rem;
+    margin-top: 0.25rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--color-brand);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
   }
 
   @media (min-width: 64rem) {
-    .tst-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tst-head {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 3rem;
+    }
 
-    /* Above three, a 3-col grid leaves an uneven last row. Scroll-snap instead:
-       CSS only, no library, and it degrades to a plain scroller everywhere. */
-    .tst-list--carousel {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scroll-padding-left: 0;
-      padding-bottom: 0.75rem;
-      scrollbar-width: thin;
-    }
-    .tst-list--carousel .tst-item {
-      flex: 0 0 clamp(19rem, 31%, 24rem);
-      scroll-snap-align: start;
-    }
-  }
+    .tst-tools { flex-wrap: nowrap; justify-content: flex-end; }
+    .tst-nav:not([hidden]) { display: flex; }
 
-  @media (max-width: 63.99rem) {
-    .tst-list {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding-bottom: 0.75rem;
-    }
-    .tst-item { flex: 0 0 min(85%, 20rem); scroll-snap-align: start; }
+    .tst-list { gap: 1.25rem; }
+
+    /* Three or fewer never scroll: they share the row. */
+    .tst-list:not(.tst-list--scroll) { overflow-x: visible; padding-bottom: 0; }
+    .tst-list:not(.tst-list--scroll) .tst-item { flex: 1 1 0; }
+
+    .tst-list--scroll .tst-item { flex: 0 0 calc((100% - 2.5rem) / 3); }
+    .tst-card { padding: 1.5rem; }
   }
 </style>

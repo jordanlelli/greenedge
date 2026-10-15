@@ -1,3 +1,12 @@
 ---
-return Astro.redirect("/#story");
+import { site } from "../config";
+return Astro.redirect(anchorOr(site, "story", "/#story"));
+
+/* A homepage anchor is only a valid destination while that section is still ON
+   the homepage. When both the page AND its section are switched off, sending
+   the visitor to a dead #anchor drops them at the top of the page with no
+   explanation — so fall back to the homepage itself. */
+function anchorOr(s: any, section: string, anchor: string) {
+  return (s.sections || []).includes(section) ? anchor : "/";
+}
 ---

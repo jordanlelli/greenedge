@@ -26,9 +26,9 @@ const eyebrow = site.services?.eyebrow || "What we do";
 ---
 
 <section class="relative overflow-hidden bg-bg" data-no-reveal>
-  <div class="hero-pad mx-auto grid max-w-[var(--w-content)] gap-0 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] lg:px-8">
+  <div class="mx-auto grid max-w-[var(--w-content)] gap-0 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] lg:px-8 lg:py-24">
     <div class="hero-index-rail order-2 min-w-0 lg:order-1">
-      <p class="text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">
+      <p class="section-eyebrow text-brand-secondary-ink">
         {eyebrow}
       </p>
       <ul class="hero-index-list">
@@ -37,7 +37,7 @@ const eyebrow = site.services?.eyebrow || "What we do";
             <span class="hero-index-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
             <span class="hero-index-label">
               {it.href ? (
-                <a href={it.href} class="underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{it.title}</a>
+                <a href={it.href} class="underline-offset-4 hover:underline">{it.title}</a>
               ) : it.title}
             </span>
           </li>
@@ -66,7 +66,7 @@ const eyebrow = site.services?.eyebrow || "What we do";
     gap: 0.875rem;
     padding: 0.7rem 0;
     border-bottom: 1px solid var(--color-border);
-    font-size: 0.9375rem;
+    font-size: var(--text-small);
     line-height: 1.45;
     color: var(--color-ink);
   }
@@ -75,7 +75,7 @@ const eyebrow = site.services?.eyebrow || "What we do";
   .hero-index-num {
     flex-shrink: 0;
     font-family: var(--font-display, inherit);
-    font-size: 0.6875rem;
+    font-size: var(--text-eyebrow);
     font-weight: 700;
     letter-spacing: 0.06em;
     color: var(--color-accent-ink);
@@ -83,6 +83,7 @@ const eyebrow = site.services?.eyebrow || "What we do";
   .hero-index-label { min-width: 0; }
 
   @media (min-width: 64rem) {
+    .hero-index-item { font-size: var(--text-body); padding: 0.8rem 0; }
     .hero-index-rail {
       margin-top: 0;
       padding: 2rem 2rem 2.25rem;
@@ -90,7 +91,9 @@ const eyebrow = site.services?.eyebrow || "What we do";
       border-radius: var(--radius-card);
       background: var(--color-card);
       border: 1px solid var(--color-border);
-      align-self: start;
+      /* Centred against the copy (v3.34). Top-aligned, a heading that wraps to
+         four lines left the space under the rail empty at 1024px. */
+      align-self: center;
     }
   }
 </style>

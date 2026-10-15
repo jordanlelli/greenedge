@@ -10,12 +10,17 @@
  */
 import HeroCopy from "./HeroCopy.astro";
 import { site } from "../../config";
+import Img from "../Img.astro";
 
 const h = site.hero || {};
+/* v3.25 PINNED HERO, on by default: the hero holds its place and the section
+   below slides up over it. `hero.cover: false` in the intake turns it off.
+   The rules live in global.css (.hero-cover); the script below only measures. */
+const cover = site.hero?.cover !== false;
 ---
 
-<section class="relative isolate overflow-hidden bg-[var(--c-brand-900)]" data-no-reveal>
-  <img
+<section class:list={["relative isolate overflow-hidden bg-[var(--c-brand-900)]", cover && "hero-cover"]} data-no-reveal>
+  <Img sizes="100vw"
     src={h.image}
     alt={h.imageAlt || site.business?.name || ""}
     width="2400"
@@ -32,9 +37,28 @@ const h = site.hero || {};
   >
   </div>
 
-  <div class="mx-auto max-w-[var(--w-wide)] px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
-    <div class="max-w-2xl">
+  <div class="mx-auto max-w-[var(--w-content)] px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pb-24 lg:pt-16">
+    <div class="max-w-[48rem]">
       <HeroCopy tone="ondark" size="large" />
     </div>
   </div>
 </section>
+
+<script>
+  /* Where the pinned hero sticks. Under the header when the hero fits the
+     screen; when it is taller (long copy on a phone) the value goes negative
+     so the hero scrolls until its last line is on screen, then holds. */
+  (() => {
+    const hero = document.querySelector<HTMLElement>(".hero-cover");
+    if (!hero) return;
+    const header = document.querySelector<HTMLElement>("header");
+    const set = () => {
+      const headerH = header ? header.offsetHeight : 0;
+      const top = Math.min(headerH, window.innerHeight - hero.offsetHeight);
+      hero.style.setProperty("--hero-pin-top", top + "px");
+    };
+    set();
+    window.addEventListener("resize", set, { passive: true });
+    window.addEventListener("load", set, { once: true });
+  })();
+</script>

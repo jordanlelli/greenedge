@@ -5,11 +5,11 @@
  *   npm run verify:lock && npm run build
  */
 import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
 import { KITS, SURFACES, CATALOGUE } from "../src/lib/variants.mjs";
+import { intakePath, intakeName } from "./intake-path.mjs";
 
-const FILE = resolve(process.cwd(), "client-intake.json");
-if (!existsSync(FILE)) { console.error("✗ client-intake.json not found in", process.cwd()); process.exit(1); }
+const FILE = intakePath();
+if (!existsSync(FILE)) { console.error(`✗ ${intakeName()} not found`); process.exit(1); }
 
 const site = JSON.parse(readFileSync(FILE, "utf8"));
 const brief = site._brief || {};

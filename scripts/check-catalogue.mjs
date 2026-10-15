@@ -39,6 +39,9 @@ const HEADING_TO_KEY = {
   HEADER: "header",
   FOOTER: "footer",
   AREAS: "areas",
+  FAQS: "faqs",
+  FAQ: "faqs",
+  "SERVICES PAGE": "servicesPage",
 };
 
 /* Where each section's variant names must literally appear. First existing
@@ -52,6 +55,8 @@ const SECTION_SOURCES = {
   header: ["src/components/Header.astro"],
   footer: ["src/components/Footer.astro"],
   areas: ["src/components/Areas.astro", "src/components/Usage.astro"],
+  faqs: ["src/components/FAQ.astro"],
+  servicesPage: ["src/pages/services.astro"],
 };
 
 const errors = [];

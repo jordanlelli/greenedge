@@ -18,7 +18,16 @@ import { site, formatPhone } from "../../config";
 // @ts-ignore — plain-JS area resolver shared with the Node check scripts
 import { buildableAreas, allAreas } from "../../lib/areas.mjs";
 
+/* TIER GATE. Per-suburb pages are a PREMIUM deliverable, not part of a basic
+   build. A basic site gets one /areas page listing the coverage; the moment a
+   client has a page per suburb they also have the ongoing obligation to keep
+   each one genuinely different, which is what the 70%-similarity gate in
+   areas.mjs exists to police.
+   Default false. Flip features.suburbPages to true to unlock them — the
+   existing content gates then still apply on top, so enabling the feature
+   does NOT force a thin page into existence. */
 export function getStaticPaths() {
+  if (site.features?.suburbPages !== true) return [];
   return buildableAreas(site).map((area: any) => ({
     params: { slug: area.slug },
     props: { area },

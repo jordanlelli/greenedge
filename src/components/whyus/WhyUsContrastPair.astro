@@ -17,7 +17,7 @@ const { pairs, themLabel, usLabel } = Astro.props;
 ---
 
 <div class="why-pair">
-  <div class="why-pair-col why-pair-col--them">
+  <div class="why-pair-col why-pair-col--them" data-reveal-from="left">
     <p class="why-pair-head">{themLabel}</p>
     <ul class="why-pair-list">
       {pairs.map((p) => (
@@ -25,7 +25,7 @@ const { pairs, themLabel, usLabel } = Astro.props;
       ))}
     </ul>
   </div>
-  <div class="why-pair-col why-pair-col--us">
+  <div class="why-pair-col why-pair-col--us" data-reveal-from="right">
     <p class="why-pair-head">{usLabel}</p>
     <ul class="why-pair-list">
       {pairs.map((p) => (
@@ -50,7 +50,7 @@ const { pairs, themLabel, usLabel } = Astro.props;
   .why-pair-head {
     margin: 0 0 1.125rem;
     font-family: var(--font-body);
-    font-size: 0.6875rem;
+    font-size: var(--text-eyebrow);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -66,11 +66,11 @@ const { pairs, themLabel, usLabel } = Astro.props;
     padding: 0.8rem 0;
     border-bottom: 1px solid var(--c-ondark-rule);
     font-family: var(--font-body);
-    font-size: 0.9375rem;
+    font-size: var(--text-small);
     line-height: 1.6;
   }
   .why-pair-item:last-child { border-bottom: 0; }
-  .why-pair-item span:first-child { flex-shrink: 0; font-weight: 700; font-size: 0.8125rem; line-height: 1.85; }
+  .why-pair-item span:first-child { flex-shrink: 0; font-weight: 700; font-size: var(--text-micro); line-height: 1.85; }
 
   .why-pair-item--them { color: var(--c-ondark-soft); }
   .why-pair-item--them span:first-child { color: var(--c-ondark-soft); }
@@ -78,7 +78,7 @@ const { pairs, themLabel, usLabel } = Astro.props;
   .why-pair-item--us span:first-child { color: var(--color-accent-ondark); }
 
   @media (min-width: 48rem) {
-    .why-pair { grid-template-columns: 1fr 1fr; }
+    .why-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .why-pair-col--them { border-bottom: 0; border-right: 1px solid var(--c-ondark-rule); }
   }
 </style>

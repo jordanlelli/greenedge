@@ -1,33 +1,260 @@
 ---
-import { site } from "../config";
+/**
+ * FAQ — THREE layout variants (v3.17).
+ *
+ *   accordion     [DEFAULT, no prerequisite]  Head left, <details> list right.
+ *                 The original layout, unchanged.
+ *   open-columns  [needs 6+ complete items]  Every answer printed open in two
+ *                 columns. No JS, no click to reveal.
+ *   grouped       [needs 2+ distinct item.group values]  One ruled block per
+ *                 category, label left, its questions right.
+ *
+ * WHY open-columns EXISTS. A <details> answer is in the DOM but collapsed.
+ * That is fine for Google's FAQPage rich result, which reads the JSON-LD in
+ * Layout.astro, not the markup — but it is a worse surface for the assistants
+ * that now answer "does <trade> in <suburb> do <thing>" by reading the page
+ * itself. When a client has enough questions to justify it, printing the
+ * answers open costs nothing and reads better on a dedicated /faq page.
+ *
+ * ONE COMPONENT, TWO PLACEMENTS. src/pages/faq.astro used to carry its own
+ * copy of this markup, and the two had drifted: a plus icon here against a
+ * chevron there, py-4 against py-5, divide-border against divide-brand/10.
+ * Same content, two behaviours, neither one canonical. The page now renders
+ * this component with headingLevel="h1", so a variant applies in both places
+ * and there is one implementation to fix.
+ *
+ * DEFENSIVE FALLBACK: an explicit _brief.layoutVariants.faqs skips the
+ * engine's prerequisite filter, so every branch re-checks its own data and
+ * degrades to accordion rather than rendering a one-group "grouping" or a
+ * two-column list with three entries in it.
+ */
+import { site, variantOf } from "../config";
 import Section from "./Section.astro";
 
+interface Props {
+  /** "h1" on the dedicated /faq page, "h2" when it is a homepage section. */
+  headingLevel?: "h1" | "h2";
+  /** The page supplies its own <section>; skip the Section wrapper. */
+  bare?: boolean;
+}
+const { headingLevel = "h2", bare = false } = Astro.props;
+const Heading = headingLevel;
+/* Question headings sit one level below the section heading (v3.22): on /faq
+   the section heading is the h1, and h1 -> h3 skipped a level. */
+const Question = headingLevel === "h1" ? "h2" : "h3";
+
 const faqs = site.faqs || {};
-const items: any[] = faqs.items || [];
-const eyebrow = faqs.eyebrow || "FAQ";
+const eyebrow = faqs.eyebrow || "";
 const heading = faqs.heading || "Common questions";
+
+/* A question with no answer is a dead row. Drop it here rather than render an
+   empty <details>, and keep the engine's count honest by using the same rule. */
+const items: any[] = (faqs.items || []).filter((f: any) => f && f.question && f.answer);
+
+/* ── variant resolution + defensive fallback ─────────────────────────────── */
+const groupNames: string[] = [
+  ...new Set(items.map((f: any) => String(f.group || "").trim()).filter(Boolean)),
+];
+
+let variant = variantOf("faqs", "accordion");
+if (variant === "open-columns" && items.length < 6) variant = "accordion";
+else if (variant === "grouped" && groupNames.length < 2) variant = "accordion";
+else if (variant !== "open-columns" && variant !== "grouped") variant = "accordion";
+
+/* grouped: ungrouped questions are NOT invented into an "Other" category. They
+   render after the groups, unlabelled, exactly as the client supplied them. */
+const grouped = groupNames.map((name) => ({
+  name,
+  items: items.filter((f: any) => String(f.group || "").trim() === name),
+}));
+const ungrouped = items.filter((f: any) => !String(f.group || "").trim());
 ---
 
 {items.length > 0 && (
-  <Section id="faqs" width="content" bg="bg">
-    <div class="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-wide text-highlight section-eyebrow">{eyebrow}</p>
-        <h2 class="mt-2 font-heading text-3xl font-semibold text-brand sm:text-4xl section-heading">{heading}</h2>
-      </div>
-      <div class="divide-y divide-border border-t border-border">
-        {items.map((f: any) => (
-          <details class="group py-4">
-            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-lg font-semibold text-brand [&::-webkit-details-marker]:hidden">
-              <span>{f.question}</span>
-              <svg class="h-5 w-5 shrink-0 text-accent-ink transition-transform group-open:rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
-              </svg>
-            </summary>
-            <p class="mt-3 text-base leading-relaxed text-muted">{f.answer}</p>
-          </details>
-        ))}
-      </div>
-    </div>
-  </Section>
+  <Fragment>
+    {/* accordion — the original two-column split, untouched */}
+    {variant === "accordion" && (
+      <Section id="faqs" width="content" bg="bg" class="faq-block">
+        <div class="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
+          <div class="faq-head min-w-0">
+            {eyebrow && <p class="text-highlight-ink section-eyebrow">{eyebrow}</p>}
+            <Heading class="mt-2 font-heading text-3xl font-semibold text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1] section-heading">{heading}</Heading>
+          </div>
+          <div class="faq-list min-w-0 divide-y divide-border border-t border-border">
+            {items.map((f: any) => (
+              <details class="group py-4">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-lg font-semibold text-brand [&::-webkit-details-marker]:hidden lg:text-xl">
+                  <span class="min-w-0">{f.question}</span>
+                  <svg class="h-5 w-5 shrink-0 text-accent-ink transition-transform group-open:rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+                  </svg>
+                </summary>
+                <p class="mt-3 text-base leading-relaxed text-muted">{f.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </Section>
+    )}
+
+    {/* open-columns — every answer printed, no interaction */}
+    {variant === "open-columns" && (
+      <Section id="faqs" width="content" bg="bg" class="faq-block">
+        <div class="faq-head max-w-2xl">
+          {eyebrow && <p class="text-highlight-ink section-eyebrow">{eyebrow}</p>}
+          <Heading class="mt-2 font-heading text-3xl font-semibold text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1] section-heading">{heading}</Heading>
+        </div>
+        <ul class="faq-open mt-10">
+          {items.map((f: any) => (
+            <li class="faq-open-item">
+              <Question class="faq-open-q">{f.question}</Question>
+              <p class="faq-open-a">{f.answer}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )}
+
+    {/* grouped — one ruled block per category */}
+    {variant === "grouped" && (
+      <Section id="faqs" width="content" bg="bg" class="faq-block">
+        <div class="faq-head max-w-2xl">
+          {eyebrow && <p class="text-highlight-ink section-eyebrow">{eyebrow}</p>}
+          <Heading class="mt-2 font-heading text-3xl font-semibold text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1] section-heading">{heading}</Heading>
+        </div>
+
+        <div class="mt-10 space-y-10">
+          {grouped.map((g) => (
+            <div class="faq-group">
+              <p class="faq-group-label">{g.name}</p>
+              <div class="faq-list min-w-0 divide-y divide-border border-t border-border">
+                {g.items.map((f: any) => (
+                  <details class="group py-4">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-lg font-semibold text-brand [&::-webkit-details-marker]:hidden lg:text-xl">
+                      <span class="min-w-0">{f.question}</span>
+                      <svg class="h-5 w-5 shrink-0 text-accent-ink transition-transform group-open:rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+                      </svg>
+                    </summary>
+                    <p class="mt-3 text-base leading-relaxed text-muted">{f.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {ungrouped.length > 0 && (
+            <div class="faq-group">
+              <p class="faq-group-label faq-group-label-blank" aria-hidden="true"></p>
+              <div class="faq-list min-w-0 divide-y divide-border border-t border-border">
+                {ungrouped.map((f: any) => (
+                  <details class="group py-4">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-lg font-semibold text-brand [&::-webkit-details-marker]:hidden lg:text-xl">
+                      <span class="min-w-0">{f.question}</span>
+                      <svg class="h-5 w-5 shrink-0 text-accent-ink transition-transform group-open:rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+                      </svg>
+                    </summary>
+                    <p class="mt-3 text-base leading-relaxed text-muted">{f.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </Section>
+    )}
+  </Fragment>
 )}
+
+<style>
+  /* Overflow floor. Same rule and same reason as Story.astro: a long URL or an
+     unhyphenated product name in an answer otherwise sets the min-content width
+     of its column. Scoped off classes declared in THIS file — never off a class
+     passed as a prop to Section.astro, because that <section> belongs to
+     Section's scope and never carries this component's data-astro-cid. */
+  .faq-head :is(h1, h2, p),
+  .faq-list :is(summary, span, p),
+  .faq-open :is(h2, h3, p),
+  .faq-group-label {
+    overflow-wrap: anywhere;
+  }
+
+  /* ── open-columns ─────────────────────────────────────────────────────── */
+  .faq-open {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 64rem) {
+    /* Two tracks, not CSS columns: `column-count` can split a question from its
+       answer across the gutter, which is unreadable and cannot be prevented
+       reliably. A grid keeps each pair whole. */
+    .faq-open {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 4rem;
+    }
+  }
+
+  .faq-open-item {
+    min-width: 0;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .faq-open-q {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: var(--text-lead);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-brand);
+  }
+
+  .faq-open-a {
+    margin: 0.5rem 0 0;
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  /* ── grouped ──────────────────────────────────────────────────────────── */
+  .faq-group {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 64rem) {
+    .faq-group {
+      grid-template-columns: minmax(0, 0.32fr) minmax(0, 1fr);
+      gap: 3rem;
+      align-items: start;
+    }
+  }
+
+  .faq-group-label {
+    margin: 0;
+    min-width: 0;
+    font-family: var(--font-body);
+    font-size: var(--text-eyebrow);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 64rem) {
+    /* Optical alignment with the first question, which sits below a 1px rule. */
+    .faq-group-label { padding-top: 1.25rem; }
+  }
+
+  /* The ungrouped block keeps the two-track shape so its questions line up with
+     the grouped ones above it, but carries no invented category name. */
+  .faq-group-label-blank { min-height: 0; }
+</style>

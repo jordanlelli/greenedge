@@ -1,5 +1,1078 @@
 # Universal template — regeneration notes
 
+## Unreleased
+
+(Backlog branches add notes here; moved under a version heading at release.)
+
+## v3.34.0 — docket and index heroes balanced against the copy
+
+This changes how some built sites look. After pulling: build, then `npm run
+qa`.
+
+### docket-min-rows: the docket hero needs four spec rows, and both heroes centre their panel
+
+The v3.33 layout check flagged this template's own demo: a docket hero with
+three spec rows (services, areas, hours) beside a four-line heading left the
+right column mostly empty from 1024px up. Recon demos built from Facebook pages
+usually have exactly those three rows, so they would ship the same thing.
+
+- `resolveDocketRows(site)` and `DOCKET_MIN_ROWS` (4) are new in
+  `src/lib/content.mjs`, shared by the engine and `HeroDocket.astro`, like
+  `resolveStoryCredentials`. The rows and their order are unchanged.
+- The engine has a new prerequisite, `hero/docket` → `docketRows`: it no
+  longer picks docket for an intake with fewer than four rows.
+- `Hero.astro`: a docket pinned by hand that is too thin renders the index
+  hero when there are four or more services, otherwise typographic.
+- `HeroDocket.astro`: from 64rem the rows sit centred against the copy (the
+  divider still runs the full height) and each row has 1.2rem of padding
+  instead of 0.9rem.
+- `HeroIndex.astro`: the service rail is centred against the copy instead of
+  top-aligned (`align-self: center` from 64rem).
+- `client-intake.demo.json`: the demo's hero is pinned to `index`, since the
+  invented business has three docket rows.
+- `scripts/check-layout.mjs`: a column that is itself a visible panel (a fill,
+  or an outline on two or more sides) counts as content when it stops short of
+  the full row, and a block centred against a taller one counts only the larger
+  of its two edge gaps. Both were false readings on the index rail.
+
+Who sees a change: a site whose hero is docket with three or fewer rows now
+gets the index hero (or typographic). Every docket and index hero is centred
+against its copy on desktop. Checked: the demo (index), and docket with four
+and with five rows, pass impeccable and the layout check at all ten widths.
+
+## v3.33.0 — layout check at ten screen widths
+
+### layout-check: layout faults measured at ten screen widths
+
+New script `scripts/check-layout.mjs`, run by `npm run qa` after impeccable
+and on its own by `npm run qa:layout`. It serves `dist/`, opens every built
+page in headless Edge or Chrome (whichever is installed, over the browser's
+own debugging protocol, so nothing is added to package.json) at 360, 390,
+768, 1024, 1280, 1366, 1440, 1536, 1707 and 1920px, and fails on:
+
+- `overflow`: the page scrolls sideways.
+- `column-gap`: side-by-side blocks where one leaves a large empty area (over
+  160px and over 20% of the row) beside the other. Photos beside text,
+  sticky rails, header, footer and nav are skipped.
+- `table-space`: a table column far wider than anything in it.
+- `table-cells`: a table row with a different cell count from its header.
+- `adblock`: an id or class that common ad-block lists hide.
+
+What changes on a built site: nothing. What changes for a build: `npm run
+qa` can now fail on layout. Fix the layout or the intake; mark a deliberately
+uneven block with `data-layout-check="ignore"` only after asking.
+
+Found on the demo by its first run: the docket hero with three spec rows
+(services, areas, hours) leaves the right column mostly empty at 1024px and
+up. Not fixed in this change.
+
+## v3.32.0 — Vercel Web Analytics and Speed Insights
+
+### vercel-analytics: Web Analytics and Speed Insights on every page
+
+Two new dependencies: `@vercel/analytics` and `@vercel/speed-insights`. After
+pulling: `npm ci` (the lockfile changed).
+
+`Analytics.astro` now always renders Vercel's `<Analytics />` and
+`<SpeedInsights />` alongside whatever `analytics.provider` selects. Both are
+cookieless, so the consent banner logic is unchanged. There is no intake flag:
+every site is hosted on Vercel.
+
+What changes on a built site: two deferred scripts in the head of every page
+(`/_vercel/insights/script.js`, `/_vercel/speed-insights/script.js`). Nothing
+visible changes.
+
+Per project, once, in the Vercel dashboard: enable Web Analytics and Speed
+Insights. Until then the scripts load and report nothing.
+
+A&J and GreenEdge already carry this change by hand (same edit to
+`Analytics.astro`), so it will not show as drift once they are on this release.
+
+## v3.31.0 — highlight text contrast, stale-build guard, audit clean
+
+One item changes how some built sites look (eyebrow-contrast: text that
+failed WCAG AA is darkened to pass). The other two change no built output.
+After pulling: `npm ci` (the lockfile changed), then build before running qa.
+
+### eyebrow-contrast: highlight used as text is now fitted for text
+
+This one changes how some built sites look. It is a fix: text that failed
+WCAG AA now passes.
+
+`style.highlight` is a fill. Two kit rules and five utilities used it as a
+TEXT colour without any contrast fitting, so a pale highlight (`#5DB3D6`)
+rendered eyebrows at 2.1:1 while check-universal printed "palette clears AA".
+
+- **`--c-highlight-ink` / `--color-highlight-ink`** (palette.mjs, global.css):
+  the highlight walked toward the ink only as far as 4.5:1 needs, against
+  the page and the alt surface. A highlight that already passes is unchanged.
+  `text-highlight-ink` is the utility.
+- **coast and press eyebrows** use it. An eyebrow on a dark photo hero keeps
+  its on-dark colour (the kit rule steps aside for `.text-accent-ondark`);
+  before, the kit rule forced the raw highlight there too.
+- **FAQ, tiers and gallery eyebrows on every kit**, and the price line and
+  step markers on `/services/<slug>`, used the `text-highlight` utility:
+  same failure, reached without a kit rule (3 findings on signal with the
+  same pale highlight). They now use `text-highlight-ink`. This goes beyond
+  the backlog item, which named only the two kit rules.
+- **Inside the colour band** `--color-highlight-ink` and `--color-accent-ink`
+  step to the band's text colour. `--color-accent-ink` had no remap at all:
+  with the band on story, the step numbers were dark on dark (1.0:1), on any
+  kit. Review stars inside a banded testimonials section used the same token
+  and are now the band text colour.
+- **check-universal section D**: every colour a `.kit-*` rule sets as text,
+  and `text-highlight-ink`, is contrast-checked on the page and alt surface,
+  with the client's palette and with a pale probe highlight, so a rule that
+  goes back to an unfitted token fails every build. `text-highlight` on
+  anything but an `<svg>` is an error.
+
+What changes on a built site:
+- Every page's palette `style` attribute gains `--c-highlight-ink`, and the
+  CSS file changes. On the demo (signal) the homepage HTML is otherwise
+  byte-identical.
+- Looks different only where the highlight (or accent, when no highlight is
+  set) fails 4.5:1 on the page: those eyebrows get a darker step of the same
+  hue. And where the colour band lands on story or testimonials: step numbers
+  and stars become readable.
+
+Verified: the demo intake with highlight `#5DB3D6`, an eyebrow on every
+section and the band forced onto story passes `npm run qa` on all five kits
+(coast and press had 17 findings each before). Not verified in a built page:
+the dark-photo-hero eyebrow, because the demo has no photo. The selector was
+checked in the browser by adding the class.
+
+After pulling: nothing. No new intake key.
+
+### qa-stale-dist: qa refuses a build that is older than the source
+
+No change to any built site.
+
+`npm run qa` scans whatever is in `dist/`. When a client's `npm ci` failed and
+`astro build` could not run, qa scanned the previous build and printed
+"0 findings".
+
+- **scripts/qa.mjs** exits 1, before starting Chrome, when `dist/index.html`
+  is missing or older than the newest file in `src/`, `client-intake.json`,
+  `client-intake.demo.json`, the `INTAKE` file if one is set,
+  `package-lock.json` or `astro.config.mjs`. The message names the file that
+  changed and both times. `--keep-going` does not override it.
+- docs/LESSONS.md records both halves: the false pass, and the cause of the
+  failed install (a leftover `astro preview` holding a native binary open).
+
+After pulling: nothing. Expect qa to refuse once straight after the pull
+(the pull changes `src/`): build, then qa, as always. `astro.config.mjs` and
+the demo intake are checked in addition to the three inputs the backlog item
+lists.
+
+### deps-pass: audit clean, three unused font packages removed
+
+No change to any built site: Hanson's intake (65 files) and the demo build
+are byte-identical before and after, including asset filenames.
+
+`npm audit` reported 2 high-severity findings on the v3.30.0 lockfile. Both
+are in packages the build uses on the build machine; neither ships in
+`dist/`. `npm audit` now reports 0.
+
+- **Removed** `@fontsource/inter`, `@fontsource/inter-tight`,
+  `@fontsource/space-grotesk`. No kit and no Style Picker face or base has
+  loaded them since v3.28.0.
+- **`http-cache-semantics` 4.2.0 → 4.3.0** (via astro). GHSA-ch52-4w7c-c8xp:
+  a shared HTTP cache can serve one user's cached response to another through
+  `max-stale`. Caveat: the advisory lists no patched version, the project
+  publishes no release notes for 4.3.0, and the code diff (a `status()`
+  accessor, stricter `Vary` matching) does not visibly change max-stale
+  handling. The update takes the lockfile out of the flagged range; whether
+  the flaw itself is fixed is not confirmed. Astro uses the package for its
+  own build-time cache, not a shared one.
+- **`source-map-js` 1.2.1 → 1.2.2** (via postcss, tailwind, svgo, magicast).
+  GHSA-68fv-2mgg-jv7q: a crafted indexed source map can block the event loop.
+  Fixed in 1.2.2 per its release notes.
+
+Each change is its own commit. No direct dependency moved (`npm outdated` is
+empty) and nothing was added.
+
+Verified: `npm ci` from the new lockfile installs; check-fonts passes on all
+five kits and the three picker bases (heavy, warm, friendly); `npm run
+qa:demo` 0 findings.
+
+After pulling: `npm ci` (the pull prints the reminder), then build as usual.
+
+## v3.30.0 — demo intake, sync tests, data types split
+
+No change to any built site. Three backlog items, all tooling and structure.
+After pulling: nothing is required (details under each item).
+
+### sync-tests: `npm run test:sync`
+
+No change to any built site, and no change to `template-sync.mjs` itself.
+
+- **`scripts/test-template-sync.mjs`** (no dependencies). Builds a throwaway
+  template repo (v1.0.0 then v1.1.0), a bare remote and a client repo with no
+  shared history under the OS temp dir, and runs the real script against
+  them. 20 cases: every row of docs/SYNC.md §1 for `status` and `pull` (take,
+  keep + drift, clean 3-way merge, overlapping conflict with markers, template
+  delete, restore missing, deleted upstream but edited here), no-base pulls
+  with and without `--theirs`, CRLF-only differences, client-owned and
+  template-only files, the launch lock, `init` by tag / by package.json
+  history / `--base`, `import` dry run, `--apply`, `--only`, `--include-new`
+  and no-base, and `release`. Git's system and global config are ignored so
+  local settings cannot change the result.
+- **`npm run test:sync -- --mutants`** breaks the script one branch at a time
+  in a temp copy (26 mutations across `classifyClient`, `cmdImport`, the lock
+  and `release`) and fails if any of them leaves every case passing, or if a
+  mutation no longer matches the script's text.
+
+After pulling: nothing. Run `npm run test:sync -- --mutants` before releasing
+a change to `template-sync.mjs` (added to the SYNC.md release checklist).
+
+### demo-intake: the template can build and qa itself
+
+No change to any built site: a client build (Hanson's intake, 65 files) is
+byte-identical before and after.
+
+- **`client-intake.demo.json`**: an invented business, "Example Concreting Co
+  (demo)" on `example.com.au`, `seo.noindex: true`, no reviews, no photos, the
+  services, FAQ and areas pages on, grouped services and FAQs. The phone number
+  is one ACMA publishes for use in fiction (cited in `_meta.notes`, written
+  from memory: the ACMA page could not be fetched during the run, so check it).
+  Hero is pinned to `docket` because the typographic motif is an open
+  impeccable finding (BACKLOG hero-motif).
+- **`npm run demo`** (gated build) and **`npm run qa:demo`** (build + qa) read
+  it. `client-intake.json` is never touched.
+- **`INTAKE` env var**, default `client-intake.json`. `scripts/intake-path.mjs`
+  resolves it for check-fonts, check-intake, check-universal, pick-variants,
+  verify-lock and apply-picks; `astro.config.mjs` reads the same file and
+  aliases `@intake` to it, which is what `src/config.ts` now imports
+  (`tsconfig.json` maps `@intake` for the editor). `--intake` on check-intake
+  and check-universal still wins over the env var.
+- **`scripts/with-intake.mjs <file> <command>`** sets `INTAKE` for a command on
+  any shell.
+- **check-intake**: `example.com(.au)`, `example.org/.net` and the `.example`,
+  `.test`, `.invalid` TLDs now count as demo hosts in the noindex check, beside
+  vercel.app and friends. Before, the demo's `noindex: true` on
+  `example.com.au` was an error. Side effect: an intake still on the skeleton's
+  `example.com.au` with noindex off now gets the "demo host is indexable"
+  warning. A real domain behaves as before.
+- `pick-variants` and `verify-lock` now find the intake from the repo root, not
+  the current directory. Same file when run through npm.
+
+After pulling: nothing. `client-intake.demo.json` arrives in client repos as a
+shared file so `npm run qa:demo` works there too; it is never built unless
+asked for.
+
+### split-data-types: record types and helpers out of src/data
+
+No change to any built site. Checked three ways with Hanson's intake plus one
+service record: main, this change with the old data files, and this change
+with migrated data files all build byte-identical output (66 files).
+
+`src/data/*.ts` is client-owned and never synced, but it also held the record
+types and five helper functions, so a change to either never reached a client.
+
+- **`src/lib/types.ts`**: `Service`, `ServiceImage`, `PriceUnit`,
+  `GalleryEntry`, `GalleryImage`, `GalleryImageKind`, `GalleryService`,
+  `RecentJob`, `Testimonial`. Unchanged shapes.
+- **`src/lib/data.ts`**: `getServiceBySlug`, `formatServicePrice`,
+  `getRecentGalleryEntries`, `getGalleryByService`, `getRecentJobs`. Unchanged
+  bodies.
+- The template's four data files now hold records and an `import type` only.
+  Components and pages import types and helpers from `src/lib`.
+
+After pulling: nothing is required. A client's own data files are not touched
+by the pull and keep working; the types and helpers still declared in them
+are simply no longer used. To tidy a client's data file (optional, per file):
+delete its `export type …` blocks and helper functions and replace the
+`import type { ImageMetadata } from "astro"` line with
+`import type { Service } from "../lib/types";` (`GalleryEntry`, `RecentJob` or
+`Testimonial` for the other three). Keep the `export const …: Type[] = [` line
+exactly as it is: check-intake and check-service-prices read it.
+
+Not done: `astro check`. `npx @astrojs/check` will not run without being
+installed in the project (it prompts to add it and typescript to
+package.json), and adding a dependency is not this item's call. `tsc --noEmit`
+over the .ts files reports the same two errors before and after
+(src/config.ts, src/pages/llms.txt.ts), none in the new or changed files;
+.astro files are type-checked only by the build.
+
+## v3.29.0 — launch lock
+
+No change to any built site. Tooling and rules only.
+
+A launched site must never take a template update as a side effect. v3.28
+showed why: one release changed fonts, motion and four sections, and during
+that rollout a pull into the live A&J site was offered alongside the demos.
+
+- **`template-sync.mjs lock` / `unlock`** (`npm run template:lock`,
+  `template:unlock`). `lock` writes `"locked": true` (plus `lockedAt` and an
+  optional `--note`) into the client-owned `.template-sync.json`.
+- **`pull` refuses on a locked site**, before it creates a branch or writes a
+  file (exit 1). `--dry-run` and `status` still work and print LOCKED.
+  `init` and `pull` keep the lock when they rewrite the state file. There is
+  deliberately no flag that pulls through it.
+- **Rules**: CLAUDE.md "Launched sites are frozen", docs/SYNC.md §4c-0, the
+  release checklist, and step 0 of the `/sync-template` skill.
+
+After pulling: nothing. At each site's launch: `npm run template:lock`, commit
+`.template-sync.json`, note it in CLIENT.md. For a site already live on an
+older template, lock it with the template's copy of the script:
+`node ../universal-template/scripts/template-sync.mjs lock`.
+
+## v3.28.0 — de-box pass, review cards, kit fonts
+
+THIS ONE CHANGES HOW BUILT SITES LOOK. Every client that pulls it gets the
+revised sections below; no intake edit is needed and no intake key changed
+meaning. Check each client at 1440 and 390 after `template:pull`.
+
+Why: an audit of three real builds (Hanson, Cove, A&J) at 1440 and 390. The
+pipeline demos measured FIVE boxed sections out of nine (services, why us,
+reviews, about, contact), the phone number four times above the fold, and
+every section opening with the same heading + grey line + grid of bordered
+boxes. DESIGN-LIBRARY G2 already said "max 2 card-grid sections"; nothing
+enforced it, and the default variants broke it on their own.
+
+- **Hero / header: one call action.** When the primary (or secondary) hero
+  CTA is a `tel:` link, the trailing "Call 04xx" text link is dropped. When
+  the header CTA is a `tel:` link, the plain number beside it (and the second
+  "Call" button in the mobile menu) is dropped. Quote-first sites are
+  unchanged.
+- **services/grid-icons: one ruled sheet.** Cells share a frame and a
+  hairline instead of each being a bordered card. The quote card is now a
+  full-width accent row closing the sheet; on a call-first site it is the one
+  link (plus `contact.hours` if set) and never prints the number twice.
+  Icons take the brand colour, not the accent (accent is for action).
+  Ordinals take `muted`: accent-ink at 11px measured 3.2:1 on a yellow-accent
+  palette and failed `npm run qa`, on `main` as well.
+- **whyUs/icon-grid: ruled checklist.** No boxes, no tick-in-a-circle badge.
+  Hanging tick, title and sentence on one edge, hairline above each entry.
+- **story/ruled-cards: copy first.** Lede left, remaining copy right, then
+  `story.cards` as one ruled strip. credentials-panel prints the same strip.
+- **Testimonials: review cards, still scrollable.** Same sideways scroller
+  as before (three across on desktop, more than three scroll), restyled as
+  platform-style review cards: initial, name, Google / Facebook mark linked
+  to the source, then the text. Added: previous / next buttons on desktop,
+  keyboard scrolling, "Read more" on reviews over seven lines (JS only), and
+  a link to the review profile in the section head. The section sits on the
+  tint surface.
+  NEW OPTIONAL INTAKE FIELDS, all real-data-only: `items[].rating` (1 to 5,
+  the reviewer's own stars), `items[].date`, and `testimonials.rating
+  { score, count }` copied from the profile. No value, no stars. check-intake
+  fails on a rating outside 1 to 5 or a half-filled block rating. No
+  AggregateRating JSON-LD is emitted (unchanged).
+  (An editorial "one review leads" layout was built first and dropped at
+  Jordan's request.)
+- **Kit fonts: Inter and Space Grotesk retired.** ledger body Inter Tight ->
+  Public Sans; press body Inter -> DM Sans; signal Space Grotesk + Inter ->
+  Bricolage Grotesque + DM Sans (signal's hero weight 700 -> 800, display
+  tracking -0.035em -> -0.025em). workshop and coast unchanged. No new
+  packages: every family was already installed. CLIENTS AFFECTED: any site
+  on ledger, press or signal with no `_brief.stylePicks` (today: Cove
+  Electrical). Sites with stylePicks, and workshop sites, do not change.
+  `@fontsource/inter`, `inter-tight` and `space-grotesk` are now unused and
+  can come out in the next dependency pass.
+  To change it: KIT_FONT_FACES in src/lib/variants.mjs plus the kit's
+  --weight-* tokens in global.css; per client, `_brief.stylePicks`.
+- **Motion: "standard" eased.** 20px / 0.6s -> 12px / 0.4s (items 16px ->
+  10px). "subtle" and "bold" render as before (bold now states its own item
+  distance, which it used to inherit from standard). Affects every site
+  that has not set `features.motion` to subtle, bold or off.
+  To change it: the three --rv-* tokens in global.css, or `features.motion`.
+- **Suburbs: a line of place names, not pills.** areas/chips, the suburbs
+  inside areas/zoned, and /areas all set suburbs as a ruled line of names.
+  NEW OPTIONAL KEY `usage.areaStyle: "pills"` puts the chips back for a
+  client. Affects every site on areas chips or zoned, and /areas.
+- **Homepage gallery: mosaic.** First image leads at 2x2; shapes for every
+  count 1 to 6 with no hole; two columns on a phone (it was six full-width
+  photos, about 1700px of scrolling). "View the full gallery" sits in the
+  section head on desktop.
+- **Contact.** Form has no box and sits on the section's left edge. Field
+  borders are `ink/55` (about 3.6:1; the old border token was about 1.2:1,
+  under WCAG 1.4.11). The details panel's dividers no longer curl (the rule
+  was on a rounded link). With no form endpoint the phone number is set at
+  display size and the panel shows only address and hours.
+- **Footer.** With `footer.columns` empty, link columns are derived from
+  `services.items` and the header nav. Authored columns still win.
+- **check-intake.** New warning when `hero.eyebrow` repeats the business
+  name (the header already shows it).
+- **DESIGN-LIBRARY.** New banned patterns B10 to B15, three QA lines, and a
+  note that the section 3 presets carry stock Tailwind swatches and
+  default-stack fonts (use the picker palettes and the kit table instead).
+
+Verified: build gates and `npm run qa` clean on Hanson (split-media,
+grid-icons, icon-grid, ruled-cards; and with `usage.areaStyle: "pills"`),
+Cove on signal (docket, ledger, ruled-rows; grid-icons + icon-grid forced on
+an earlier pass of this branch) and again forced to the ledger kit, and A&J
+(fullbleed, split-scroll, portrait-lede, authored footer, /areas). Gallery
+checked at 3, 5 and 6 photos. Review cards checked with and without ratings;
+previous / next, keyboard scrolling and "Read more" exercised in headless
+Chrome, with and without reduced motion.
+Known and NOT from this branch: Cove forced to press (and coast) fails qa on
+the hero eyebrow, 2.4:1, because those kits colour the eyebrow with the
+client's highlight. Same result on `main`.
+NOT verified: the tiers and before-after sections, a dark-theme client, and
+phone width for A&J.
+
+## v3.27.0 — sample-content tag, service icons
+
+No change to any site that sets neither field.
+
+### demo.sampleSections — NEW
+A demo built before the owner has been spoken to has empty sections, which
+hides what a finished site looks like. The demo pipeline now fills them with
+example copy and lists them here; Layout.astro tags each listed section
+`data-sample` and global.css draws a small red "Sample content" label on it.
+check-intake fails when sampleSections is non-empty and seo.noindex is not
+true. Reviews, ratings, licence and ABN numbers are never sample content:
+that rule lives in the pipeline's gate, not here.
+
+### services.items[].icon — NEW (src/lib/icons.mjs)
+24 single-path line icons in currentColor. ServicesGridIcons shows the icon
+in place of the card's number when the name is known. check-intake rejects
+an unknown name and lists the valid ones.
+
+## v3.26.0 — side entrances (features.motion "bold")
+
+No change to any site unless its intake sets features.motion to "bold".
+- New level `bold`: standard, slightly longer, plus side entrances. The two
+  halves of a two-part section are marked `data-reveal-from="left|right"`
+  and slide in from that side: Contact (form / details panel), Story
+  (credentials-panel and portrait splits), BeforeAfter pairs,
+  WhyUsContrastPair, ServicesSplitScroll rows (alternating with the flip).
+- Each half is observed on its own, so a row deep in a long section moves
+  when it arrives. From 64rem up only; stacked, the halves use the normal
+  rise. Distance is the --rv-side token in global.css.
+- The hero is not included: it is above the fold, and starting its photo
+  hidden would delay the largest paint.
+- To give another component a side entrance, add data-reveal-from to the
+  element. Nothing else is needed.
+
+## v3.25.0 — scroll motion
+
+CHANGES BUILT PAGES: every client gets the staggered grids on its next pull,
+and every fullbleed-hero client gets the pinned hero. Both can be turned off
+in the intake.
+
+### Staggered grids
+The opt-in stagger (data-reveal="stagger" + data-reveal-item) existed since
+v3.x and no component used it. Now on: services (grid-icons, feature-lead,
+ledger), the homepage gallery and testimonials. Section.astro takes
+`reveal="stagger"`. A stagger section now also fades in as a whole, so the
+heading no longer sits alone before its grid arrives.
+
+### features.motion — NEW (standard | subtle | off)
+Layout.astro sets `<html data-motion>`; the reveal distance and duration are
+tokens in global.css (--rv-dist, --rv-item-dist, --rv-dur). `off` skips the
+observer entirely. Missing or unknown = standard = the old values, except the
+item transition, which moved from 0.55s to the shared 0.6s.
+
+### Pinned fullbleed hero — NEW (hero.cover, default true)
+HeroFullbleed is `position: sticky` and everything after it is lifted above
+it, so the next section slides up over the photo. A small script sets where
+it sticks: under the header, or, when the hero is taller than the screen,
+late enough that its last line is seen first. The section that slides over is
+not faded in (the hero would show through it). Off under reduced motion and
+with features.motion "off". Other hero variants are untouched.
+
+## v3.24.0 — Kova Style Picker
+
+### Style Picker wired in (src/lib/stylepicks.mjs, scripts/apply-picks.mjs — NEW)
+No change to any site without `_brief.stylePicks`.
+- The picker page gives a client a code such as `anton.heavy.harbour.100`
+  (headline font, base, colour set, headline size, optional `hh`).
+  `npm run picks -- <code>` writes it to `_brief.stylePicks`, writes the
+  colour set into `style` as plain hex, and sets `designKit` when blank.
+- Type is resolved from the code on every build: astro.config.mjs loads the
+  picked fonts in place of the kit's (plus `--font-hero` when the headline
+  font differs), Layout.astro sets the weight/width/case/scale vars on
+  `<html>`, global.css reads them with the old values as fallbacks.
+- 14 font packages added (11 headline fonts, Bricolage Grotesque, DM Sans,
+  variable Archivo and Fraunces). Only the picked ones reach a build.
+- New optional `hero.displayLine`: a short line in the headline font with
+  `hero.heading` small beneath it, both inside the one h1.
+- The homepage hero sets its size through `--hero-size` so the picker's
+  size factor can multiply it; rendered size is unchanged without picks.
+- check-fonts verifies the picked faces; check-intake rejects a code with
+  an id the template does not list. The tables in stylepicks.mjs and
+  scripts/pick-palettes.mjs mirror the picker page and must change with it.
+- Known gap: with `hh` (section headings match the headline), h2/h3 take the
+  headline font but not its optical size factor.
+
+## v3.23.1 — backlog ready for unattended runs
+
+No change to any built page.
+- BACKLOG.md: rules made explicit (build fixture, "unchanged for existing
+  clients", Unreleased notes, S/M/L sizes), items re-ordered so dependencies
+  come first (demo-intake unblocks build/qa in the template itself), every
+  item given concrete acceptance checks and implementation pointers. New
+  "Run log" section.
+- `/backlog-run`: preflight, never asks questions mid-run (logs assumptions),
+  dependency-aware branching, local runs leave branches unpushed unless
+  `--push`, budget rule, final report with push commands.
+- docs/CLAUDE-CODE.md §5: usage-reset timing, `settings.local.json` allow list
+  and the exact command for an unattended local run, cloud-run notes.
+
+## v3.23.0 — git-based template sync, Claude Code knowledge files
+
+No change to any built page. This release is about how the template reaches
+clients and how changes come back.
+
+### Template ↔ client sync (scripts/template-sync.mjs, template.config.json — NEW)
+Client repos started as zip copies and share no git history with the template,
+so `git merge` cannot relate them, and A&J's first repo drifted (~34 shared
+files) with nothing reaching the template. The sync works per file with a
+recorded base commit, i.e. a real three-way merge without shared history:
+- `template.config.json` — ownership manifest. Client-owned: intake, CLIENT.md,
+  src/data/**, src/assets/**, public/**, .vercelignore. Template-only:
+  BACKLOG.md, .github/**. Everything else is shared.
+- `npm run template:status | init | pull` in a client; `template:import` and
+  `template:release` in the template. `.template-sync.json` (client-owned,
+  committed) records the base. Details and workflows: docs/SYNC.md.
+- Tested on a copy of AandJ-v2 against a simulated remote: take, keep-and-report
+  drift, clean 3-way merge, overlapping conflict with markers, restore missing
+  shared file, import with `--only`, release bump of package.json and both
+  package-lock.json fields.
+- First real finding: AandJ-v2 ships `api/quote.js`, which the template's
+  privacy.mjs references but the template lacks (BACKLOG `port-api-quote`).
+
+### Claude Code knowledge
+- `CLAUDE.md` rewritten: imports CURSOR-CONTEXT.txt and the new `CLIENT.md`;
+  template-vs-client rules tied to the sync; skills; communication rules.
+- `CLIENT.md` (client-owned stub): per-client facts, scope, decisions, open items.
+- `docs/ARCHITECTURE.md` (pipeline, engine, file map, add-a-thing checklists),
+  `docs/SYNC.md`, `docs/LESSONS.md` (past failures → rules),
+  `docs/CLAUDE-CODE.md` (machine setup, what loads where, weekly run).
+- `.claude/skills/`: `verify`, `sync-template`, `port-to-template`,
+  `new-client`, `backlog-run`.
+- `.claude/settings.json`: routine build/git commands allowed; push, merge,
+  tag, `npm install`/`update` ask; force-push and `npm audit fix` denied.
+- CURSOR-CONTEXT §16 (repo roles), README quick start + "Template sync".
+
+### After pulling (existing clients)
+First time only, from the client folder:
+`git remote add template https://github.com/jordanlelli/universal-template.git`,
+`node ../universal-template/scripts/template-sync.mjs init --base v3.22.1`
+(or the tag matching the client's version), `npm run template:status`, then
+`template:pull`. Fill in `CLIENT.md`. If `.gitattributes` is new to the repo,
+`git add --renormalize .` as its own commit.
+
+## v3.22.1 — CLAUDE.md
+
+Claude Code reads CLAUDE.md at the project root on every session. It imports
+CURSOR-CONTEXT.txt (so the rules have one source, not two copies that drift)
+and adds what Claude needs on top: tell template repo from client repo, treat
+shared-code edits in a client repo as template changes, diff before writing
+shared code, verify with build + qa + screenshots, the image checklist, and
+where the reference docs are. .gitignore also skips .claude/skills/impeccable/,
+.claude/settings.local.json and CLAUDE.local.md (per-machine). No code change.
+
+## v3.22.0 — impeccable-clean by default, real-browser QA, dependencies refreshed
+
+Tested: five builds covering every kit and every layout variant at least once
+(A&J content, derived palette, FAQ page on), each scanned with the new
+`npm run qa`. Four scan clean; the fifth has one finding — the typographic
+hero's motif (see "Still open"). Baseline before this version on the same
+builds: 81 static findings on A&J alone, 30 of them real.
+
+### QA runs in a real browser (scripts/qa.mjs — NEW)
+`npm run qa` serves dist/, scans every built page in headless Chrome through
+impeccable's URL engine and exits 2 on findings. The old `impeccable detect
+dist` (kept as `qa:static`) reads HTML with jsdom, which cannot resolve
+Tailwind v4 spacing (calc(var(--spacing) * n) -> 0px): 68 of A&J's 81
+findings were false cramped-padding. `qa:src` is the static pass over src/.
+No dependency added; npx fetches impeccable + puppeteer on first run.
+
+### .impeccable/config.json actually applies
+The ignores were a flat `ignoreRules` array of objects; impeccable reads
+`detector.ignoreValues`, so none of them ever matched. Rewritten to the real
+schema; `qa:src` now exits 0.
+
+### Eyebrows: sentence case, optional (global.css + 16 components)
+The 11-12px tracked-uppercase label above a heading tripped three rules
+(kicker-above-heading, hero-eyebrow-chip, all-caps-body). `.section-eyebrow`
+now owns the type: 15px, sentence case, untracked; components carry only a
+colour. Kit treatments that were themselves flagged are gone (workshop's
+3px accent side-bar = side-tab; ledger's accent lead-rule = dash-prefix
+eyebrow; signal's "+" prefix and 0.2em tracking). Kits now vary the eyebrow
+by face/weight/style/colour. Skeleton eyebrows are empty and the hardcoded
+"FAQ" / "Plans" / "See the difference" / "Services" fallbacks are removed:
+an eyebrow renders only when the intake sets one.
+
+### Measure: 40em everywhere (global.css base layer)
+p, dd, blockquote, figcaption cap at 40em (~72-80 characters, scales with
+the element's own size). Every ch-based width is gone — 70ch in Inter or
+Source Sans is ~88 characters, which is why signal/press legal pages failed
+line-length while other kits passed.
+
+### Hero headline size is length-aware (HeroCopy.astro)
+Large heroes cap at 68px once heading + tint pass 40 characters (80px for
+short ones). A long headline at 75-80px filled ~40% of a laptop screen
+(oversized-h1). Location line and trust labels are sentence case.
+
+### Smaller fixes
+- services/index: "What's included" lost its accent side-bar (side-tab); the
+  side list's active item is a tinted row, not a left bar; the list card has
+  real inner padding; titles over 50 characters step to 34px/1.3.
+- servicesPage/featured: accent top-border on rounded cards removed.
+- services/ledger: row rules moved to the top of each row, so a title
+  belongs to its own row (heading-rhythm).
+- services/grid-icons: card titles leading-snug.
+- Filled CTAs get vertical padding, not just min-height.
+- FAQ questions are one level below the section heading (h1 -> h2 on /faq).
+- Gallery: the "PHOTO" chip only appears on before/after pairs.
+- Palette: a DERIVED light paper is held out of the cream band (warm
+  surface, and tint on warm brands). A client's style.bg is never changed.
+
+### Dependencies
+astro ^7.3.5, @astrojs/sitemap ^3.7.4 (lockfile regenerated). The v3.20/21
+lockfile pinned astro 7.1.3 with 8 advisories (1 critical: astro itself;
+high: sharp, svgo, nanoid, js-yaml, smol-toml). Now 0. Every platform's
+native binaries are still in the lockfile. README "Dependencies" documents
+`npm ci` for clients and the update procedure for the template;
+Quick start and the Vercel install command are now `npm ci`.
+
+### Still open (a design decision, not a bug)
+The typographic hero's palette motif is an 8-shape, 6-colour SVG — exactly
+what impeccable's shape-assembled-illustration rule targets. It is the
+default hero for no-photo clients, so it is left in place pending a call.
+
+## v3.21.0 — images optimised by default, everything fetched after load
+
+Measured on A&J (same content, before vs after, Chromium, throttled 4G phone):
+homepage LCP 7.3 s -> 0.76 s, bytes before first paint 5.6 MB -> 0.33 MB;
+/services desktop, panel image already loaded on click: 4 of 14 -> 14 of 14.
+
+### Intake images get the astro:assets pipeline (src/lib/images.ts, Img.astro — NEW)
+Every intake image (hero, services, story portrait, before/after,
+gallery.images) rendered as a plain <img> from public/, which Astro never
+touches: one size, the uploaded bytes, on every device. A&J's hero was a
+5.3 MB JPEG loaded eager + fetchpriority=high on every homepage view.
+Intake paths are unchanged. If the same path exists under src/assets/
+("/hero.jpg" -> src/assets/hero.jpg, "/images/services/x.webp" ->
+src/assets/images/services/x.webp) the new <Img> renders it through
+astro:assets: WebP srcset 480/800/1200/1600/2400 (never upscaled) with a
+per-component `sizes`. A file only in public/ renders exactly as before, so
+no existing client breaks. Moving the file IS the opt-in.
+Swapped in: HeroFullbleed, HeroSplit, ServicesFeatureLead,
+ServicesSplitScroll, ServicesPage{Featured,Grouped,Index,Stacked}, Story,
+WorkGallery, BeforeAfter, pages/gallery. Header logo left alone (often SVG).
+Keep in public/: seo.ogImage, favicons — anything needing a stable URL.
+
+### Everything is fetched once the page has loaded (Layout.astro)
+loading="lazy" defers an image until it nears the viewport, and an image in a
+hidden panel until it is shown — so every click or scroll paid a round trip.
+After `load` + idle, every lazy image is flipped to eager and fetched in the
+background. It cannot delay first paint or LCP. Skipped only under Save-Data.
+Cost: the rest of the page's images on first visit (A&J homepage on a phone:
+~3 MB total, 0.33 MB of it before first paint).
+
+### services/index: warm on intent (ServicesPageIndex.astro)
+Hover, focus or touch on a service link/toggle starts that panel's image
+100-300 ms before the click — covers the window before the idle warm runs.
+
+### Page prefetch (astro.config.mjs)
+prefetch: { prefetchAll: true, defaultStrategy: "load" } — every internal
+page's HTML is fetched after load, so navigation is served from cache.
+
+### Gallery "open full image" (GalleryEntries.astro)
+Linked the untouched master (3-5 MB phone photos). Now a 1600px WebP.
+
+### og:image fallback (Layout.astro)
+A hero/service fallback that lives in src/assets has no public URL, so the
+share image is a generated 1200px JPEG. seo.ogImage is untouched.
+
+### check-intake
+hero.image may live in src/assets/ or public/. New warning: an intake image
+over 400 KB still served unoptimised from public/, with the one-line fix.
+
+### Docs
+INTAKE-SPEC §6 (where photos go), BUILD-PLAYBOOK step 0, workflow
+cheat-sheet 4H (manual ImageMagick step retired), CURSOR-CONTEXT §2 (use
+<Img>, never a bare <img>, for intake images), skeleton hasPhotos comment.
+
+### Crawlability (audited, unchanged)
+output: "static" — every page is prerendered HTML at build; zero client
+islands. All 18 A&J services, headings and JSON-LD are in the raw HTML with
+JS disabled. Hidden service panels are display:none in the HTML Google
+indexes; Google treats tab/accordion content as indexable.
+
+## v3.20.0 — vendored fonts + font gate, honest sitemap, no blank service panels, docs
+
+### Fonts are vendored (astro.config.mjs, package.json)
+The fontsource provider fetched each kit's typefaces at build. When that
+fetch failed, Astro warned and shipped system-ui with a PASSING build —
+reproduced here: blocked network, green build, wrong typeface. Fonts now come
+from the eight @fontsource/* npm packages through the local provider (latin,
+static weights: the same files as before). No network at build beyond npm ci.
+
+### scripts/check-fonts.mjs (NEW — runs after astro build)
+Fails the build unless every weight in KIT_FONT_FACES for this client's kit
+has an @font-face in dist/ whose file exists, and --font-display/--font-body
+point at those families. Verified on all five kits; verified it fails when a
+font file is removed.
+
+### Sitemap reads the build (astro.config.mjs)
+The filter re-derived page content from the intake, which cannot see
+src/data/gallery.ts — so /gallery was built, linked and missing from every
+gallery client's sitemap (A&J included). It now reads dist/: a page is out
+only if it is a meta-refresh redirect or noindex.
+
+### services/split-scroll: no blank panel
+A service without a photo was an empty grey 4:3 box. It is now a full-width
+text row: copy left; "What's included", price and a quote link (or the
+detail link) right. Left/right alternation counts photo rows only.
+
+### Business schema (Layout.astro + resolveBusinessSchema in content.mjs)
+- @type from business.schemaType (GeneralContractor, Plumber, Electrician,
+  ...; check-intake warns when empty or invalid) instead of generic
+  LocalBusiness.
+- telephone in E.164 (+61...), sameAs from socials + business.
+  googleBusinessUrl, logo, image, openingHoursSpecification from the new
+  contact.openingHoursSpec[], and every service as an Offer in
+  hasOfferCatalog linked to /services#<anchor>.
+- FAQPage markup only on pages that SHOW the FAQs (homepage with "faqs" in
+  sections, or /faq). It was emitted site-wide whenever the intake had FAQ
+  items, which breaks Google's rule that markup must match visible content.
+  Tested in all three configurations.
+
+### Share image
+og:image skips a hero flagged imageIsStock and falls back to the first
+owned service photo. A stock photo is never the link preview.
+
+### /areas
+"Not sure we cover your area?" H2 now reads usage.notCoveredHeading.
+
+### Docs
+INTAKE-SPEC §11 (schema + share image). CURSOR-CONTEXT §4 + §10 updated and new §14 (widths, kit weight tokens,
+vendored fonts, /services components, live headings, build gate order);
+BUILD-PLAYBOOK (setting servicesPage, SEO QA, sitemap check, new common
+mistakes); workflow-cheat-sheet (servicesPage, groups, anchors, seo.pages;
+fixed the invalid `hero: "editorial"` example); README (gate list, fonts).
+
+## v3.19.0 — /services page layouts, keyword headings, per-page SEO
+
+Built for A&J (18 services, 5 photos), whose /services page was 11,451px on
+desktop and ~21 phone screens, zig-zagging because photo-less rows sat in half
+the width. Verified in headless Chromium at 360/390/430/768/1024/1440/1920 on
+all four layouts, five kits and small/large catalogues: 0 horizontal
+overflow, 0 tap targets under 44px, every heading and anchor resolved.
+
+### New MANUAL axis: `servicesPage` (stacked | grouped | featured | index)
+- Picked by hand in `_brief.layoutVariants.servicesPage`; unset = stacked.
+  MANUAL set in variants.mjs: the seeded engine never draws it and it
+  consumes no RNG. Checked: 20 seeds resolve identically to v3.18.
+- stacked: the original, fixed — photo-less rows run full width as two text
+  columns; rows separated by a rule, not a full section pad each.
+- grouped: jump chips + per-group sticky rail (H2, intro, photo, quote
+  button) + 2-col cards. Odd groups: last card spans both columns.
+- featured: photo cards (hole-free spans) + full-bleed dark quote band +
+  3-col catalogue with "Details" disclosures.
+- index: grouped list + detail panel on desktop, accordion below 1024px,
+  deep links (/services#anchor) open the right service, no-JS shows all.
+- All four: full-bleed accent quote band closes the page; every service's
+  full longDescription stays in the HTML; acronyms survive mid-sentence
+  ("(UST)", not "(ust)").
+- Heights on A&J's 18 services, desktop / phone: index 2,222 / 2,955;
+  featured 3,986 / 7,495; grouped ~5,000 / 9,070 (was 11,451 / 17,510).
+
+### Intake
+- `services.page {eyebrow, heading, subhead, quoteHeading, quoteBody,
+  featuredHeading, moreHeading, midHeading, midBody}`.
+- `services.groups[] {id, heading, intro, image, imageAlt}` +
+  `items[].group`. Group headings are live H2s. Blank = no grouping.
+- `items[].anchor` — keyworded URL fragment; default = slugified title.
+- `seo.pages.{services|areas|gallery|faq}.{title, description}` via the new
+  `pageSeo()` in config.ts. Those pages used to hardcode "FAQ | Name".
+- Skeleton: `_seoRules` at the top and `_seo*` guidance beside every heading
+  field. INTAKE-SPEC §9 (services page) and §10 (headings are keywords).
+- check-intake: new keys registered; advisories for 7+ services on stacked,
+  grouped with no groups, and items pointing at an unknown group id.
+
+### Also
+- Gallery: section H2s use gallerySectionCopy / galleryServiceNames instead
+  of title-casing the key ("Ust"); section intros render; job H3s are
+  "<service> in <suburb>" or an optional per-entry `title`; empty
+  monthCompleted no longer prints a stray "·" (from A&J). Gallery ends with
+  the same keyworded quote band as /services.
+- Footer (from A&J): business info left on the site's left edge, link
+  columns pushed to the right edge, bottom bar split the same way.
+- HeroStats (from A&J): values sized per breakpoint so the longest 8-char
+  value fits a third of a 360px screen; weight from --weight-display.
+- VARIANT-CHEAT-SHEET §4 rewritten: all 31 variants across 8 sections,
+  including story, faqs and areas, which were missing.
+
+## v3.18.0 — bold trade type, one left edge, fuller desktop
+
+Source: the A&J v2 pass (24 Sep), which pulled AJM's hand-tuned workshop type
+onto v3.17, then generalised here to every kit and every layout variant.
+Verified in headless Chromium at 1440 and 390 across six kit/variant builds
+covering all 6 heroes, 3 headers, 5 services, 4 whyUs, 3 story, 3 faqs and
+3 areas variants, on real client content. 0 horizontal overflow; every
+section h2 starts at the same x (80px at 1440) in all six builds.
+
+### Why
+AJM read bigger than A&J while its h1 was actually SMALLER (68px vs 72px).
+The difference was weight (800 vs 600), tracking, and layout: A&J's header sat
+in a 72rem container and its hero in an 80rem one, so logo and headline
+started 64px apart, and the page sat in a 1088px column on a 1440 screen.
+
+### global.css — widths
+--w-content 72rem -> 84rem, --w-wide 80rem -> 84rem (deliberately equal; at
+90rem the "wide" services layouts sat 32px from the edge while header/hero sat
+at 80px). All hero variants and HeaderMinimal moved from --w-wide to
+--w-content. HeroSplit's copy-column inset now tracks --w-content.
+
+### global.css + variants.mjs — per-kit weight tokens
+New per-kit tokens --weight-display / --weight-heading / --tracking-display:
+workshop 800/700, coast 800/700, signal 700/700, ledger 700/600, press 700/600.
+Values are capped by what each kit's font actually ships — Newsreader,
+Fraunces and Space Grotesk stop at 700. h1-h3 take --weight-heading globally
+(unlayered, so font-semibold utilities on headings are now dead code — change
+the token, not the class). .hero-display takes --weight-display.
+KIT_FONT_FACES: every kit now loads a 700 body weight (eyebrows were asking
+for 800 on body fonts that ship 400-600, so the browser snapped them to 600),
+and coast loads Archivo 700. Coast's font-cache key changes as a result.
+body line-height 1.65 for all kits (was workshop-only in AJM).
+
+### Hero (HeroCopy, all six variants)
+- h1: large clamp(2.5rem .. 5rem), default clamp(2.25rem .. 3.75rem). Mobile
+  large = 40px, default = 36px (was 44px/600 and 36px/600).
+- Eyebrow + location line: 12px bold, 0.16em (0.1em on mobile so a typical
+  "Trade · Suburb, SA" eyebrow holds one line at 390).
+- .hero-lede: 18px mobile, 20px desktop, 40-42rem measure.
+- CTAs: heading font, bold, 15px -> 16px and 52px tall on desktop.
+- HeroFullbleed: copy anchored lower (pt < pb) so the CTA row clears the fold
+  at 1440x900. HeroTypographic: copy column 1.15fr -> 1.3fr, lg:py-24 -> 16.
+- HeroIndex rail: eyebrow now uses .section-eyebrow; list items 16px at lg.
+- HeroStatLede strip: values 30px at lg, labels 12px bold.
+
+### HeroStats — AJM's single-row strip
+One row at every breakpoint (column count = stats.length), values on a shared
+top line, labels centred in the remaining height so wrap count cannot move
+the numbers. Sits on --w-content.
+
+### Header (HeaderParts + all three variants)
+Desktop only: 15px nav, phone and CTA; 22px wordmark; lg:py-4. Quote button
+in the heading font, bold. Mobile header unchanged.
+
+### Sections
+- SectionHead: h2 44px at lg (was 36px); 12px bold eyebrow; subhead 17px at
+  lg with a 40rem measure; head block max-w-3xl at lg.
+- The components that hand-roll their section h2/eyebrow instead of using
+  SectionHead got the same scale (Story, WorkGallery, Contact, Usage,
+  Testimonials, FAQ, Tiers, BeforeAfter, RecentJobs, WhyUs band, Areas).
+- Card/row titles step up one size at lg (text-lg -> xl, xl -> 2xl,
+  2xl -> 28px) across all services variants, gallery, FAQ and footer.
+- Areas group headings 36px at lg. Press kit's .section-heading override
+  gains a 44px lg step so it does not pin press sites at 36px.
+- Coast eyebrow (sentence case) 14px — 12px sentence case disappeared next
+  to 800-weight display type.
+
+### Not changed
+Palette, section variants, section padding rhythm (v3.17 values kept), mobile
+header, form fields.
+
+## v3.17.0 — design audit: focus, tap targets, rhythm, radius, type scale
+
+Measured in headless Chromium against DESIGN-LIBRARY.txt §1, not eyeballed.
+The template already beat the big AI tells (0/7 centred sections, 2 card grids,
+near-zero shadows, no emoji, no dead bands). What follows is what was actually
+broken underneath that.
+
+### scripts/check-design.mjs (NEW — runs FIRST in `build`)
+
+The §1 QA gate was six checks you had to remember to run by eye, per client,
+page by page. check-catalogue guarded variant integrity and check-universal
+guarded the palette; the doctrine itself had no gate, and drifted for sixteen
+releases. Now enforced: hardcoded colour, per-component focus styles, raw-rem
+type sizes, off-role radius, emoji, placeholders, centred section heads, and
+grids that cannot shrink. Source analysis only — a build gate must not need a
+browser. Rules that genuinely need layout stay in a visual pass.
+
+### global.css — keyboard focus, one rule for the whole site
+
+165 `focus-visible:ring-*` classes across 21 files rendered NOTHING. The ring
+custom properties resolved correctly (--tw-ring-shadow was
+"0 0 0 calc(2px + 2px) #123A5E") but the composed box-shadow came out as three
+transparent segments — while `focus-visible:outline-none` in the same class
+string DID apply and removed the browser default. Net effect was worse than no
+focus style at all. Replaced with one global `outline` rule. Verified by
+pressing Tab through every page: 0 failures, was 13 on mobile.
+
+### global.css — .tap-target, and the header
+
+At 390px the header was the only place under the 44px floor: wordmark 28px,
+phone link and menu links 40px, burger a hardcoded h-10. The first fix —
+min-h-11 on each part — was measured and REJECTED: it grew the header 57px to
+89px and wrapped the right-hand group. .tap-target uses a centred ::after, so
+hit area and visual size stay separate concerns. Footer contact links too. The
+inline credit link is deliberately exempt (WCAG 2.5.8 exempts links in prose).
+
+### global.css — section rhythm, sec-pad-tight 3.5rem -> 4.5rem
+
+The gap a reader sees is A.padding-bottom + B.padding-top, so the SPREAD
+matters more than any one value. Two tokens produced four gaps spanning 2:1 —
+88/176/144/112/144/176px — and no section was individually wrong. That
+sequence is what reads as amateur. Text-to-text spread is now 1.23:1.
+
+### global.css — radius has exactly two roles
+
+--radius-card (things you CLICK, kit-driven) and --radius-input (things you
+TYPE INTO, fixed across every kit: a form field is a utility, not a place to
+express the brand). Plus --radius-pill for chips, an idiom rather than a role.
+Before: 12px on 13 elements, 8px on 6, assigned by whichever component the
+author happened to write — a text field and the Send button beside it had
+different corners for no nameable reason.
+
+### global.css — named 5-step type scale
+
+--text-eyebrow/micro/small/body/lead. 32 raw rem values across 16 files had
+drifted to seven sizes where 14 and 15px did the same job, as did 16 and 17px.
+15px merged into 14px, 17px into 18px. 12 distinct sizes on a rendered page
+down to 9.
+
+### global.css — global overflow floor
+
+One unbreakable token (a client email, a URL in About copy) sets the
+MIN-CONTENT width of its column; a grid track cannot shrink below it, so the
+column runs off the viewport. body has overflow-x-clip, so nothing scrolls and
+the text is silently cut — which is why this survived so long. Measured: a
+548px URL in a 328px Story column at 360px, and the contact grid rendering
+348px inside a 328px container. Fixed globally plus minmax(0,…) on five
+components with bare fr tracks.
+
+### src/pages/404.astro — rewritten
+
+The least-audited page broke the house rules more than any other: the whole
+content block was text-center (B1, and the only centred page on the site),
+`text-white` was hardcoded on the primary button (passed contrast on a navy
+client by luck, would have shipped white-on-yellow to a light-brand client),
+padding was a one-off 80/80 outside the scale, and it carried shadow-card. Now
+left-aligned, on Section.astro, with the phone and email as sourced ruled rows
+— a person who has hit a dead end wants a human, not a sitemap.
+
+### src/components/Contact.astro
+
+Grid blowout at 360px: `lg:col-span-3` had min-width:auto, so the client email
+set the track minimum and pushed the column 4px off-screen. min-w-0 on both
+children.
+
+### src/pages/faq.astro
+
+The CTA strip shipped with pb only in the step-2 consolidation, putting the
+button flush against the section above. Same defect class as a heading jammed
+to the top of a band.
+
+## v3.17.0 — About, FAQ and Areas get a variant axis
+
+Until now three of the five core page types had no structural variation at all.
+Hero had six skeletons and Services five, while Story, FAQ, Areas, Contact and
+Testimonials had one each — so every client's About and FAQ shared one set of
+bones. That is the exact tell DESIGN-LIBRARY §1 names as the whole game.
+
+### src/lib/variants.mjs — two new axes, drawn LAST
+
+    story: ruled-cards | credentials-panel | portrait-lede
+    faqs:  accordion   | open-columns      | grouped
+
+New `LATE_DRAW` set. The per-section loop consumes one RNG value per section,
+so appending a key to CATALOGUE normally shifts every draw after it — every
+built client would wake up with a different kit, order, surface and band. Both
+new axes are drawn after the band instead (step 6 of `resolveSite`). Verified
+against four client fixtures: kit, hero, services, whyUs, header, order,
+surface and band are byte-identical before and after. ADD FUTURE SECTIONS HERE,
+NOT TO THE STEP-2 LOOP.
+
+### src/lib/content.mjs — resolveStoryCredentials()
+
+One implementation of the credential rows, shared by the engine (which gates
+credentials-panel on 2+ rows) and by Story.astro (which renders them), so the
+gate and the render cannot disagree. Every row sourced; an empty field is
+omitted, never filled with "Contact us".
+
+### src/components/Story.astro, src/components/FAQ.astro
+
+Three branches each, with the original layout preserved unchanged as the
+default so no built client shifts. Every branch re-checks its own prerequisite
+and degrades to the default: an explicit `_brief.layoutVariants` value skips
+the engine's filter, so a hand-set variant can otherwise arrive on a client
+whose data cannot fill it. All ten fallback paths verified.
+
+### src/pages/faq.astro — now renders FAQ.astro
+
+The page carried its own copy of the accordion markup and the two had drifted:
+a plus icon against a chevron, py-4 against py-5, divide-border against
+divide-brand/10. Same questions, two behaviours, neither canonical. The page
+now renders the component with `headingLevel="h1"`, so the variant applies in
+both places and there is one implementation to maintain.
+
+### Overflow fix (PRE-EXISTING BUG, affects every shipped client)
+
+A long URL or unhyphenated word in Story body copy set the min-content width of
+its column: measured at 548px inside a 328px column at 360px viewport. It never
+produced a visible scrollbar because `body` carries `overflow-x-clip` — the
+text was simply cut off, which is why it went unnoticed for sixteen releases.
+Fixed with `overflow-wrap: anywhere` (not `break-word`, which does not shrink
+min-content size and so does not fix the grid track).
+
+SCOPING TRAP, worth knowing: the first fix hung off `.story-areas` and matched
+nothing. That class is passed as a PROP to Section.astro, so the `<section>` it
+lands on belongs to Section's scope and never carries the calling component's
+`data-astro-cid`. Any ancestor selector built on it compiles to a dead rule.
+Scope off classes declared in the component's own markup.
+
+### src/components/Areas.astro — third axis
+
+    areas: chips | zoned | directory
+
+`zoned` needs 2+ entries in the new optional `usage.zones[]`, each NAMED and
+holding at least one suburb. Zones are read from the intake and never derived
+from suburb names: deciding that Reynella is "southern" is a coverage claim the
+client did not make. Suburbs listed but not placed in a zone render last
+without a label, never swept into an invented "Other".
+
+`directory` needs 12+ areas collected through areas.mjs, so the homepage index
+and /areas cannot disagree about what is covered. A suburb that clears
+areaPageState links to /areas/<slug>; one that does not renders as plain text,
+never a dead link. This is the first place the per-suburb pages are linked from
+anywhere but /areas. Uses CSS column-count rather than a grid, unlike
+faqs/open-columns: each entry is one short line with no pair to split across the
+gutter, and column flow reads top-to-bottom, which is how an index is scanned.
+
+The axis is on the HOMEPAGE section only. Usage.astro still renders the /areas
+list and has no axis — /areas is off by default in PAGE_DEFAULTS, so the
+homepage section is the half that ships on a basic build. Consolidating the two
+the way faq.astro was consolidated remains open.
+
+### VARIANTS.txt parser trap (found while writing the AREAS block)
+
+check-catalogue parses a variant line as `/^ {2}([a-z][a-z0-9-]*)\s+(?=\[|[A-Z])/`.
+A prose line that happens to start with two spaces, a lowercase word and then a
+capital letter parses as a variant name and fails the build — "  still
+Usage.astro and has…" was read as a variant called `still`. Indent prose
+continuations four spaces, or keep the second word lowercase.
+
+### client-intake.skeleton.json
+
+`layoutVariants` gains `story`, `faqs` and `areas`. `usage` gains optional
+`zones[]`. `business` gains optional
+`insurance` and `memberships[]`. `story` gains `imageAlt`. `faqs.items[]` gains
+optional `group`. Two stale comments corrected: `_layoutVariantsNote` claimed
+only hero and header had variants and listed a ghost `editorial` hero that has
+never existed in CATALOGUE.
+
+### scripts/check-catalogue.mjs
+
+`faqs` added to HEADING_TO_KEY and SECTION_SOURCES. Gate now reports
+7 sections / 27 variants, up from 4 / 18.
+
+### Responsive verification
+
+Every variant measured in headless Chromium at 320, 360, 375, 390, 414, 480,
+640, 768, 834, 1024, 1180, 1280, 1440 and 1920px, with hostile content (a
+68-character licence string, a three-body membership list, a long URL in body
+copy), across kits ledger/workshop/coast/press/signal and with the section
+inside the dark colour band (13.92:1 contrast, token remap held). Zero
+horizontal overflow, zero collapsed frames.
+
 ## v3.16.0 — the variant catalogue becomes real
 
 ### scripts/check-catalogue.mjs (new, runs first in `build`)

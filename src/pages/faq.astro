@@ -1,55 +1,58 @@
 ---
+/**
+ * /faq — the dedicated FAQ page.
+ *
+ * This page used to carry its own copy of the accordion markup. The two had
+ * drifted (plus icon vs chevron, py-4 vs py-5, divide-border vs
+ * divide-brand/10), so the same questions behaved differently depending on
+ * where a visitor read them. It now renders FAQ.astro, which means the
+ * variant axis applies here too and there is one implementation to maintain.
+ */
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { site } from "../config";
+import FAQ from "../components/FAQ.astro";
+import { site, pageSeo } from "../config";
 // @ts-ignore — plain-JS page gate shared with the Node check scripts
 import { pageIsBuilt } from "../lib/pages.mjs";
 
-const faqs = site.faqs || {};
-const items: any[] = faqs.items || [];
-const eyebrow = faqs.eyebrow || "FAQ";
-const heading = faqs.heading || "Common questions";
-const title = `FAQ | ${site.business?.name || ""}`;
+const { title, description } = pageSeo("faq", `FAQ | ${site.business?.name || ""}`, site.seo?.description || "");
 
 /* An empty page is worse than no page: a 200 with nothing on it is a soft
    404 to a crawler and a dead end to a visitor. If there is no content,
    send them somewhere that has some. */
-if (!pageIsBuilt("faq", site)) return Astro.redirect("/#faqs");
+if (!pageIsBuilt("faq", site)) return Astro.redirect(anchorOr(site, "faqs", "/#faqs"));
+
+/* A homepage anchor is only a valid destination while that section is still ON
+   the homepage. When both the page AND its section are switched off, sending
+   the visitor to a dead #anchor drops them at the top of the page with no
+   explanation — so fall back to the homepage itself. */
+function anchorOr(s: any, section: string, anchor: string) {
+  return (s.sections || []).includes(section) ? anchor : "/";
+}
 ---
 
-<Layout title={title} description={site.seo?.description} pageType="other">
+<Layout title={title} description={description} pageType="other">
   <Header />
-  <section class="bg-bg sec-pad-default">
-    <div class="mx-auto max-w-6xl px-4 lg:px-8">
-      <div class="mx-auto max-w-2xl text-center">
-        <span class="text-sm font-semibold uppercase tracking-wide text-highlight">{eyebrow}</span>
-        <h1 class="mt-2 font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">{heading}</h1>
-      </div>
 
-      <div class="mx-auto mt-12 max-w-3xl divide-y divide-brand/10 border-t border-border">
-        {items.map((f: any) => (
-          <details class="group py-5">
-            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-lg font-semibold text-brand marker:content-none [&::-webkit-details-marker]:hidden">
-              <span>{f.question}</span>
-              <svg class="h-5 w-5 shrink-0 text-accent-ink transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </summary>
-            <p class="mt-3 text-base leading-relaxed text-muted">{f.answer}</p>
-          </details>
-        ))}
-      </div>
+  <FAQ headingLevel="h1" />
 
-      <div class="mt-12 text-center">
-        <a
-          href="/#contact"
-          class="inline-flex items-center justify-center rounded-card bg-accent px-7 py-3.5 text-sm font-semibold text-on-accent transition hover:bg-accent/90"
-        >
-          Get a free quote
-        </a>
-      </div>
+  {/* The FAQ section above already supplies its own bottom padding, so this
+      strip only needs to clear it — but it needs SOME top space. Shipping it
+      with pb only (v3.17 step 2) put the button flush against the section
+      above it, which is the same defect class as a heading jammed to the top
+      of a band. sec-pad-tight keeps it on the shared rhythm scale rather than
+      inventing a one-off value. */}
+  <section class="bg-bg pt-2 pb-20 text-center">
+    <div class="mx-auto w-full max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+      <a
+        href="/#contact"
+        class="inline-flex items-center justify-center rounded-card bg-accent px-7 py-3.5 text-sm font-semibold text-on-accent transition hover:bg-accent/90"
+      >
+        Get a free quote
+      </a>
     </div>
   </section>
+
   <Footer />
 </Layout>

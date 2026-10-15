@@ -1,0 +1,485 @@
+{
+  "_comment": "DEMO INTAKE — the template's own build fixture (npm run demo / npm run qa:demo). The business is INVENTED: there is no Example Concreting Co. Nothing here is a real client's content, and it must never be copied into a client intake. New intakes start from client-intake.skeleton.json (npm run new-client). Built with INTAKE=client-intake.demo.json via scripts/with-intake.mjs; client-intake.json is never touched.",
+  "_brief": {
+    "_comment": "hero is pinned to index: the typographic hero's motif is an open impeccable finding (BACKLOG hero-motif), and the demo has to be a clean qa baseline. It was docket until v3.34, when docket started needing four spec rows; an invented business has only three (no licence, ABN or established year). Everything else is left to the seeded engine. qa-matrix (BACKLOG) is what forces every other variant.",
+    "variantSeed": "",
+    "designKit": "",
+    "stylePicks": "",
+    "surface": "",
+    "bandSection": "",
+    "layoutVariants": {
+      "hero": "index",
+      "services": "",
+      "whyUs": "",
+      "story": "",
+      "faqs": "",
+      "areas": "",
+      "header": "",
+      "servicesPage": "grouped"
+    },
+    "designDirection": {
+      "vibe": "Plain, practical, site-office. A fixture, not a pitch.",
+      "voice": "Direct and specific, no superlatives.",
+      "audience": "Nobody: this site is never published.",
+      "palette": {
+        "mood": "Wet slate and form-ply orange",
+        "primary": "slate blue",
+        "secondary": "deep slate",
+        "highlight": "burnt orange",
+        "background": "",
+        "feelingWords": ["solid", "plain", "level"]
+      },
+      "motif": "",
+      "avoid": "Anything that could be mistaken for a real business's claims."
+    },
+    "notesForCursor": "Template fixture. Do not add reviews, photos, licence numbers, an ABN or statistics: none exist.",
+    "completedBy": "template",
+    "completedAt": "2026-10-06",
+    "sourceStage": "template-demo"
+  },
+  "_meta": {
+    "domain": "example.com.au",
+    "deployTarget": "none",
+    "notes": "Fixture only, never deployed. contact.phone is one of the mobile numbers ACMA publishes for use in fiction (acma.gov.au, 'Phone numbers for use in TV shows, films and creative works': 0491 570 006, 0491 570 156, 0491 570 157, 0491 570 158, 0491 570 159, 0491 570 110). The list was written from memory on 2026-10-06 because the ACMA page could not be fetched during that run: check it against the page before relying on it. contact.formEndpoint is /api/quote so the form renders; the template ships no such function, so the form does not submit."
+  },
+  "theme": "light",
+  "sections": [
+    "hero",
+    "services",
+    "tiers",
+    "whyUs",
+    "areas",
+    "story",
+    "faqs",
+    "contact"
+  ],
+  "pages": {
+    "services": true,
+    "gallery": false,
+    "faq": true,
+    "areas": true
+  },
+  "business": {
+    "name": "Example Concreting Co (demo)",
+    "schemaType": "GeneralContractor",
+    "googleBusinessUrl": "",
+    "tagline": "Invented business for testing the template",
+    "shortDescription": "Example Concreting Co is an invented business used to test this website template. It does not exist and takes no bookings.",
+    "trade": "concreter",
+    "abn": "",
+    "licence": "",
+    "established": "",
+    "insurance": "",
+    "memberships": [],
+    "logoText": "Example Concreting Co",
+    "logoMarkText": "EC",
+    "logo": ""
+  },
+  "contact": {
+    "phone": "0491 570 156",
+    "email": "hello@example.com.au",
+    "formEndpoint": "/api/quote",
+    "address": "Adelaide SA 5000",
+    "hours": "Monday to Friday, 7am to 5pm",
+    "openingHoursSpec": [
+      { "days": ["Mo", "Tu", "We", "Th", "Fr"], "opens": "07:00", "closes": "17:00" }
+    ],
+    "linkedin": "",
+    "instagram": "",
+    "facebook": "",
+    "tiktok": "",
+    "headerCtaLabel": "Get a free quote",
+    "headerCtaHref": "#contact",
+    "enquiryTypes": ["Free quote", "General enquiry"]
+  },
+  "style": {
+    "brand": "#2F4858",
+    "brandDark": "#16242D",
+    "accent": "#B4460F",
+    "highlight": ""
+  },
+  "hero": {
+    "eyebrow": "Demo site · invented business",
+    "cover": true,
+    "displayLine": "",
+    "heading": "Concrete driveways and slabs in Adelaide",
+    "headingTint": "set out, poured and finished by one crew",
+    "subhead": "Driveways, shed slabs, paths and exposed aggregate for Adelaide homes. This is a demonstration site for a business that does not exist.",
+    "body": "",
+    "primaryCtaLabel": "Get a free quote",
+    "primaryCtaHref": "#contact",
+    "locationLine": "Adelaide metropolitan area",
+    "image": "",
+    "imageAlt": "",
+    "stats": [],
+    "rating": {}
+  },
+  "services": {
+    "eyebrow": "",
+    "heading": "Concreting services in Adelaide",
+    "subhead": "Residential concrete from the first set-out to the final saw cut.",
+    "pageEyebrow": "",
+    "pageHeading": "Concreting services in Adelaide",
+    "page": {
+      "eyebrow": "",
+      "heading": "Concreting services in Adelaide",
+      "subhead": "Driveways, house and shed slabs, paths and decorative finishes for homes across metropolitan Adelaide.",
+      "quoteHeading": "Need a concreter in Adelaide?",
+      "quoteBody": "Send the size of the area and a photo of the site and we will come back with a written quote.",
+      "featuredHeading": "Our most requested concreting services",
+      "moreHeading": "More concreting services",
+      "midHeading": "",
+      "midBody": ""
+    },
+    "groups": [
+      {
+        "id": "flatwork",
+        "heading": "Concrete driveways, paths and slabs",
+        "intro": "Structural flatwork for vehicles, sheds and foot traffic, reinforced and jointed for Adelaide's reactive clay soils.",
+        "image": "",
+        "imageAlt": ""
+      },
+      {
+        "id": "decorative",
+        "heading": "Exposed aggregate and decorative concrete",
+        "intro": "Finishes chosen for how they look and how they grip when wet.",
+        "image": "",
+        "imageAlt": ""
+      }
+    ],
+    "showQuoteCard": true,
+    "items": [
+      {
+        "title": "Concrete driveways",
+        "description": "New and replacement concrete driveways in Adelaide, reinforced and jointed to carry daily vehicle traffic.",
+        "includes": ["Excavation and base preparation", "Steel mesh reinforcement on chairs", "Control joints cut within a day of the pour"],
+        "price": "",
+        "href": "",
+        "icon": "truck",
+        "featured": true,
+        "group": "flatwork",
+        "anchor": "concrete-driveways-adelaide",
+        "longDescription": "A driveway fails at the base long before it fails at the surface. We excavate to firm ground, compact a crushed rock base, set mesh on chairs so the steel sits inside the slab instead of under it, and cut control joints so the slab cracks where the joint is rather than across the middle.",
+        "image": "",
+        "imageAlt": ""
+      },
+      {
+        "title": "Shed and garage slabs",
+        "description": "Level, reinforced slabs for sheds, garages and carports, with edge thickening where the frame loads the slab.",
+        "includes": ["Set-out to the shed supplier's plan", "Vapour barrier under the slab", "Thickened edge beams"],
+        "price": "",
+        "href": "",
+        "icon": "layers",
+        "featured": true,
+        "group": "flatwork",
+        "anchor": "shed-slabs-adelaide",
+        "longDescription": "Shed kits are built to a slab plan, and a slab that is out of square by a few millimetres makes every wall sheet a fight. We set out from the supplier's drawing, check the diagonals before the pour, and thicken the edges where the portal frames bolt down.",
+        "image": "",
+        "imageAlt": ""
+      },
+      {
+        "title": "Paths and patios",
+        "description": "Concrete paths, patios and pool surrounds finished with a broom or cove texture for grip.",
+        "includes": ["Falls set away from the house", "Broom or cove finish", "Expansion joints against existing structures"],
+        "price": "",
+        "href": "",
+        "icon": "ruler",
+        "featured": true,
+        "group": "flatwork",
+        "anchor": "concrete-paths-patios-adelaide",
+        "longDescription": "Water has to go somewhere. Every path and patio is formed with a fall away from the building, and separated from walls and existing slabs with an expansion joint so the new concrete can move without pushing on the old.",
+        "image": "",
+        "imageAlt": ""
+      },
+      {
+        "title": "Exposed aggregate concrete",
+        "description": "Exposed aggregate driveways and entertaining areas, with the stone mix chosen from supplier samples.",
+        "includes": ["Sample selection from the supplier's range", "Surface retarder and wash-off", "Penetrating sealer after curing"],
+        "price": "",
+        "href": "",
+        "icon": "sparkle",
+        "featured": true,
+        "group": "decorative",
+        "anchor": "exposed-aggregate-adelaide",
+        "longDescription": "Exposed aggregate is washed back while the surface is still green to show the stone in the mix. Timing decides the result: too early and stones pull out, too late and the paste will not wash. The slab is sealed once it has cured.",
+        "image": "",
+        "imageAlt": ""
+      },
+      {
+        "title": "Coloured concrete",
+        "description": "Through-coloured concrete in oxide tones, for driveways and paths that should not look grey.",
+        "includes": ["Colour mixed through the full slab depth", "One batch plant for the whole pour", "Same-day curing compound"],
+        "price": "",
+        "href": "",
+        "icon": "roller",
+        "featured": true,
+        "group": "decorative",
+        "anchor": "coloured-concrete-adelaide",
+        "longDescription": "Oxide is mixed through the load at the plant, so the colour runs the full depth of the slab and a chip does not show grey. Colour varies between batches, which is why a coloured job is ordered from one plant and poured in one day wherever the size allows.",
+        "image": "",
+        "imageAlt": ""
+      },
+      {
+        "title": "Concrete removal and replacement",
+        "description": "Cracked or lifted concrete cut out, removed and replaced on a properly prepared base.",
+        "includes": ["Saw cutting to a clean line", "Removal and disposal of the old slab", "Base repair before the new pour"],
+        "price": "",
+        "href": "",
+        "icon": "hammer",
+        "featured": true,
+        "group": "",
+        "anchor": "concrete-removal-adelaide",
+        "longDescription": "Old concrete usually cracked for a reason: tree roots, a soft base or no joints. We cut the failed section out on a straight line, remove it, fix what caused the failure, and then pour the replacement.",
+        "image": "",
+        "imageAlt": ""
+      }
+    ]
+  },
+  "tiers": {
+    "eyebrow": "",
+    "heading": "Concrete finishes compared",
+    "subhead": "Three common residential finishes, from the plainest to the most involved.",
+    "items": [
+      {
+        "title": "Plain broom finish",
+        "intensity": 1,
+        "of": 3,
+        "description": "Grey concrete with a broomed texture. The practical choice for shed slabs, side paths and driveways."
+      },
+      {
+        "title": "Coloured concrete",
+        "intensity": 2,
+        "of": 3,
+        "description": "Oxide mixed through the slab, finished the same way as plain concrete."
+      },
+      {
+        "title": "Exposed aggregate",
+        "intensity": 3,
+        "of": 3,
+        "description": "Stone exposed by washing back the surface, then sealed. The most labour on pour day."
+      }
+    ]
+  },
+  "usage": {
+    "eyebrow": "",
+    "heading": "Concreters working across metropolitan Adelaide",
+    "subhead": "Suburb names here are examples for the demo.",
+    "areasLine": "",
+    "travelLine": "",
+    "notCoveredLine": "",
+    "notCoveredHeading": "",
+    "areaStyle": "",
+    "zones": [
+      {
+        "name": "Northern suburbs",
+        "areas": ["Salisbury", "Mawson Lakes", "Elizabeth", "Golden Grove"],
+        "travelNote": ""
+      },
+      {
+        "name": "Southern suburbs",
+        "areas": ["Morphett Vale", "Reynella", "Hallett Cove", "Aldinga"],
+        "travelNote": ""
+      },
+      {
+        "name": "Eastern and western suburbs",
+        "areas": ["Norwood", "Magill", "Henley Beach", "West Lakes"],
+        "travelNote": ""
+      }
+    ],
+    "featured": ["Salisbury", "Morphett Vale", "Norwood", "Henley Beach", "Golden Grove", "Reynella"],
+    "items": [
+      "Salisbury", "Mawson Lakes", "Elizabeth", "Golden Grove",
+      "Morphett Vale", "Reynella", "Hallett Cove", "Aldinga",
+      "Norwood", "Magill", "Henley Beach", "West Lakes"
+    ]
+  },
+  "whyUs": {
+    "heading": "Concrete placed to AS 3600 and AS 2870 practice",
+    "type": "benefits",
+    "trust": [],
+    "items": [
+      {
+        "title": "Base before concrete",
+        "description": "Topsoil and soft spots come out and a compacted crushed rock base goes in. Concrete bridges nothing: it follows whatever is underneath it."
+      },
+      {
+        "title": "Steel where it works",
+        "description": "Mesh is lapped, tied and lifted onto bar chairs so it sits in the upper third of the slab, with the cover the engineer or the standard calls for."
+      },
+      {
+        "title": "Joints planned on paper",
+        "description": "Control joint positions are marked on the set-out before the truck is booked, so panels stay close to square and no re-entrant corner is left unjointed."
+      },
+      {
+        "title": "Curing is part of the pour",
+        "description": "A curing compound goes on the same day. Concrete that dries too fast in an Adelaide summer dusts and crazes at the surface."
+      }
+    ],
+    "pairs": [],
+    "themLabel": "",
+    "usLabel": ""
+  },
+  "story": {
+    "eyebrow": "",
+    "imageAlt": "",
+    "heading": "A small Adelaide concreting crew",
+    "body": "Example Concreting Co is not a real business. It exists so this template can build and test itself with something on every page. A real About section goes here: who owns the business, who turns up on the day, and what kind of work they like to take on.",
+    "image": "",
+    "cards": [
+      {
+        "title": "Who you would deal with",
+        "description": "On a real site this card names the owner and says who quotes the job and who is on the tools."
+      },
+      {
+        "title": "What they take on",
+        "description": "And this one says, in the owner's words, which jobs they do and which they pass to someone else."
+      }
+    ],
+    "process": [
+      { "title": "Site visit", "body": "Measure up, look at access and drainage, talk through finishes." },
+      { "title": "Written quote", "body": "Area, thickness, reinforcement and finish, itemised." },
+      { "title": "Prep and pour", "body": "Excavate, form, place steel, pour and finish." },
+      { "title": "Cut and cure", "body": "Joints cut, curing compound on, forms stripped." }
+    ]
+  },
+  "testimonials": [],
+  "recentJobs": {
+    "heading": "Recent concreting jobs around Adelaide",
+    "subhead": ""
+  },
+  "gallery": {
+    "subhead": ""
+  },
+  "faqs": {
+    "eyebrow": "",
+    "heading": "Concrete driveway and slab questions",
+    "items": [
+      {
+        "question": "How thick should a concrete driveway be?",
+        "answer": "For ordinary cars, residential driveways are commonly poured 100 mm thick with steel mesh. Heavier vehicles such as caravans or trucks need a thicker slab and heavier reinforcement.",
+        "group": "Planning"
+      },
+      {
+        "question": "Do I need council approval for a new driveway?",
+        "answer": "The part of the driveway on your own land usually does not, but the crossover between the kerb and your boundary belongs to the council and normally needs a permit. Check with your council before any work starts.",
+        "group": "Planning"
+      },
+      {
+        "question": "How long before I can drive on new concrete?",
+        "answer": "Foot traffic is generally fine after a day or two. Keep cars off for at least seven days, and heavier vehicles off for longer. Concrete keeps gaining strength for about a month.",
+        "group": "After the pour"
+      },
+      {
+        "question": "Why does concrete crack?",
+        "answer": "Concrete shrinks as it cures, so some cracking is expected. Control joints are cut into the slab so that the cracking happens neatly inside the joint instead of across the surface.",
+        "group": "After the pour"
+      },
+      {
+        "question": "Does exposed aggregate need sealing?",
+        "answer": "Yes. A sealer protects the surface from stains and makes it easier to clean. Expect to reseal every few years, depending on traffic and sun.",
+        "group": "Finishes"
+      },
+      {
+        "question": "Can coloured concrete be matched to an existing slab?",
+        "answer": "Not exactly. Colour depends on the cement, the sand, the weather on the day and how the surface was finished, so a new pour beside an old one will always read slightly differently.",
+        "group": "Finishes"
+      }
+    ]
+  },
+  "contactSection": {
+    "eyebrow": "",
+    "heading": "Get a free concrete quote in Adelaide",
+    "subhead": "This is a demonstration form. It does not send anywhere.",
+    "emailSubject": "",
+    "messagePlaceholder": "",
+    "form": {
+      "enabled": true,
+      "submitLabel": "Send enquiry",
+      "fields": ["name", "phone", "email", "message"]
+    }
+  },
+  "footer": {
+    "tagline": "An invented business for testing the template.",
+    "columns": [
+      {
+        "heading": "Concreting",
+        "links": [
+          { "label": "Concreting services", "href": "/services" },
+          { "label": "Service areas", "href": "/areas" },
+          { "label": "Concrete questions", "href": "/faq" }
+        ]
+      }
+    ],
+    "copyrightSuffix": "All rights reserved."
+  },
+  "serviceAreas": [],
+  "demo": {
+    "sampleSections": ["whyUs", "story", "faqs"]
+  },
+  "features": {
+    "hasPhotos": false,
+    "stickyPhoneBar": true,
+    "motion": "standard",
+    "servicesPage": true,
+    "suburbPages": false
+  },
+  "seo": {
+    "noindex": true,
+    "title": "Concrete Driveways Adelaide | Example Concreting Co (demo)",
+    "description": "Demonstration site for an invented Adelaide concreting business: driveways, shed slabs, paths and exposed aggregate. Not a real business, no bookings.",
+    "pages": {
+      "services": {
+        "title": "Concreting Services Adelaide | Example Concreting Co (demo)",
+        "description": "Demonstration page: concrete driveways, shed slabs, paths, exposed aggregate and coloured concrete in Adelaide. Not a real business."
+      },
+      "areas": {
+        "title": "Concreters Across Adelaide | Example Concreting Co (demo)",
+        "description": "Demonstration page listing example Adelaide suburbs for an invented concreting business. Not a real business."
+      },
+      "gallery": {
+        "title": "",
+        "description": ""
+      },
+      "faq": {
+        "title": "Concrete Driveway Questions | Example Concreting Co (demo)",
+        "description": "Demonstration page: common questions about concrete driveways, slabs, curing and exposed aggregate. Not a real business."
+      }
+    },
+    "ogImage": ""
+  },
+  "analytics": {
+    "provider": "",
+    "plausibleDomain": "",
+    "ga4MeasurementId": "",
+    "umamiWebsiteId": "",
+    "umamiSrc": ""
+  },
+  "legal": {
+    "privacy": {
+      "enabled": true,
+      "lastUpdated": "2026-10-06",
+      "entityName": "Example Concreting Co (demo)",
+      "contactEmail": "hello@example.com.au",
+      "abn": "",
+      "postalAddress": "",
+      "state": "South Australia",
+      "privacyActStatus": "",
+      "formProvider": "",
+      "reviewed": false,
+      "extraSections": []
+    },
+    "terms": {
+      "enabled": true,
+      "lastUpdated": "2026-10-06",
+      "entityName": "Example Concreting Co (demo)",
+      "contactEmail": "hello@example.com.au",
+      "abn": "",
+      "state": "South Australia"
+    }
+  },
+  "agency": {
+    "credit": {
+      "enabled": true
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "_comment": "Ownership manifest for scripts/template-sync.mjs (docs/SYNC.md). Every file tracked in the template repo is SHARED unless it matches `client` (each client repo owns its copy; sync never overwrites it) or `templateOnly` (never copied to clients). Globs: `*` = within one folder, `**` = any depth. This file is itself shared, so a rule change here reaches every client on its next pull.",
+  "remote": "template",
+  "url": "https://github.com/jordanlelli/universal-template.git",
+  "branch": "main",
+  "client": [
+    "client-intake.json",
+    "CLIENT.md",
+    "CLAUDE.local.md",
+    ".template-sync.json",
+    "src/data/**",
+    "src/assets/**",
+    "public/**",
+    ".vercelignore",
+    ".vercel/**"
+  ],
+  "templateOnly": [
+    "BACKLOG.md",
+    ".github/**"
+  ]
+}

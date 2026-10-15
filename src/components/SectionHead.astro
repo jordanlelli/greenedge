@@ -22,16 +22,16 @@ const {
   heading,
   subhead = "",
   class: extra = "",
-  headingClass = "section-heading font-heading font-semibold tracking-tight text-brand",
+  headingClass = "section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]",
 } = Astro.props;
 ---
 
-<div class:list={["max-w-[46rem]", extra]}>
+<div class:list={["max-w-2xl lg:max-w-3xl", extra]}>
   {eyebrow && (
-    <p class="section-eyebrow text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">
+    <p class="section-eyebrow text-brand-secondary-ink">
       {eyebrow}
     </p>
   )}
-  <h2 class:list={[eyebrow && "mt-2", headingClass]}>{heading}</h2>
-  {subhead && <p class="mt-3 text-base leading-relaxed text-muted">{subhead}</p>}
+  <h2 class:list={[eyebrow && "mt-3", headingClass]}>{heading}</h2>
+  {subhead && <p class="mt-4 max-w-[40rem] text-base leading-[1.65] text-muted lg:text-[1.0625rem]">{subhead}</p>}
 </div>

@@ -20,7 +20,8 @@
 ================================================================
   Decide what you actually have for this client:
   - Real photos?  -> if yes, you'll set features.hasPhotos: true
-    and put files in public/images. If no, leave it false and the
+    and put files in src/assets/images (same path the intake uses,
+    minus the leading slash; see INTAKE-SPEC §6). If no, leave it false and the
     engine avoids photo-only layouts automatically.
   - Real reviews? -> gather them now; placeholder testimonials get
     replaced before launch, never invented and left.
@@ -51,6 +52,17 @@
     hero, services.items, tiers, usage, whyUs, story,
     testimonials, faqs.items, contactSection, footer, seo.
 
+  WHY US vs ABOUT — two voices, non-negotiable:
+    whyUs  = TECHNICAL. Method and standards; what gets checked
+             and in what order. Carries the topical authority.
+             No owner biography.
+    story  = CONVERSATIONAL. Who they are, who turns up, why the
+             crew is that size. The trust section.
+             No technical specifications.
+    Shared FACTS are fine; shared SENTENCES are the failure. If a
+    Why Us point could sit in About word-for-word, it was an
+    About point. Full rule and the worked example: INTAKE-SPEC.txt.
+
   The two layers:
     - Everything outside _brief is CONTENT — it renders.
     - _brief is DIRECTION — it never renders. Put the vibe, voice,
@@ -65,6 +77,11 @@
     features.hasPhotos: true ONLY with real photos
     contact.formEndpoint: form URL, or omit for phone-first
     _brief.designKit: pick a kit, or leave blank for a seeded pick
+    Style Picker: if the client sent picks, run
+      npm run picks -- <their code, or the whole pasted summary>
+    It writes _brief.stylePicks, the colour set into `style`, and the
+    matching kit when designKit is blank. `npm run picks -- --show`
+    prints what the current code resolves to.
     _brief.layoutVariants.<section>: force a layout, or leave blank
     _brief.variantSeed: change to reshuffle the whole look
 
@@ -80,6 +97,14 @@
   names in VARIANTS.txt) and rebuild — the rest stay put. To re-roll
   everything, bump _brief.variantSeed, clear the picks, re-run.
 
+  THEN SET THE /services LAYOUT BY HAND (npm run variants never
+  touches it): _brief.layoutVariants.servicesPage
+    1-6 services ......................... stacked (default)
+    7-14 with 3-6 good photos ............ featured
+    8-20 across 2-4 kinds of work ........ grouped (needs groups)
+    10+, customers hunt for one job ...... index
+  Descriptions: VARIANT-CHEAT-SHEET.txt §4.
+
 
 ================================================================
   STEP 4 — PREVIEW & TUNE
@@ -94,6 +119,8 @@
     - Photos look broken?     features.hasPhotos is true without
                               real photos — set it false
     - Form dead?              add contact.formEndpoint
+    - /services too long?     set _brief.layoutVariants.servicesPage
+                              (grouped / featured / index)
 
   Do NOT fix layout by editing components. If something is wrong
   for ALL clients, that's a system-level change (prompt 4G) — rare.
@@ -108,8 +135,15 @@
     - Phone is click-to-call; form submits (or phone-first is
       intended).
     - Nothing from _brief appears on the page.
-    - Title/description set in the seo block.
-  npm run build   (must complete with no errors)
+    - Title/description set in the seo block AND in all four
+      seo.pages entries (services, areas, gallery, faq).
+    - Every H1/H2 passes INTAKE-SPEC §10: service + place a customer
+      would type, no "Why choose us" / "Get in touch" / puns.
+    - Service anchors are keyworded (/services#core-drilling-adelaide).
+  npm run build   (must complete with no errors — it ends with
+                   check-fonts, which proves the kit's fonts shipped)
+  Then open dist/sitemap-0.xml: every real page listed, no
+  /about, /contact, /privacy, /terms.
 
 
 ================================================================
@@ -118,6 +152,8 @@
   git init / add / commit, gh repo create --private --push.
   Vercel: import repo, Astro preset, build = npm run build,
   install = npm ci, output = dist. Add the domain + DNS.
+  Enable Web Analytics and Speed Insights on the project (the
+  scripts are already in every page; they report nothing until then).
   (Full commands in cheat-sheet Section 5.)
 
 
@@ -141,4 +177,9 @@
     producing broken-image heroes.
   - Inventing testimonials and leaving them live.
   - npm install --legacy-peer-deps / npm update / audit fix --force.
+  - Changing a heading's weight with font-bold / font-semibold. It
+    does nothing; weights are kit tokens in global.css.
+  - Leaving 10+ services on the stacked /services layout.
+  - Writing headings as labels ("Our services") instead of the
+    search phrase ("Plumbing services in Adelaide").
 ================================================================

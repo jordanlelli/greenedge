@@ -26,7 +26,7 @@ const rest = stats.slice(1, 4);
 ---
 
 <section class="relative overflow-hidden bg-bg" data-no-reveal>
-  <div class="hero-pad mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-[var(--w-content)] px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
     <div class="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end lg:gap-16">
       <div class="min-w-0">
         <p class="hero-lede-value">{lede.value}</p>
@@ -43,8 +43,8 @@ const rest = stats.slice(1, 4);
           <div class="hero-lede-cell">
             <dt class="sr-only">{stat.label}</dt>
             <dd class="m-0">
-              <span class="block font-heading text-2xl font-semibold tracking-tight text-brand">{stat.value}</span>
-              <span class="mt-1 block text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-muted">{stat.label}</span>
+              <span class="block font-heading text-2xl font-semibold tracking-tight text-brand lg:text-3xl">{stat.value}</span>
+              <span class="mt-1.5 block text-[0.75rem] font-bold uppercase leading-[1.4] tracking-[0.14em] text-muted">{stat.label}</span>
             </dd>
           </div>
         ))}
@@ -66,7 +66,7 @@ const rest = stats.slice(1, 4);
 
   .hero-lede-label {
     margin: 0.75rem 0 0;
-    font-size: 0.8125rem;
+    font-size: var(--text-micro);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;

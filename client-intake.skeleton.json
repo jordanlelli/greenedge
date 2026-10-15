@@ -1,17 +1,24 @@
 {
-  "_comment": "SKELETON INTAKE \u2014 trade-agnostic. Copy this over client-intake.json, paste a trade preset from brief-presets.txt into _brief, then fill the content. Every _-prefixed key (including these _comment notes) is stripped by config.ts and NEVER renders. Read INTAKE-SPEC.txt before filling.",
+  "_comment": "SKELETON INTAKE — trade-agnostic. Copy this over client-intake.json, paste a trade preset from brief-presets.txt into _brief, then fill the content. Every _-prefixed key (including these _comment notes) is stripped by config.ts and NEVER renders. Read INTAKE-SPEC.txt before filling.",
+  "_seoRules": "HEADINGS ARE KEYWORDS (v3.19). Every heading field below is a search target, not a slogan. Full rules: INTAKE-SPEC.txt §10. Short version: (1) H1s and page titles = service family + city ('Electrician in Adelaide', 'Concrete and civil services in Adelaide'). (2) Section H2s name the thing a customer searches for ('Emergency plumbing across Adelaide's northern suburbs', 'Excavation and civil works'), never a label ('Why choose us', 'What we do', 'Our services', 'Get in touch') or a pun. (3) The city appears in the H1, the page title, the meta description and at most two H2s per page, never in every heading. (4) Eyebrows are labels, not headings: keep them to 1-4 words. (5) Test every heading: would a customer type or say these words? If not, rewrite it.",
   "_brief": {
     "_comment": "DIRECTION, never content. config.ts strips this whole block. Two kinds of keys: (1) ENGINE OVERRIDES read by variants.mjs; (2) CREATIVE DIRECTION in designDirection{} read by Cursor/you. Leave an engine override empty to let the seeded engine choose (more portfolio variety); set it to LOCK that axis.",
     "variantSeed": "",
     "designKit": "",
+    "stylePicks": "",
+    "_comment_stylePicks": "The client's Kova Style Picker code (e.g. anton.heavy.harbour.100). Leave empty and run `npm run picks -- <code>`: it fills this, the colour set in `style`, and designKit when that is blank. Fonts and headline size are resolved from the code on every build (src/lib/stylepicks.mjs). Empty = the kit's own fonts.",
     "surface": "",
     "bandSection": "",
     "layoutVariants": {
-      "_comment": "Force a variant per section, or leave empty for the seeded pick. Valid names are in VARIANTS.txt and enforced by check-catalogue.mjs. story, testimonials and footer have ONE layout each \u2014 they have no variant axis, so no key here.",
+      "_comment": "Force a variant per section, or leave empty for the seeded pick. Valid names are in VARIANTS.txt and enforced by check-catalogue.mjs. testimonials and footer have ONE layout each. servicesPage is MANUAL: the engine never picks it; set it yourself (stacked | grouped | featured | index — see VARIANT-CHEAT-SHEET.txt §4). Empty = stacked, which suits 1-6 services.",
       "hero": "",
       "services": "",
       "whyUs": "",
-      "header": ""
+      "story": "",
+      "faqs": "",
+      "areas": "",
+      "header": "",
+      "servicesPage": ""
     },
     "_engine_key_reference": "designKit: ledger|workshop|coast|press|signal (this also picks the two typefaces, loaded per-kit by astro.config.mjs) | surface: flat|tint|warm | bandSection: <a section key present in `sections`> OR none | variantSeed: any string (change to reshuffle the whole look)",
     "designDirection": {
@@ -34,7 +41,7 @@
     "completedBy": "",
     "completedAt": "",
     "sourceStage": "recon-demo | client-questionnaire",
-    "_layoutVariantsNote": "Only hero and header have rendering variants. hero: typographic|split-media|fullbleed|editorial (the last two need features.hasPhotos). header: standard|minimal|centered. Empty = the engine seeds it from the client name."
+    "_layoutVariantsNote": "Seven sections have a rendering variant axis. hero: typographic|split-media|fullbleed|docket|index|stat-lede. services: grid-icons|ledger|split-scroll|feature-lead|list-detail. whyUs: ruled-rows|icon-grid|contrast-pair|process-rail. story: ruled-cards|credentials-panel|portrait-lede. faqs: accordion|open-columns|grouped. areas: chips|zoned|directory. header: standard|minimal|centered. Empty = the engine seeds it from the client name. Names must match CATALOGUE in src/lib/variants.mjs — check-catalogue.mjs fails the build on drift."
   },
   "_meta": {
     "domain": "example.com.au",
@@ -64,22 +71,32 @@
   },
   "business": {
     "name": "REQUIRED",
+    "schemaType": "",
+    "_comment_schemaType": "schema.org type for the business JSON-LD. One of: GeneralContractor, HomeAndConstructionBusiness, Electrician, Plumber, RoofingContractor, HousePainter, HVACBusiness, Locksmith, MovingCompany, AutoRepair, AutomotiveBusiness, ProfessionalService, LocalBusiness. Concreters, landscapers, tilers, fencers: GeneralContractor or HomeAndConstructionBusiness. Empty = generic LocalBusiness (check-intake warns).",
+    "googleBusinessUrl": "",
+    "_comment_googleBusinessUrl": "The Google Business Profile share link (maps.app.goo.gl/... or g.page/...). Goes into the schema's sameAs with the social links, which is how Google ties the site to the GBP listing.",
     "tagline": "",
     "shortDescription": "",
     "trade": "",
     "abn": "",
     "licence": "",
     "established": "",
+    "_comment_credentials": "insurance + memberships[] are OPTIONAL (v3.17). With licence/abn/established they feed story/credentials-panel, which needs 2+ non-empty rows. Real, verifiable values only — an invented insurance line on a page carrying the client's ABN is their exposure, not yours. insurance: a plain phrase, e.g. \"$20M public liability\". memberships[]: bodies the business actually belongs to.",
+    "insurance": "",
+    "memberships": [],
     "logoText": "",
     "logoMarkText": "",
     "logo": ""
   },
   "contact": {
     "phone": "REQUIRED",
-    "email": "REQUIRED \u2014 the dev banner flags this even for phone-first clients.",
+    "email": "REQUIRED — the dev banner flags this even for phone-first clients.",
     "formEndpoint": "",
     "address": "Adelaide SA 5000",
     "hours": "",
+    "openingHoursSpec": [],
+    "_comment_openingHoursSpec": "Machine-readable hours for the schema (contact.hours stays the display text). Example: [{ \"days\": [\"Mo\",\"Tu\",\"We\",\"Th\",\"Fr\"], \"opens\": \"07:00\", \"closes\": \"17:00\" }, { \"days\": [\"Sa\"], \"opens\": \"08:00\", \"closes\": \"12:00\" }]. 24h HH:MM. Leave [] rather than guess — wrong hours in Google are worse than none.",
+    "linkedin": "",
     "instagram": "",
     "facebook": "",
     "tiktok": "",
@@ -91,16 +108,22 @@
     ]
   },
   "style": {
-    "_comment": "Client's real brand colours. ONLY brand, brandDark and accent are required \u2014 every other colour on the site (page paper, body ink, muted text, borders, card, eyebrow ink, on-dark text, the section band, and the text colour on every CTA) is DERIVED from these by src/lib/palette.mjs and contrast-checked at build time. Do not paste colours from another client's intake to 'fill it in' \u2014 that is how a landscaper's greens ended up in a painter's hero. brandDark must be genuinely dark (WCAG luminance <= 0.183) or the colour band self-suppresses. Optional overrides, only when the client insists: highlight, bg, card, ink, muted, border, surfaceAlt, accentInk, accentOndark, brandSecondaryInk, onDark, band. Run `npm run check:universal` to see the resolved palette and its contrast report.",
+    "_comment": "Client's real brand colours. ONLY brand, brandDark and accent are required — every other colour on the site (page paper, body ink, muted text, borders, card, eyebrow ink, on-dark text, the section band, and the text colour on every CTA) is DERIVED from these by src/lib/palette.mjs and contrast-checked at build time. Do not paste colours from another client's intake to 'fill it in' — that is how a landscaper's greens ended up in a painter's hero. brandDark must be genuinely dark (WCAG luminance <= 0.183) or the colour band self-suppresses. Optional overrides, only when the client insists: highlight, bg, card, ink, muted, border, surfaceAlt, accentInk, accentOndark, brandSecondaryInk, onDark, band. Run `npm run check:universal` to see the resolved palette and its contrast report.",
     "brand": "REQUIRED",
-    "brandDark": "REQUIRED \u2014 set dark",
+    "brandDark": "REQUIRED — set dark",
     "accent": "REQUIRED",
     "highlight": ""
   },
   "hero": {
-    "_comment": "heading + headingTint (the coloured tail) + subhead + primaryCta are the minimum. stats[]: up to 4 {value,label} shown as a strip under the hero \u2014 REAL numbers only, nothing derived or rounded up. rating: {score,scale,line,href} anchors the `editorial` variant. image+imageAlt only when features.hasPhotos is true; without a photo the engine routes to `typographic` and generates a motif from the palette + business.trade. motif: swatch|grid|contour|circuit|strata overrides that pick.",
+    "_comment": "heading + headingTint (the coloured tail) + subhead + primaryCta are the minimum. stats[]: up to 4 {value,label} shown as a strip under the hero — REAL numbers only, nothing derived or rounded up. rating: {score,scale,line,href} anchors the `editorial` variant. image+imageAlt only when features.hasPhotos is true; without a photo the engine routes to `typographic` and generates a motif from the palette + business.trade. motif: swatch|grid|contour|circuit|strata overrides that pick.",
     "eyebrow": "",
+    "_comment_eyebrow": "OPTIONAL (v3.22). Every eyebrow in the intake is empty by default and renders only when set. Use one only when it adds a fact the heading doesn't carry — trade + suburb in the hero ('Licensed plumbers · Norwood, SA') earns its place; 'What we do' above 'Plumbing services in Adelaide' does not. Rendered sentence case, 15px, untracked.",
+    "cover": true,
+    "_comment_cover": "FULLBLEED HERO ONLY (v3.25), on by default: the hero holds its place and the next section slides up over it. false = the hero scrolls away normally. Ignored by every other hero variant.",
+    "displayLine": "",
+    "_comment_displayLine": "OPTIONAL (v3.24). A short line (under 40 characters) set large in the headline font, e.g. 'Front fences & gates'. When set, `heading` renders small beneath it inside the same h1, so `heading` still carries the keyword. Empty = `heading` is the big line, as before.",
     "heading": "",
+    "_seo_heading": "H1 of the homepage. Primary service + city, in words a customer uses: 'Adelaide electricians for homes and small businesses', 'Excavation and concrete in Adelaide'. headingTint continues the sentence with the promise.",
     "headingTint": "",
     "subhead": "",
     "body": "",
@@ -111,15 +134,42 @@
     "imageAlt": "",
     "stats": [],
     "rating": {},
-    "_comment_stats": "stats[] {value,label} \u2014 REAL numbers only. Gates hero/stat-lede, where stats[0] becomes the lede and stats[1..3] the strip beneath. No stats, no variant: it has no placeholder state."
+    "_comment_stats": "stats[] {value,label} — REAL numbers only. Gates hero/stat-lede, where stats[0] becomes the lede and stats[1..3] the strip beneath. No stats, no variant: it has no placeholder state."
   },
   "services": {
     "_comment": "items[] drives the homepage hero card row (title + description + includes[] + optional price + optional href). For rich per-service DETAIL pages (/services/[slug]) add records to src/data/services.ts instead.",
-    "eyebrow": "What we do",
+    "eyebrow": "",
     "heading": "Services",
+    "_seo_heading": "Homepage services H2. Name the trade and city: 'Plumbing services in Adelaide', 'Concrete and civil services in Adelaide' — not 'Services' or 'What we do'. eyebrow can stay a short label ('What we do').",
     "subhead": "",
-    "pageEyebrow": "Services",
+    "pageEyebrow": "",
     "pageHeading": "Everything we do",
+    "page": {
+      "_comment": "The /services PAGE (v3.19). heading is the page H1 and subhead its lede. quoteHeading is the H2 of the full-bleed quote band that closes every layout. featuredHeading / moreHeading / midHeading / midBody are read by the 'featured' layout only. Empty fields fall back to pageEyebrow / pageHeading / subhead, then to generic text.",
+      "_seo": "heading = '<service family> in <city>' e.g. 'Landscaping services in Adelaide'. subhead = one sentence naming the main service types and who they are for. quoteHeading = a question with the trade + city: 'Need an electrician in Adelaide?', 'Need concrete or civil work in Adelaide?'. featuredHeading = 'Our most requested <trade> services', moreHeading = 'More <trade> services' — not 'Everything else'.",
+      "eyebrow": "",
+      "heading": "",
+      "subhead": "",
+      "quoteHeading": "",
+      "quoteBody": "",
+      "featuredHeading": "",
+      "moreHeading": "",
+      "midHeading": "",
+      "midBody": ""
+    },
+    "groups": [
+      {
+        "_comment": "OPTIONAL. Leave groups as [] when you are not grouping. Each group = { id, heading, intro, image, imageAlt }. An item joins a group with items[].group = the group's id. heading IS the H2 on /services (grouped + index layouts), so renaming a group renames the heading — write it as a keyword: 'Excavation and civil works', 'Switchboards and wiring', 'Hot water systems'. image is optional: without one, the group borrows the first photo among its services. Items with no group render last, unlabelled; nothing is ever put in an invented 'Other' group. Delete this example object before launch or fill it.",
+        "id": "",
+        "heading": "",
+        "intro": "",
+        "image": "",
+        "imageAlt": ""
+      }
+    ],
+    "_comment_homepageCap": "The HOMEPAGE section shows a shortlist of 6 (HOMEPAGE_SERVICE_CAP in src/lib/content.mjs); /services shows the full catalogue. WHICH six is yours via featured:true on the items below; HOW MANY is the template's, because \"show everything\" is never right on a landing page. With no featured flags it falls back to source order. The view-all link names the real total, e.g. \"View all 18 services\".",
+    "_comment_showQuoteCard": "OPTIONAL, defaults true. The Get-a-free-quote card inside the services grid — a mid-page conversion point, so dropping it costs the client calls. Set false only when the client has asked. Rendered by the grid-icons variant only.",
+    "showQuoteCard": true,
     "items": [
       {
         "title": "",
@@ -127,8 +177,13 @@
         "includes": [],
         "price": "",
         "href": "",
+        "icon": "",
+        "_comment_icon": "OPTIONAL (v3.27). A line icon on the homepage service card (grid-icons layout), in place of the card's number. One of the names in src/lib/icons.mjs: fence, gate, sliding-gate, letterbox, bolt, droplet, roller, leaf, tree, spade, hammer, wrench, home, truck, shield, ruler, sun, snowflake, tiles, layers, window, key, sparkle, check.",
         "featured": false,
-        "_comment": "EXAMPLE item \u2014 duplicate per service. description is the short card line. longDescription + includes[] (2+) gate list-detail. image is gated by features.hasPhotos and gates split-scroll (needs one on EVERY service) and feature-lead (needs one on the LEAD service). featured:true marks the service that leads in feature-lead \u2014 first true wins, else items[0].",
+        "group": "",
+        "anchor": "",
+        "_seo": "title = the name customers search ('Core drilling', 'Hot water system replacement', 'Switchboard upgrades'), not an internal label; it becomes an H2/H3 on /services. description = first sentence carries the service + city once. anchor = the URL fragment for deep links (/services#<anchor>): write it as the search phrase with the city, e.g. 'core-drilling-adelaide'; empty = title slugified. group = a services.groups[].id, or empty.",
+        "_comment": "EXAMPLE item — duplicate per service. description is the short card line. longDescription + includes[] (2+) gate list-detail. image is gated by features.hasPhotos and gates split-scroll (needs one on EVERY service) and feature-lead (needs one on the LEAD service). featured:true marks the service that leads in feature-lead — first true wins, else items[0].",
         "longDescription": "",
         "image": "",
         "imageAlt": ""
@@ -150,19 +205,34 @@
     ]
   },
   "usage": {
-    "_comment": "Read by the `areas` section (v3.16) \u2014 it used to live inside Story, so switching story off silently removed the suburb coverage. featured[] become the homepage chips; items[] is the full list for /areas.",
-    "eyebrow": "Where we work",
+    "_comment_variants": "Variant axis added in v3.17 (chips|zoned|directory) on the HOMEPAGE areas section. zoned needs 2+ real zones below. directory needs 12+ collected areas (usage.items plus serviceAreas, deduped) and links any suburb that clears areaPageState to /areas/<slug>. The /areas page list is Usage.astro and has no axis.",
+    "_comment": "Read by the `areas` section (v3.16) — it used to live inside Story, so switching story off silently removed the suburb coverage. featured[] become the homepage chips; items[] is the full list for /areas.",
+    "eyebrow": "",
     "heading": "Service areas",
+    "_seo_heading": "H2. Trade + coverage: 'Electricians across Adelaide's northern suburbs', 'Concrete and civil work across Adelaide, regional SA and WA/NT mine sites'.",
     "subhead": "",
     "areasLine": "",
     "travelLine": "",
     "notCoveredLine": "",
+    "notCoveredHeading": "",
+    "areaStyle": "",
+    "_comment_areaStyle": "OPTIONAL (v3.28). How suburbs are set on the homepage areas section and on /areas. Empty = a line of place names divided by hairlines. \"pills\" = the outlined pill chips used before v3.28.",
+    "_comment_zones": "OPTIONAL (v3.17). Feeds the areas/zoned variant, which needs 2+ zones that are NAMED and hold at least one suburb each. Use the client's own words for the grouping — \"Northern suburbs\", \"Adelaide Hills\", \"South of the river\". NEVER derive a zone from suburb names: deciding that Reynella is \"southern\" is a coverage claim the client did not make. travelNote is per-zone and optional. Suburbs in items[] but not in any zone render last without a label; they are never swept into an invented \"Other\" zone.",
+    "zones": [
+      {
+        "name": "",
+        "areas": [],
+        "travelNote": ""
+      }
+    ],
+    "_comment_homepageCap": "The HOMEPAGE areas section shows at most 6 suburbs (HOMEPAGE_AREA_CAP in src/components/Areas.astro); /areas carries the full list. Naming a handful proves the patch is real — nobody scans 23 suburb names looking for their own. WHICH six comes from featured[] below (falling back to items[] order); the directory variant puts suburbs that have their own page first, because an internal link is worth more on the homepage than an unlinked name. The directory GATE still counts the client's total areas, so a long list still picks the index layout — it just renders the shortlist.",
     "featured": [],
     "items": []
   },
   "whyUs": {
-    "_comment": "Bare array OR this object form. items[]: title + description. type 'process' unlocks whyUs/process-rail \u2014 set it ONLY when the items are a real sequence (test: can they be reordered without losing meaning? if yes they are a list). pairs[] {them,us} unlocks contrast-pair and must come from the client, never be invented. trust[] is the optional strip above the list.",
+    "_comment": "VOICE: TECHNICAL. This section is where the client proves they know the trade. Write about METHOD and STANDARDS — what gets checked, what gets done in what order, what decides whether the job lasts. Base prep, reinforcement cover, joint spacing, curing, tolerances, compliance, the thing a competitor would skip. It carries the topical authority for the whole site, so it is also what a search engine and an AI assistant read to decide this business does the work rather than subcontracts it.\nDO NOT write the owner's story here. No years-in-the-trade, no father-and-son, no who-answers-the-phone — that is About, and running it in both places wastes the strongest section on the page. If a point could appear word-for-word in About, it belongs in About.\ntrust[] is the strip above the rows: short technical claims in caps, 4 max, each one checkable.",
     "heading": "",
+    "_seo_heading": "H2. Name the standard or method in trade words: 'Concrete poured to Australian Standards', 'Licensed electrical work, tested and certified' — not 'Why choose us' or a pun.",
     "type": "benefits",
     "trust": [],
     "items": [
@@ -176,8 +246,11 @@
     "usLabel": ""
   },
   "story": {
-    "eyebrow": "About us",
+    "_comment": "VOICE: CONVERSATIONAL. This is the trust section, not the spec sheet. Write it the way the owner would say it across a kitchen table: who they are, how long they have done it, who turns up, why the crew is the size it is, what they will and will not take on. The job of this section is a customer thinking \"these people know what they're doing and I'd be comfortable having them here\".\nDO NOT repeat the technical points from whyUs. No joint spacing, no mix specs, no tolerances. Overlap of FACTS is fine — the same 35 years can appear in both — but it must be doing a different job: in whyUs it backs a method claim, here it is simply reassurance.\nA reader should be able to read About alone and want to call; they should be able to read Why Us alone and believe the work will be done properly. Different questions, different answers.\nVariant axis added in v3.17 (ruled-cards|credentials-panel|portrait-lede). credentials-panel needs 2+ non-empty of business.licence / abn / established / insurance / memberships — it never invents a row. portrait-lede needs features.hasPhotos AND story.image (a real operator/crew photo, not a stock shot), with story.imageAlt describing who is in it. An explicit _brief override skips the engine's filter, but the component re-checks and falls back to ruled-cards rather than render an empty panel or a broken frame.",
+    "eyebrow": "",
+    "imageAlt": "",
     "heading": "",
+    "_seo_heading": "H2. Who does the work + trade + place: 'Family-run concreters from Cavan', 'Your local Adelaide plumber since 2009' — not 'About us'.",
     "body": "",
     "image": "",
     "cards": [
@@ -194,19 +267,20 @@
         "body": ""
       }
     ],
-    "_comment_process": "process[] {title,body} \u2014 a genuine sequence. Automatically suppressed if whyUs renders process-rail, so the page never shows two numbered sequences."
+    "_comment_process": "process[] {title,body} — a genuine sequence. Automatically suppressed if whyUs renders process-rail, so the page never shows two numbered sequences."
   },
   "testimonials": [
     {
-      "_comment": "Bare array OR {eyebrow,heading,items[]}. NEVER invent these \u2014 real, sourced reviews only, or leave empty.",
+      "_comment": "Bare array OR {eyebrow,heading,subhead,source,sourceUrl,rating,items[]}. NEVER invent these — real, sourced reviews only, or leave empty. Rendered as review cards (v3.28): initial, name, platform mark, text. OPTIONAL per item: rating (1-5, the reviewer's own stars; omit for a Facebook recommendation, which has none) and date (as the platform shows it, e.g. 'March 2026'). OPTIONAL on the block: rating {score, count} copied from the review profile itself, never averaged from the items here. The platform mark shows when source/sourceUrl is recognisably Google or Facebook. Order matters: the first three are what a desktop visitor sees before scrolling.",
       "name": "",
       "location": "",
       "quote": ""
     }
   ],
   "recentJobs": {
-    "_comment": "Optional 'recent jobs' strip. Copy lives here (heading/subhead); the actual entries + photos live in src/data/recent-jobs.ts. Empty by default \u2014 the section self-hides.",
+    "_comment": "Optional 'recent jobs' strip. Copy lives here (heading/subhead); the actual entries + photos live in src/data/recent-jobs.ts. Empty by default — the section self-hides.",
     "heading": "Recent jobs",
+    "_seo_heading": "H2. 'Recent <trade> jobs around <city>' — the job titles themselves should name service + suburb.",
     "subhead": ""
   },
   "gallery": {
@@ -214,19 +288,23 @@
     "subhead": ""
   },
   "faqs": {
-    "eyebrow": "FAQ",
+    "_comment": "Variant axis added in v3.17 (accordion|open-columns|grouped). open-columns needs 6+ complete items. grouped needs 2+ DISTINCT item.group values — an optional per-item category like \"Pricing\", \"Process\", \"Warranty\". Items with no group render last without a label; they are never invented into an \"Other\" bucket. An item missing a question or an answer is dropped, not rendered empty. Rendered by one component on the homepage and at /faq.",
+    "eyebrow": "",
     "heading": "Common questions",
+    "_seo_heading": "H2. '<Trade> questions' with the subject: 'Concrete and excavation FAQs', 'Solar installation questions' — questions themselves should be phrased the way customers ask them.",
     "items": [
       {
         "question": "",
-        "answer": ""
+        "answer": "",
+        "group": ""
       }
     ]
   },
   "contactSection": {
-    "_comment": "emailSubject overrides the form email subject (defaults to 'New enquiry \u2014 <business>'). messagePlaceholder overrides the textarea placeholder.",
-    "eyebrow": "Contact",
+    "_comment": "emailSubject overrides the form email subject (defaults to 'New enquiry — <business>'). messagePlaceholder overrides the textarea placeholder.",
+    "eyebrow": "",
     "heading": "",
+    "_seo_heading": "H2. Action + trade + city: 'Get a free concrete quote in Adelaide' — not 'Get in touch' or 'Contact us'.",
     "subhead": "",
     "emailSubject": "",
     "messagePlaceholder": "",
@@ -257,18 +335,46 @@
     "copyrightSuffix": "All rights reserved."
   },
   "serviceAreas": [],
+  "demo": {
+    "_comment": "DEMOS ONLY (v3.27). sampleSections lists the sections whose copy is an example of a finished build rather than something the business has said, e.g. [\"faqs\", \"whyUs\", \"story\"]. Each gets a small red 'Sample content' tag. Requires seo.noindex true (check-intake enforces it). Empty it as each section is replaced with the client's real content; a live site has none.",
+    "sampleSections": []
+  },
   "features": {
-    "_comment": "hasPhotos MUST be an explicit boolean and only flips true when REAL files exist in public/images. It gates hero split-media/fullbleed and services split-scroll/feature-lead \u2014 those variants become unavailable, not broken.",
+    "_comment": "hasPhotos MUST be an explicit boolean and only flips true when REAL files exist in src/assets/images (optimised, v3.21) or public/images. It gates hero split-media/fullbleed and services split-scroll/feature-lead — those variants become unavailable, not broken.",
     "hasPhotos": false,
     "stickyPhoneBar": false,
-    "servicesPage": true
+    "motion": "standard",
+    "_comment_motion": "Scroll animation: standard | subtle | bold | off. bold (v3.26) = standard, plus the two halves of contact, story, before/after, the why-us pair and split-scroll service rows slide in from left and right on desktop. standard = sections fade and rise as they enter, and service, gallery and testimonial tiles arrive one after another. subtle = shorter and smaller. off = nothing moves, and a fullbleed hero is not pinned. Visitors who ask their device for reduced motion never get any.",
+    "servicesPage": true,
+    "_comment_suburbPages": "PREMIUM TIER, default false. Per-suburb pages at /areas/<slug>. A basic build ships ONE /areas page listing the coverage; the moment a client has a page per suburb they also carry the obligation to keep each one genuinely different, which the 70%-similarity gate in areas.mjs polices. With this false, getStaticPaths returns nothing and the homepage directory renders every suburb as plain text rather than linking into a 404. Turning it on does NOT force thin pages — the content gates still apply on top.",
+    "suburbPages": false
   },
   "seo": {
     "title": "",
     "description": "",
+    "_seo": "title (homepage <title>): '<Primary service> <City> | <Business>' — 50-60 characters, keyword first. description: 140-155 characters: services + city + one proof point + the action ('Free quotes. Call 04xx xxx xxx.'). Each page in pages{} follows the same pattern for its own subject.",
+    "pages": {
+      "_comment": "Per-page <title> and meta description (v3.19). Empty = the page's generic fallback ('Service areas | Business'), which carries no keyword. Fill all four for every build.",
+      "services": {
+        "title": "",
+        "description": ""
+      },
+      "areas": {
+        "title": "",
+        "description": ""
+      },
+      "gallery": {
+        "title": "",
+        "description": ""
+      },
+      "faq": {
+        "title": "",
+        "description": ""
+      }
+    },
     "ogImage": "",
-    "_keywordsNote": "No meta keywords tag \u2014 dead since 2009 and it only showed competitors your targets. Keep a keyword list in your own notes for copy and service-area planning.",
-    "_comment_ogImage": "Leave empty until a real file exists in public/. A wrong path is worse than none \u2014 social scrapers cache a 404 hard, so the link preview stays broken for days after you fix it."
+    "_keywordsNote": "No meta keywords tag — dead since 2009 and it only showed competitors your targets. Keep a keyword list in your own notes for copy and service-area planning.",
+    "_comment_ogImage": "Leave empty until a real file exists in public/. A wrong path is worse than none — social scrapers cache a 404 hard, so the link preview stays broken for days after you fix it."
   },
   "analytics": {
     "_comment": "Leave provider empty for no analytics. plausible + umami are cookieless (no consent banner). ga4 sets cookies and triggers the consent banner under Consent Mode v2.",
@@ -284,14 +390,26 @@
       "lastUpdated": "",
       "entityName": "",
       "contactEmail": "",
-      "abn": ""
+      "abn": "",
+      "_comment": "Generated by src/lib/privacy.mjs (v3.17): 15 fact-gated sections including overseas disclosure (APP 8), access and correction (APP 12/13), retention, complaints with the OAIC escalation path, and what a trade business collects off the website. Every section is sourced — nothing renders that the intake does not support. NOT legal advice: the client reviews it.",
+      "postalAddress": "",
+      "state": "",
+      "privacyActStatus": "",
+      "_comment_privacyActStatus": "OPTIONAL. \"covered\" = bound by the Privacy Act 1988 (Cth). \"small-business\" = under the small business operator turnover threshold and following the APPs voluntarily. Leave EMPTY if the client has not told you — their turnover is not something to guess at in a published policy.",
+      "formProvider": "",
+      "reviewed": false,
+      "_comment_reviewed": "Set true once the client has actually read the generated policy. Not a build blocker; it is a record that someone signed off.",
+      "extraSections": []
     },
     "terms": {
       "enabled": true,
       "lastUpdated": "",
       "entityName": "",
       "contactEmail": "",
-      "abn": ""
+      "abn": "",
+      "_comment": "Generated by src/lib/terms.mjs. Three groups: website clauses, ALWAYS-ON commerce clauses (Australian Consumer Law, GST, invoices, liability, disputes, governing law, changes) and opt-in terms of trade. tradeTerms.enabled stays false by default — trading terms the client has not read are a document their customers can hold them to. The commerce group is not opt-in because it states the position that already applies, and several clauses protect the client.",
+      "state": "",
+      "_comment_state": "Governing law for the terms, e.g. \"South Australia\". Falls back to South Australia if empty."
     }
   },
   "agency": {
@@ -300,6 +418,6 @@
       "enabled": true
     }
   },
-  "_serviceAreasNote": "Service-area pages. A suburb gets its own page ONLY when it carries content that could not be pasted onto the next suburb: an intro of 60+ words plus at least one anchor \u2014 a job in jobs[], a note[] of 20+ words about local housing stock, or a sourced review from that suburb. Everything else stays a list entry in usage.items, which is honest: the suburb is served, there just isn't a page's worth to say yet. The build fails if two area pages are 70%+ the same text, because near-identical suburb pages are a doorway site. Fields: name, slug, intro, heading, metaDescription, services[], jobs[{title,street,detail}], note, testimonialQuote + testimonialName + testimonialSourceUrl, nearby[].",
+  "_serviceAreasNote": "Service-area pages. A suburb gets its own page ONLY when it carries content that could not be pasted onto the next suburb: an intro of 60+ words plus at least one anchor — a job in jobs[], a note[] of 20+ words about local housing stock, or a sourced review from that suburb. Everything else stays a list entry in usage.items, which is honest: the suburb is served, there just isn't a page's worth to say yet. The build fails if two area pages are 70%+ the same text, because near-identical suburb pages are a doorway site. Fields: name, slug, intro, heading, metaDescription, services[], jobs[{title,street,detail}], note, testimonialQuote + testimonialName + testimonialSourceUrl, nearby[].",
   "_comment_serviceAreas": "serviceAreas[] builds a PAGE per suburb, each needing a 60+ word unique intro. Twenty thin pages is a doorway-site pattern. Leave empty and keep suburbs in usage.items[] unless there is genuinely a page's worth to say."
 }

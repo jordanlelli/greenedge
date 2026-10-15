@@ -87,6 +87,48 @@
     B9  Template hero: "big number + small label + gradient accent" unless the
         data genuinely IS the story.
 
+    B10 The badge card (added v3.28). An icon in a circle or tile, stacked
+        over a bold title and one grey sentence, inside a bordered rounded
+        box, repeated in a grid. It is the most recognisable generated
+        pattern there is. A checklist is set as a checklist: hanging tick,
+        text on one edge, a rule between entries.
+
+    B11 The repeated action (added v3.28). The same phone number or the same
+        button more than once in one screen. Measured on a pipeline demo:
+        the number four times above the fold. Repetition reads as a
+        generator filling slots, not as urgency. One primary action per
+        screen; the header, hero and services row each say it once.
+
+    B12 Equal-weight photo grids (added v3.28). Six photos in six equal
+        frames is a thumbnail index: nothing leads, so the eye has nowhere
+        to start. One photo leads and the rest support it, chosen by ORDER
+        in the intake.
+        NOT reviews. Reviews are deliberately set as a row of equal review
+        cards in the platforms' own form (initial, name, Google / Facebook
+        mark, stars when stated), because that is the form people already
+        read as real. Jordan's call, Oct 2026: an editorial pull-quote
+        layout was tried and rejected for exactly that reason.
+
+    B13 The box as the default container (added v3.28). Border + radius +
+        padding around a form, a fact, a list. A box is for a thing you
+        click, a surface that must separate from its ground, or an idiom
+        the reader already knows as a card (a review). Everything else is
+        grouped by a rule, an edge or space.
+
+    B14 Default-stack type (added v3.28). Inter, Space Grotesk, Poppins,
+        Open Sans, Roboto, Montserrat, Outfit, Plus Jakarta Sans as a
+        site's display or body face. They are what a generator reaches
+        for first, so they are what a reader has seen on every generated
+        page. No kit loads Inter or Space Grotesk any more. Type comes
+        from the kit table (KIT_FONT_FACES) or the Style Picker; the
+        TYPE lines in the section 3 presets below are superseded where
+        they name one of these.
+
+    B15 The pill as the default label (added v3.28). Suburbs, badges and
+        tags each in an outlined pill is a tag cloud. A list of place
+        names is set as a line of names. Pills stay available per client
+        (usage.areaStyle), they are just not the default.
+
   ── ENFORCED FLOOR (true of every build, no exceptions) ─────────────────────
 
     G1  ALIGNMENT VARIATION. At most half the sections centered. At least two
@@ -95,6 +137,11 @@
 
     G2  CONTAINER VARIATION. Max 2 card-grid sections per page. Others use
         editorial blocks, text lists, or full-bleed treatments.
+        (v3.28: a pipeline demo was measured at FIVE boxed sections of nine:
+        services, why us, reviews, about, contact. Reviews keep their cards
+        on purpose (B12); the other four no longer draw boxes, so the limit
+        holds by construction on the default variants instead of by
+        remembering to check.)
 
         ENCODE THE SUBJECT (roofline, horizon contour, rule-line) — never
         generic decoration.
@@ -121,6 +168,9 @@
         [ ] Any emoji/monogram/placeholder visible?   -> fail (B6/B7)
         [ ] More than one signature element?          -> fail (G4)
         [ ] Any dead band >160px?                     -> fail (B8)
+        [ ] Icon-badge cards in a grid?               -> fail (B10)
+        [ ] Same number/button twice in one screen?   -> fail (B11)
+        [ ] Homepage photos all at one size?          -> fail (B12)
 
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -393,6 +443,15 @@
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  4.  NOTES / MAINTENANCE                                                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+  · v3.28 NOTE ON THE PRESETS ABOVE. Their palettes are stock Tailwind
+    swatches (slate-800 #1E293B, orange-600 #EA580C, blue-600 #2563EB and
+    so on) and several TYPE lines name default-stack faces, because both
+    came from the ui-ux-pro-max pack. Re-queried in Oct 2026, that pack
+    still answers "trade contractor" with blue + orange and Poppins + Open
+    Sans. Treat the BONES, SIGNATURE and DO/DON'T lines as the value here.
+    For starter colours use the Style Picker sets in
+    scripts/pick-palettes.mjs, and for type the kit table or the picker.
 
   · v1 covers 8 verticals. Add a preset the same way: distinct BASE colour
     family + distinct type personality + a signature that ENCODES the subject.

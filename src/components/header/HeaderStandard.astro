@@ -5,11 +5,11 @@
  */
 import P from "./HeaderParts.astro";
 ---
-<div class="mx-auto flex max-w-[var(--w-content)] items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
+<div class="mx-auto flex max-w-[var(--w-content)] items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8 lg:py-4">
   <P part="brand" />
-  <P part="nav" class="gap-5" />
+  <P part="nav" class="gap-7" />
   <div class="flex shrink-0 items-center gap-2 sm:gap-3">
-    <P part="phone" class="hidden text-sm sm:inline" />
+    <P part="phone" unlessCtaCalls class="hidden text-sm sm:inline lg:text-[0.9375rem]" />
     <P part="cta" class="hidden sm:inline-flex" />
     <P part="phone" class="inline-flex min-h-10 items-center rounded-card bg-accent px-3 text-sm text-on-accent sm:hidden" />
     <P part="burger" />

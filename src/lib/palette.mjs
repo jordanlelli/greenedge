@@ -147,6 +147,22 @@ function fitAgainst(from, toward, bgs, target, { start = 0, end = 1, step = 0.02
  * @param {object} site     the cleaned intake (needs .style and .theme)
  * @param {string} surface  engine-resolved surface: "flat" | "tint" | "warm"
  */
+/** True for the light warm off-whites impeccable reports as `cream-palette`. */
+export const isCream = (hex) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return false;
+  const [r, g, b] = rgb.map(Math.round);
+  return Math.min(r, g, b) >= 209 && r >= g && g >= b && r - b >= 6 && r - b <= 48;
+};
+
+/** Pull a cream paper back to a barely-warm off-white (red minus blue <= 5). */
+export const decream = (hex, dark = false) => {
+  if (dark || !isCream(hex)) return hex;
+  const [r, g, b] = hexToRgb(hex).map(Math.round);
+  const k = 5 / (r - b); // shrink every channel's distance from red by the same factor: hue kept, warmth cut
+  return rgbToHex([r, r - (r - g) * k, r - (r - b) * k]);
+};
+
 export function resolvePalette(site = {}, surface = "flat") {
   const s = site.style || {};
   const dark = site.theme === "dark";
@@ -175,7 +191,12 @@ export function resolvePalette(site = {}, surface = "flat") {
     tint: wash(dark ? 0.1 : 0.06),
     warm: accent ? mix(paperBase, accent, dark ? 0.08 : 0.05) : undefined,
   };
-  const pageBg = s.bg ?? (surfaceBg[surface] || paperBase);
+  /* v3.22: a derived light paper may not land in the cream/beige band (light,
+     warm-ordered, red minus blue 6-48). That band is impeccable's
+     `cream-palette` tell, and a warm accent pushed every "warm" surface — and
+     "tint" on red/orange brands — straight into it. The warmth is kept but
+     held under the threshold. A client's explicit style.bg is never touched. */
+  const pageBg = s.bg ?? decream((surfaceBg[surface] || paperBase), dark);
 
   /* Alternating section surface, settled here rather than at the end because
      every text colour below must be legible on BOTH it and the page. It must
@@ -206,6 +227,16 @@ export function resolvePalette(site = {}, surface = "flat") {
       ? fitAgainst(brandText, pageBg, textBgs, 4.5, { start: 0.4, end: 0, step: 0.02 })
       : shade(brand, 0.22);
 
+  /* Highlight as a TEXT colour (the coast and press eyebrows). style.highlight
+     is a fill: nothing about it promises it can be read as 15px text, and a
+     pale one (#5DB3D6) sat at 2.1:1 on the page. This is the same hue walked
+     toward the ink only as far as AA needs, on the page AND the alt surface.
+     A highlight that already clears 4.5:1 comes back unchanged. */
+  const highlightRaw = s.highlight || accent;
+  const highlightInk = !highlightRaw
+    ? undefined
+    : fitAgainst(highlightRaw, inkBase, textBgs, 4.5, { start: 0, end: 1 });
+
   const derivedBorder = mix(paperBase, seed, dark ? 0.16 : 0.14) || paperBase;
   const derivedCard = mix(paperBase, seed, dark ? 0.07 : 0) || paperBase;
 
@@ -219,6 +250,7 @@ export function resolvePalette(site = {}, surface = "flat") {
     "--c-accent-ink": s.accentInk || (accent ? shade(accent, 0.34) : undefined),
     "--c-accent-ondark": s.accentOndark || (accent ? tint(accent, 0.52) : undefined),
     "--c-highlight": s.highlight || accent || undefined,
+    "--c-highlight-ink": highlightInk,
     "--c-bg": pageBg,
     "--c-card": s.card ?? derivedCard,
     "--c-ink": s.ink ?? derivedInk,

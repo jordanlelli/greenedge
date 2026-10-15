@@ -10,45 +10,26 @@
  * EVERY ROW IS SOURCED. Nothing here is generated, inferred or rounded. A row
  * with no value in the intake is omitted, never rendered empty and never filled
  * with "Contact us" to keep the panel tidy — a row that says nothing is worse
- * than a row that is not there. If fewer than two rows resolve, the panel is
- * dropped entirely and the copy runs full width, because a one-row panel reads
- * as a mistake.
+ * than a row that is not there. The rows come from resolveDocketRows
+ * (content.mjs), shared with the engine. Since v3.34 the variant needs
+ * DOCKET_MIN_ROWS (4) of them: Hero.astro falls back to another hero when
+ * there are fewer, because a three-row panel beside the hero heading leaves
+ * the right column mostly empty. The two-row floor below stays as the last
+ * line of defence for a hand-forced render.
  */
 import HeroCopy from "./HeroCopy.astro";
 import { site } from "../../config";
+import { resolveDocketRows } from "../../lib/content.mjs";
 
-const b = site.business || {};
-const usage = site.usage || {};
-const services = (site.services?.items || [])
-  .map((it: any) => String(it?.title || "").trim())
-  .filter(Boolean);
-
-/* Areas: prefer the client's own sentence, fall back to the featured suburbs,
-   never invent a radius or a travel fee. */
-const featured: string[] = Array.isArray(usage.featured) ? usage.featured.filter(Boolean) : [];
-const areasValue =
-  featured.length > 0 ? featured.slice(0, 4).join(" · ") : String(usage.areasLine || "").trim();
-
-const rows: { label: string; value: string }[] = [
-  { label: "Services", value: services.slice(0, 3).join(" · ") },
-  { label: "Areas", value: areasValue },
-  { label: "Hours", value: String(site.contact?.hours || "").trim() },
-  { label: b.licence ? "Licence" : "ABN", value: String(b.licence || b.abn || "").trim() },
-  { label: "Established", value: String(b.established || "").trim() },
-].filter((r) => r.value);
+const rows: { label: string; value: string }[] = resolveDocketRows(site);
 
 const showPanel = rows.length >= 2;
-/* With 4+ rows the panel has enough bands to absorb the copy column's height
-   honestly — the rows stretch and the whole thing reads as a ruled form. With
-   2-3 it does not: stretching them puts 150px between two hairlines, which
-   reads as a bug. Those stay top-anchored and the column simply ends. */
-const fillPanel = rows.length >= 4;
 ---
 
 <section class="relative overflow-hidden bg-bg" data-no-reveal>
   <div
     class:list={[
-      "hero-pad mx-auto grid max-w-[var(--w-content)] gap-10 px-4 sm:px-6 lg:gap-0 lg:px-8",
+      "mx-auto grid max-w-[var(--w-content)] gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:gap-0 lg:px-8 lg:py-24",
       showPanel && "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]",
     ]}
   >
@@ -57,8 +38,8 @@ const fillPanel = rows.length >= 4;
     </div>
 
     {showPanel && (
-      <div class:list={["min-w-0 lg:border-l lg:border-border lg:pl-14", fillPanel ? "lg:self-stretch" : "lg:self-start"]}>
-        <dl class="hero-docket" data-fill={fillPanel ? "true" : "false"}>
+      <div class="min-w-0 lg:flex lg:flex-col lg:justify-center lg:border-l lg:border-border lg:pl-14">
+        <dl class="hero-docket">
           {rows.map((row) => (
             <div class="hero-docket-row">
               <dt class="hero-docket-key">{row.label}</dt>
@@ -74,24 +55,6 @@ const fillPanel = rows.length >= 4;
 <style>
   .hero-docket { margin: 0; border-top: 1px solid var(--color-border); }
 
-  /* Desktop only: the panel is shorter than the copy beside it, and the
-     leftover was showing as a dead column under the last rule. Rather than
-     centre the panel — which splits one void into two and unmoors it from the
-     top rule — the ROWS absorb the height. Capped, so a tall hero cannot
-     stretch a five-row docket into five separate pages of nothing. */
-  @media (min-width: 64rem) {
-    .hero-docket[data-fill="true"] {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .hero-docket[data-fill="true"] .hero-docket-row {
-      flex: 1 1 auto;
-      max-height: 6.5rem;
-      align-items: center;
-    }
-  }
-
   .hero-docket-row {
     display: flex;
     flex-wrap: wrap;
@@ -102,9 +65,16 @@ const fillPanel = rows.length >= 4;
     border-bottom: 1px solid var(--color-border);
   }
 
+  /* Desktop (v3.34): the rows sit centred against the copy, with the divider
+     still running the full height, and take a little more room, so four rows
+     beside a four-line heading do not leave the right column half empty. */
+  @media (min-width: 64rem) {
+    .hero-docket-row { padding: 1.2rem 0; }
+  }
+
   .hero-docket-key {
     margin: 0;
-    font-size: 0.6875rem;
+    font-size: var(--text-eyebrow);
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;

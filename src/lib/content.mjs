@@ -61,6 +61,7 @@ export function resolveTestimonials(site = {}, fromDataFile = []) {
       dropped.push(name || quote.slice(0, 40));
       continue;
     }
+    const sourceLabel = str(t.source) || (isBlock ? str(block.source) : "") || "";
     items.push({
       name,
       /* suburb/location and service are optional — the caption omits whatever
@@ -68,7 +69,13 @@ export function resolveTestimonials(site = {}, fromDataFile = []) {
       meta: [str(t.suburb) || str(t.location), str(t.service)].filter(Boolean).join(" · "),
       quote,
       sourceUrl,
-      sourceLabel: str(t.source) || (isBlock ? str(block.source) : "") || "",
+      sourceLabel,
+      /* v3.28 review cards. rating and date render ONLY when the intake
+         states them: a star row is a claim about what the reviewer gave, and
+         a Facebook recommendation has no stars to show. */
+      rating: reviewStars(t.rating),
+      date: str(t.date),
+      platform: reviewPlatform(sourceLabel, sourceUrl),
     });
   }
 
@@ -87,8 +94,17 @@ export function resolveTestimonials(site = {}, fromDataFile = []) {
       quote,
       sourceUrl,
       sourceLabel: "",
+      rating: reviewStars(t.rating),
+      date: str(t.date),
+      platform: reviewPlatform("", sourceUrl),
     });
   }
+
+  /* Block-level summary: where the reviews live and, ONLY if the intake
+     states it, the profile's own score and review count. Never computed from
+     the items shown — six excerpts on a page are not the business's rating. */
+  const blockRating = isBlock && block.rating && typeof block.rating === "object" ? block.rating : {};
+  const count = Number(blockRating.count);
 
   return {
     items,
@@ -96,7 +112,31 @@ export function resolveTestimonials(site = {}, fromDataFile = []) {
     heading: (isBlock && str(block.heading)) || "What clients say",
     eyebrow: (isBlock && str(block.eyebrow)) || "",
     subhead: (isBlock && str(block.subhead)) || "",
+    sourceUrl: blockSource,
+    platform: reviewPlatform(isBlock ? str(block.source) : "", blockSource),
+    rating: {
+      score: reviewStars(blockRating.score),
+      count: Number.isInteger(count) && count > 0 ? count : 0,
+    },
   };
+}
+
+/* A rating is 1-5 or it is nothing. Anything else (0, 11, "five", empty) is
+   treated as not stated, so a typo can never print a wrong number of stars. */
+export function reviewStars(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 1 && n <= 5 ? Math.round(n * 10) / 10 : 0;
+}
+
+/* Which review platform a source belongs to, read from its label and URL.
+   Only the two a trade actually collects reviews on; anything else gets no
+   platform mark rather than a guessed one. */
+export function reviewPlatform(label, url) {
+  const s = `${label || ""} ${url || ""}`.toLowerCase();
+  const has = (...needles) => needles.some((n) => s.includes(n));
+  if (has("facebook", "fb.com", "fb.me")) return "facebook";
+  if (has("google", "g.page", "goo.gl", "maps.app")) return "google";
+  return "";
 }
 
 /* ── gallery ────────────────────────────────────────────────────────────── */
@@ -265,7 +305,227 @@ export function resolveFormFields(site = {}) {
  * Per-service imagery asserts the client did that work, so it is gated on
  * hasOwnedPhotos — not on the presence of a path, which proves nothing.
  */
-export function resolveServices(site = {}) {
+/* HOMEPAGE CAP. The landing page shows a SHORTLIST, never the full catalogue.
+   A&J shipped 18 services in a card grid: eighteen numbered cards, six rows
+   deep, on the page whose job is to get someone to call. Nobody reads card
+   fourteen, and a visitor scrolling past six rows of near-identical cards has
+   already decided the page is a directory rather than a pitch.
+
+   Six is the ceiling, four the floor for the grid to look deliberate. WHICH
+   six is the client's call via `featured: true`; HOW MANY is the template's,
+   because "show everything" is never the right answer on a landing page and
+   no client will trim their own list.
+
+   /services is the catalogue and is deliberately uncapped — that page exists
+   precisely so the landing page does not have to carry all of it. */
+export const HOMEPAGE_SERVICE_CAP = 6;
+
+/**
+ * @param {object} site
+ * @param {{ limit?: number }} [opts] — pass { limit: HOMEPAGE_SERVICE_CAP }
+ *   from the homepage section. Omit on /services to get the full catalogue.
+ */
+/* ------------------------------------------------------------------ */
+/* LocalBusiness JSON-LD — resolveBusinessSchema (v3.20)               */
+/* ------------------------------------------------------------------ */
+
+/* schema.org types a trade business can declare. business.schemaType must be
+   one of these; anything else falls back to LocalBusiness (check-intake warns).
+   A trade with no specific type (landscaper, concreter, tiler, fencer) uses
+   HomeAndConstructionBusiness or GeneralContractor. */
+export const SCHEMA_TYPES = [
+  "LocalBusiness", "HomeAndConstructionBusiness", "GeneralContractor",
+  "Electrician", "Plumber", "RoofingContractor", "HousePainter", "HVACBusiness",
+  "Locksmith", "MovingCompany", "AutomotiveBusiness", "AutoRepair", "ProfessionalService",
+];
+
+const DAY_NAMES = { mo: "Monday", tu: "Tuesday", we: "Wednesday", th: "Thursday", fr: "Friday", sa: "Saturday", su: "Sunday" };
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Australian number -> E.164 ("0419 313 985" -> "+61419313985"). */
+export function toE164AU(phone) {
+  const d = str(phone).replace(/\D/g, "");
+  if (!d) return "";
+  if (d.startsWith("61")) return `+${d}`;
+  if (d.startsWith("0") && d.length === 10) return `+61${d.slice(1)}`;
+  if (d.startsWith("1") && (d.length === 6 || d.length === 10)) return `+61${d}`; // 13xxxx / 1300 / 1800
+  return str(phone);
+}
+
+/** contact.openingHoursSpec[] -> OpeningHoursSpecification[]; invalid rows dropped. */
+export function resolveOpeningHours(site = {}) {
+  return arr(site.contact?.openingHoursSpec)
+    .map((r) => {
+      const days = arr(r?.days).map((d) => DAY_NAMES[str(d).slice(0, 2).toLowerCase()]).filter(Boolean);
+      const opens = str(r?.opens), closes = str(r?.closes);
+      if (!days.length || !HHMM.test(opens) || !HHMM.test(closes)) return null;
+      return { "@type": "OpeningHoursSpecification", dayOfWeek: days, opens, closes };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * The LocalBusiness object Layout.astro prints. Everything is sourced from the
+ * intake; a field with no value is omitted, never guessed.
+ *   @type        business.schemaType (SCHEMA_TYPES) — default LocalBusiness
+ *   telephone    contact.phone in E.164
+ *   sameAs       contact.facebook / instagram / tiktok / linkedin,
+ *                business.googleBusinessUrl (the GBP share link)
+ *   image/logo   the share image and business.logo (absolute URLs)
+ *   openingHoursSpecification   contact.openingHoursSpec[]
+ *   hasOfferCatalog             every services.items[] entry, linked to
+ *                               /services#<anchor> when that page is built
+ */
+export function resolveBusinessSchema(site = {}, opts = {}) {
+  const b = site.business || {};
+  const c = site.contact || {};
+  const type = SCHEMA_TYPES.includes(str(b.schemaType)) ? str(b.schemaType) : "LocalBusiness";
+  const out = {
+    "@context": "https://schema.org",
+    "@type": type,
+    name: str(b.name),
+    description: str(b.shortDescription) || str(b.tagline),
+    url: str(opts.siteUrl),
+  };
+  const tel = toE164AU(c.phone);
+  if (tel) out.telephone = tel;
+  if (str(c.email)) out.email = str(c.email);
+  if (str(b.established)) out.foundingDate = str(b.established);
+  if (str(opts.imageUrl)) out.image = str(opts.imageUrl);
+  if (str(opts.logoUrl)) out.logo = str(opts.logoUrl);
+  const sameAs = [c.facebook, c.instagram, c.tiktok, c.linkedin, b.googleBusinessUrl]
+    .map(str).filter((u) => /^https?:\/\//i.test(u));
+  if (sameAs.length) out.sameAs = [...new Set(sameAs)];
+  const hours = resolveOpeningHours(site);
+  if (hours.length) out.openingHoursSpecification = hours;
+  const items = resolveServicesPage(site).items;
+  if (items.length) {
+    const base = str(opts.servicesUrl).replace(/\/$/, "");
+    out.hasOfferCatalog = {
+      "@type": "OfferCatalog",
+      name: `${str(b.name)} services`.trim(),
+      itemListElement: items.map((it) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: it.title,
+          ...(it.description ? { description: it.description } : {}),
+          ...(base ? { url: `${base}#${it.anchor}` } : {}),
+        },
+      })),
+    };
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* /services PAGE — resolveServicesPage (v3.19)                        */
+/* ------------------------------------------------------------------ */
+
+/** Lower-case a service name for use mid-sentence, keeping acronyms ("UST",
+ *  "(UST)", "CCTV") as written. "Get a quote for underground storage tank
+ *  (ust) removal" is the bug this exists to prevent. */
+export const midSentence = (s) =>
+  String(s || "").split(" ").map((w) => (/^[(\[]?[A-Z0-9]{2,}[)\],.]?$/.test(w) ? w : w.toLowerCase())).join(" ");
+
+/** URL-fragment slug. Same rule everywhere so a link and its target agree. */
+export const slugifyAnchor = (s) =>
+  String(s || "").toLowerCase().trim().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/**
+ * The /services page model, shared by all four servicesPage variants.
+ *
+ * GROUPS ARE OPTIONAL AND INTAKE-DRIVEN. `services.groups[]` defines them
+ * ({ id, heading, intro, image, imageAlt }) and each item opts in with
+ * `group: "<id>"`. The group heading IS the page H2, so renaming a group in
+ * the intake renames the heading — nothing is hardcoded per trade. An item
+ * whose group is blank or unknown is never swept into an invented "Other"
+ * bucket: it lands in `ungrouped`, which variants render last WITHOUT a
+ * label (same rule as faqs/grouped and story credentials).
+ *
+ * ANCHORS. Each service gets a URL fragment: `items[].anchor` if set (write
+ * it as the search phrase, e.g. "core-drilling-adelaide"), else the title
+ * slugified. Duplicates get -2, -3 so every anchor on the page is unique.
+ * These are the deep links for ads, GBP posts and texts: /services#<anchor>.
+ */
+export function resolveServicesPage(site = {}, records = []) {
+  const block = site.services || {};
+  const owned = hasOwnedPhotos(site);
+  const page = block.page && typeof block.page === "object" ? block.page : {};
+
+  const raw = arr(records).length
+    ? arr(records).map((r) => ({
+        title: str(r.name), description: str(r.shortLine), longDescription: str(r.longDescription),
+        includes: arr(r.inclusions).map(str).filter(Boolean), price: str(r.priceLabel), group: "",
+        anchor: str(r.slug), featured: false, image: "", imageAlt: "",
+      }))
+    : arr(block.items)
+        .filter((it) => it && typeof it === "object" && (str(it.title) || str(it.description)))
+        .map((it) => ({
+          title: str(it.title),
+          description: str(it.description),
+          longDescription: str(it.longDescription),
+          includes: arr(it.includes).map(str).filter(Boolean),
+          price: str(it.price),
+          group: str(it.group),
+          anchor: str(it.anchor),
+          featured: it.featured === true,
+          image: owned ? str(it.image) : "",
+          imageAlt: str(it.imageAlt) || str(it.title),
+        }));
+
+  const seen = new Map();
+  const items = raw.map((it) => {
+    let a = slugifyAnchor(it.anchor || it.title) || "service";
+    const n = (seen.get(a) || 0) + 1;
+    seen.set(a, n);
+    if (n > 1) a = `${a}-${n}`;
+    return { ...it, anchor: a };
+  });
+
+  const defs = arr(block.groups)
+    .filter((g) => g && typeof g === "object" && str(g.id) && str(g.heading))
+    .map((g) => ({
+      id: slugifyAnchor(g.id),
+      heading: str(g.heading),
+      intro: str(g.intro),
+      image: owned ? str(g.image) : "",
+      imageAlt: str(g.imageAlt) || str(g.heading),
+    }));
+  const groups = defs
+    .map((g) => ({ ...g, items: items.filter((it) => slugifyAnchor(it.group) === g.id) }))
+    .filter((g) => g.items.length > 0);
+  const grouped = new Set(groups.flatMap((g) => g.items));
+  const ungrouped = items.filter((it) => !grouped.has(it));
+
+  /* A group without its own photo borrows the first photo among its items,
+     so a grouped layout needs one photo per GROUP, not per service. */
+  for (const g of groups) {
+    if (!g.image) {
+      const withImg = g.items.find((it) => it.image);
+      if (withImg) { g.image = withImg.image; g.imageAlt = withImg.imageAlt; }
+    }
+  }
+
+  return {
+    items,
+    groups,
+    ungrouped,
+    hasGroups: groups.length >= 2 || (groups.length === 1 && ungrouped.length > 0),
+    withImages: items.filter((it) => it.image),
+    eyebrow: str(page.eyebrow) || str(block.pageEyebrow),
+    heading: str(page.heading) || str(block.pageHeading) || "Everything we do",
+    subhead: str(page.subhead) || str(block.subhead),
+    quoteHeading: str(page.quoteHeading) || "Not sure which service you need?",
+    quoteBody: str(page.quoteBody) || "Tell us about the job and we'll work out the right approach with you.",
+    featuredHeading: str(page.featuredHeading) || "Our most requested work",
+    moreHeading: str(page.moreHeading) || "Everything else we do",
+    midHeading: str(page.midHeading) || "Not sure what the job needs?",
+    midBody: str(page.midBody),
+  };
+}
+
+export function resolveServices(site = {}, opts = {}) {
   const block = site.services || {};
   const owned = hasOwnedPhotos(site);
 
@@ -278,28 +538,53 @@ export function resolveServices(site = {}) {
       includes: arr(it.includes).map(str).filter(Boolean),
       price: str(it.price),
       href: str(it.href),
+      icon: str(it.icon),
       featured: it.featured === true,
       image: owned ? str(it.image) : "",
       imageAlt: str(it.imageAlt) || str(it.title),
     }));
 
-  let leadIndex = items.findIndex((it) => it.featured);
-  if (leadIndex < 0) leadIndex = items.length ? 0 : -1;
+  /* Apply the cap AFTER resolution so `total` is honest and the "view all"
+     link knows there is more behind it. Featured items win; if the client
+     flagged none, fall back to source order rather than guessing. */
+  const total = items.length;
+  const limit = Number.isFinite(opts.limit) && opts.limit > 0 ? opts.limit : 0;
+  let shown = items;
+  if (limit && total > limit) {
+    const featured = items.filter((it) => it.featured);
+    shown = (featured.length ? featured : items).slice(0, limit);
+  }
+
+  let leadIndex = shown.findIndex((it) => it.featured);
+  if (leadIndex < 0) leadIndex = shown.length ? 0 : -1;
+  const items_ = shown;
 
   return {
-    items,
+    items: items_,
+    total,
+    truncated: total > items_.length,
     leadIndex,
     eyebrow: str(block.eyebrow),
     heading: str(block.heading),
     subhead: str(block.subhead),
-    /* Every item carries its own photo — the gate for split-scroll. */
-    everyItemHasImage: items.length > 0 && items.every((it) => it.image),
+    /* Every item carries its own photo. Kept for anything that needs the
+       strict answer; split-scroll no longer does. */
+    everyItemHasImage: items_.length > 0 && items_.every((it) => it.image),
+    /* MOST items carry a photo — the gate for split-scroll since v3.17.
+       Requiring every item meant one service still waiting on a file knocked
+       the whole section back to the card grid, which is a big layout change
+       to hang on one missing JPG. Two thirds keeps the alternating rhythm
+       reading as photography rather than as gaps, and the component draws a
+       blank panel for the stragglers. */
+    mostItemsHaveImage:
+      items_.length > 0 &&
+      items_.filter((it) => it.image).length >= Math.ceil(items_.length * (2 / 3)),
     /* Enough depth for the list-detail panel to not look hollow. */
     everyItemHasDetail:
-      items.length > 0 &&
-      items.every((it) => it.longDescription && it.includes.length >= 2),
+      items_.length > 0 &&
+      items_.every((it) => it.longDescription && it.includes.length >= 2),
     /* Any published rate at all — the ledger price column drops without one. */
-    anyPrice: items.some((it) => it.price),
+    anyPrice: items_.some((it) => it.price),
   };
 }
 
@@ -317,8 +602,12 @@ export function resolveServices(site = {}) {
  *
  * @returns {{ cols: number, ctaSpan: number }}
  */
-export function gridShape(serviceCount) {
-  const total = serviceCount + 1;
+export function gridShape(serviceCount, withCta = true) {
+  /* withCta=false is the OPT-OUT, not the default. The card is a mid-page
+     conversion point and removing it costs the client a call; a build should
+     only drop it when the client has explicitly said so, which is why the
+     intake flag is services.showQuoteCard and defaults to true. */
+  const total = serviceCount + (withCta ? 1 : 0);
   if (total <= 2) return { cols: 2, ctaSpan: 1 };
   if (total === 3) return { cols: 3, ctaSpan: 1 };
   if (total === 4) return { cols: 2, ctaSpan: 1 };
@@ -327,4 +616,71 @@ export function gridShape(serviceCount) {
   if (total === 7) return { cols: 4, ctaSpan: 2 };
   if (total === 8) return { cols: 4, ctaSpan: 1 };
   return { cols: 3, ctaSpan: 1 };
+}
+
+/* ── story credentials ──────────────────────────────────────────────────── */
+
+/**
+ * The ruled credential rows behind story/credentials-panel.
+ *
+ * ONE implementation, shared by the engine (which gates the variant on it) and
+ * by Story.astro (which renders it). Duplicating the row logic would let the
+ * two disagree — the engine selecting a panel the component then renders with
+ * one row, which is exactly the "documented but non-rendering" class of bug
+ * check-catalogue.mjs exists to prevent.
+ *
+ * EVERY ROW IS SOURCED, same rule as hero/docket: a field with no value is
+ * omitted, never rendered empty and never filled with "Contact us". Under two
+ * resolved rows the panel drops and the copy runs full width, because a
+ * one-row panel reads as a mistake.
+ *
+ * insurance and memberships[] are OPTIONAL additions (v3.17). A client with
+ * neither still reaches two rows on licence/ABN/established alone.
+ *
+ * @returns {{ label: string, value: string }[]}
+ */
+export function resolveStoryCredentials(site = {}) {
+  const b = site.business || {};
+  const memberships = arr(b.memberships).map(str).filter(Boolean);
+  return [
+    { label: "Licence", value: str(b.licence) },
+    { label: "ABN", value: str(b.abn) },
+    { label: "Established", value: str(b.established) },
+    { label: "Insurance", value: str(b.insurance) },
+    { label: memberships.length === 1 ? "Member of" : "Memberships", value: memberships.join(" · ") },
+  ].filter((row) => row.value);
+}
+
+/**
+ * The hero/docket spec panel's rows. ONE implementation, shared by the engine
+ * (which gates the variant on it) and by HeroDocket.astro (which renders it),
+ * for the same reason as resolveStoryCredentials above.
+ *
+ * EVERY ROW IS SOURCED: a field with no value is omitted. The docket needs
+ * DOCKET_MIN_ROWS of them (v3.34). With three or fewer the panel sits beside a
+ * hero heading that is twice its height and the right column reads as empty
+ * (check-layout.mjs reported it on the template's own demo at 1024px and up),
+ * so the engine does not pick docket and Hero.astro falls back.
+ *
+ * Areas prefer the featured suburbs, then the client's own sentence; never an
+ * invented radius or travel fee.
+ *
+ * @returns {{ label: string, value: string }[]}
+ */
+export const DOCKET_MIN_ROWS = 4;
+export function resolveDocketRows(site = {}) {
+  const b = site.business || {};
+  const usage = site.usage || {};
+  /* String() as HeroDocket always did: an intake may hold established or abn as a number. */
+  const text = (v) => (v == null ? "" : String(v).trim());
+  const services = arr(site.services?.items).map((it) => text(it?.title)).filter(Boolean);
+  const featured = arr(usage.featured).map(text).filter(Boolean);
+  const areas = featured.length > 0 ? featured.slice(0, 4).join(" · ") : text(usage.areasLine);
+  return [
+    { label: "Services", value: services.slice(0, 3).join(" · ") },
+    { label: "Areas", value: areas },
+    { label: "Hours", value: text(site.contact?.hours) },
+    { label: b.licence ? "Licence" : "ABN", value: text(b.licence || b.abn) },
+    { label: "Established", value: text(b.established) },
+  ].filter((row) => row.value);
 }

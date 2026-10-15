@@ -166,6 +166,92 @@ const TRADE_CLAUSES = [
 
 /* Trades where weather genuinely stops work. Used only as a default — the
    intake can force the clause on or off either way. */
+
+/* ── commerce clauses ─────────────────────────────────────────────────────
+   ALWAYS ON. These are not "terms of trade" a client has to opt into — they
+   are the statements any Australian business site should carry, and several
+   of them PROTECT the client rather than bind them.
+
+   Why this group exists: tradeTerms.enabled defaults to false (correctly — a
+   set of trading terms the client has not read is a document their customers
+   can hold them to). But that meant the overwhelming majority of builds
+   shipped a terms page with five website clauses and nothing about consumer
+   guarantees, GST, liability or which state's law applies. That page was
+   thin because of a gate, not because there was nothing to say.
+
+   The line between this group and TRADE_CLAUSES: a clause goes here when it
+   states the legal position that already applies whether or not anyone writes
+   it down. It goes in TRADE_CLAUSES when it commits the client to a specific
+   commercial promise — a deposit percentage, a quote validity window — which
+   only they can decide. Nothing here invents a term. */
+const COMMERCE_CLAUSES = [
+  {
+    id: "consumer-guarantees",
+    heading: "Your rights under Australian Consumer Law",
+    body: (c) =>
+      `Nothing in these terms excludes, restricts or modifies any right you have under the ` +
+      `Australian Consumer Law. Our services come with guarantees that cannot be excluded — ` +
+      `including that they will be provided with due care and skill, and will be fit for the ` +
+      `purpose you told us about. If we fail to meet a consumer guarantee you may be entitled ` +
+      `to a remedy, and for a major failure you can cancel and seek compensation for reasonably ` +
+      `foreseeable loss. Where a guarantee cannot be excluded, ${c.entity}'s liability is limited ` +
+      `to resupplying the service or paying the cost of having it resupplied, to the extent the ` +
+      `law allows us to limit it that way.`,
+  },
+  {
+    id: "gst",
+    heading: "GST and prices",
+    applies: (site) => has(site.business?.abn),
+    body: (c) =>
+      `Unless a quote says otherwise, prices we give you include GST. A written quote will state ` +
+      `the GST position on its face; if a quote and this page disagree, the quote wins. ` +
+      `${c.entity} issues a tax invoice for every job.`,
+  },
+  {
+    id: "payment-terms",
+    heading: "Invoices and payment",
+    body: (c) =>
+      `Invoices are payable by the date shown on the invoice. If an invoice is not paid by then ` +
+      `we may pause work on any job still running, and we may recover reasonable costs of ` +
+      `collection. We will always contact you before taking either step — an unpaid invoice is ` +
+      `usually an oversight, not a dispute.`,
+  },
+  {
+    id: "liability",
+    heading: "What we are and are not responsible for",
+    body: (c) =>
+      `We are responsible for the work we carry out and for damage we cause through our own ` +
+      `negligence. We are not responsible for pre-existing defects we did not cause, for damage ` +
+      `arising from something hidden that could not reasonably have been found before we started, ` +
+      `or for indirect or consequential loss such as lost income or lost opportunity. This ` +
+      `paragraph does not limit your rights under the Australian Consumer Law.`,
+  },
+  {
+    id: "disputes",
+    heading: "If something goes wrong",
+    body: (c) =>
+      `If you are unhappy with the work, tell us first and give us a reasonable chance to inspect ` +
+      `it and put it right. Most problems are resolved this way and quickly. If we cannot reach ` +
+      `agreement, either of us can take the matter to the relevant consumer affairs body or ` +
+      `tribunal in the state where the work was done.`,
+  },
+  {
+    id: "governing-law",
+    heading: "Which law applies",
+    body: (c, t) =>
+      `These terms are governed by the law of ${t.state || "South Australia"}, and the courts of ` +
+      `that state have jurisdiction over any dispute about them.`,
+  },
+  {
+    id: "terms-changes",
+    heading: "Changes to these terms",
+    body: () =>
+      `We update this page when our terms change. The terms that apply to your job are the ones ` +
+      `published when you accepted the quote, and a signed quote or written agreement overrides ` +
+      `anything on this page if the two disagree.`,
+  },
+];
+
 const OUTDOOR_TRADES = [
   "roof", "landscap", "garden", "concret", "paving", "paver", "fencing", "render",
   "exterior", "gutter", "arborist", "brick", "tiling roof", "decking", "pressure",
@@ -366,6 +452,10 @@ export function resolveTerms(site = {}) {
 
   const website = render(WEBSITE_CLAUSES);
 
+  /* Commerce clauses are NOT opt-in — see the block comment above the group.
+     They state the position that already applies; several protect the client. */
+  const commerce = render(COMMERCE_CLAUSES, { ...t, state: str(legal.state) || str(site.business?.state) });
+
   /* Terms of trade are opt-in. Off by default because a set of trading terms the
      client has not read and agreed to is worse than none — it is a document
      their customers can hold them to. */
@@ -382,6 +472,7 @@ export function resolveTerms(site = {}) {
 
   return {
     website,
+    commerce,
     trade: [...trade, ...pack, ...custom],
     tradePack: packKey,
     hasTradeTerms: trade.length + pack.length + custom.length > 0,

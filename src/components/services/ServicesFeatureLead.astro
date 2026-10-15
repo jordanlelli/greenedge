@@ -11,6 +11,7 @@
  * item[0]. Set it in client-intake.json, never inferred from ordering alone
  * beyond that fallback.
  */
+import Img from "../Img.astro";
 interface Props { items: any[]; leadIndex: number; }
 const { items, leadIndex } = Astro.props;
 
@@ -19,16 +20,16 @@ const rest = items.filter((_: any, i: number) => i !== leadIndex);
 ---
 
 <div class="svc-feature">
-  <article class="svc-feature-lead">
+  <article class="svc-feature-lead" data-reveal-item>
     {lead.image && (
       <div class="svc-feature-media">
-        <img src={lead.image} alt={lead.imageAlt} loading="lazy" decoding="async" width="800" height="500" />
+        <Img sizes="(min-width: 1024px) 50vw, 100vw" src={lead.image} alt={lead.imageAlt} loading="lazy" decoding="async" width="800" height="500" />
       </div>
     )}
     <div class="svc-feature-body">
-      <h3 class="font-heading text-2xl font-semibold leading-tight text-brand">
+      <h3 class="font-heading text-2xl font-semibold leading-tight text-brand lg:text-[1.75rem]">
         {lead.href ? (
-          <a href={lead.href} class="underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{lead.title}</a>
+          <a href={lead.href} class="underline-offset-4 hover:underline">{lead.title}</a>
         ) : lead.title}
       </h3>
       {lead.description && (
@@ -48,17 +49,17 @@ const rest = items.filter((_: any, i: number) => i !== leadIndex);
         </ul>
       )}
       {lead.price && (
-        <p class="mt-4 font-heading text-lg font-semibold text-brand">{lead.price}</p>
+        <p class="mt-4 font-heading text-lg font-semibold text-brand lg:text-xl">{lead.price}</p>
       )}
     </div>
   </article>
 
   <div class="svc-feature-side">
     {rest.map((it: any) => (
-      <article class="svc-feature-item">
+      <article class="svc-feature-item" data-reveal-item>
         <h3 class="font-heading text-base font-semibold leading-snug text-brand">
           {it.href ? (
-            <a href={it.href} class="underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{it.title}</a>
+            <a href={it.href} class="underline-offset-4 hover:underline">{it.title}</a>
           ) : it.title}
         </h3>
         {it.description && (
@@ -110,6 +111,6 @@ const rest = items.filter((_: any, i: number) => i !== leadIndex);
   .svc-feature-item:last-child { border-bottom: 0; }
 
   @media (min-width: 64rem) {
-    .svc-feature { grid-template-columns: 1.35fr 1fr; gap: 1.375rem; }
+    .svc-feature { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 1.375rem; }
   }
 </style>

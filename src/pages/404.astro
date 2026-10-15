@@ -1,24 +1,146 @@
 ---
+/**
+ * /404 — the page a stale Google result or a mistyped URL lands on.
+ *
+ * SCOPE, deliberately narrow: say plainly that the page is gone, then give the
+ * two things a visitor in that situation actually wants — the phone number and
+ * the email address. Nothing else. A person who has just hit a dead end on a
+ * plumbing site is not browsing; they want a human.
+ *
+ * Rewritten in v3.17 because the original was the least-audited page on the
+ * site and broke the house rules more than any other:
+ *   - the entire content block was `text-center`. B1 is the #1 banned pattern
+ *     and G1 caps centred sections; every other page measured 0/7 centred and
+ *     this one was 1/1. It was the only page that looked machine-made.
+ *   - `text-white` was hardcoded on the primary button. It passed contrast on
+ *     a navy-brand client by luck and would have failed on any light-brand
+ *     client. check-universal did not catch it.
+ *   - padding was a one-off 80px/80px, outside the 88/56 scale, because it
+ *     did not use Section.astro.
+ *   - it carried `shadow-card`, which the rest of the site never uses.
+ *   - a 72px "404" numeral: pure template gesture, tells a customer nothing.
+ *
+ * Every contact row is SOURCED. A client with no email gets no email row, not
+ * an empty one — same rule as hero/docket and story/credentials-panel.
+ */
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import Section from "../components/Section.astro";
 import { site, formatPhone } from "../config";
+
+const contact = site.contact || {};
+const phone = String(contact.phone || "").trim();
+const email = String(contact.email || "").trim();
+const name = site.business?.name || "";
 ---
 
-<Layout title="Page not found" pageType="other">
+<Layout title="Page not found" description="That page does not exist." pageType="other">
   <Header />
-  <section class="flex min-h-[60vh] items-center justify-center bg-bg px-4 py-20">
-    <div class="text-center">
-      <p class="font-heading text-7xl font-bold text-brand">404</p>
-      <h1 class="mt-4 font-heading text-3xl font-semibold text-ink sm:text-4xl">Page not found</h1>
-      <p class="mx-auto mt-3 max-w-md text-muted">We couldn't find that page. Head back home or get in touch.</p>
-      <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <a href="/" class="rounded-card bg-brand px-7 py-3 font-semibold text-white shadow-card transition hover:bg-brand-dark">Back to home</a>
-        {site.contact?.phone && (
-          <a href={`tel:${formatPhone(site.contact.phone)}`} class="rounded-card border border-border px-7 py-3 font-semibold text-ink transition hover:bg-card">Call {site.contact.phone}</a>
-        )}
-      </div>
+
+  <Section id="not-found" bg="bg" pad="default">
+    <div class="notfound max-w-2xl">
+      <p class="section-eyebrow text-muted">
+        Error 404
+      </p>
+
+      <h1 class="mt-2 font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+        That page doesn't exist
+      </h1>
+
+      <p class="mt-4 max-w-[36em] text-base leading-relaxed text-pretty text-muted">
+        {phone || email
+          ? `The link may be out of date, or something went wrong on our end. Get in touch and we'll point you the right way.`
+          : `The link may be out of date, or something went wrong on our end.`}
+      </p>
+
+      {(phone || email) && (
+        <dl class="notfound-contact">
+          {phone && (
+            <div class="notfound-row">
+              <dt class="notfound-key">Phone</dt>
+              <dd class="notfound-val">
+                <a class="tap-target notfound-link" href={`tel:${formatPhone(phone)}`}>{phone}</a>
+              </dd>
+            </div>
+          )}
+          {email && (
+            <div class="notfound-row">
+              <dt class="notfound-key">Email</dt>
+              <dd class="notfound-val">
+                <a class="tap-target notfound-link" href={`mailto:${email}`}>{email}</a>
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+
+      <p class="mt-8">
+        <a
+          href="/"
+          class="tap-target inline-flex items-center text-sm font-semibold text-brand underline-offset-4 transition hover:underline"
+        >
+          Back to {name || "home"} <span class="ml-2" aria-hidden="true">&#8594;</span>
+        </a>
+      </p>
     </div>
-  </section>
+  </Section>
+
   <Footer />
 </Layout>
+
+<style>
+  /* Overflow floor. A client email such as jobs@northpointplumbing.com.au is a
+     single unbreakable token; without this it sets the min-content width of
+     its column and runs off a 360px viewport. Scoped off classes declared in
+     this file, never off a class handed to Section.astro as a prop — that
+     <section> belongs to Section's scope and never carries this page's
+     data-astro-cid. */
+  .notfound :is(h1, p, dd, dt, a) {
+    overflow-wrap: anywhere;
+  }
+
+  .notfound-contact {
+    margin: 2rem 0 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .notfound-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 1.5rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .notfound-key {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: var(--text-eyebrow);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .notfound-val { margin: 0; min-width: 0; max-width: 100%; }
+
+  .notfound-link {
+    font-family: var(--font-body);
+    font-size: var(--text-lead);
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--color-brand);
+    text-decoration: none;
+    text-underline-offset: 4px;
+  }
+
+  .notfound-link:hover { text-decoration: underline; }
+
+  @media (min-width: 40rem) {
+    .notfound-val { text-align: right; }
+  }
+</style>

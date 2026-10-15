@@ -29,13 +29,14 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolvePalette, contrast, chroma, hexToRgb, flatten } from "../src/lib/palette.mjs";
 import { resolveSite } from "../src/lib/variants.mjs";
+import { intakePath } from "./intake-path.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const argv = process.argv.slice(2);
 const REPORT = argv.includes("--report");
 const intakeArg = argv.indexOf("--intake");
-const INTAKE = intakeArg > -1 ? argv[intakeArg + 1] : join(root, "client-intake.json");
+const INTAKE = intakeArg > -1 ? argv[intakeArg + 1] : intakePath();
 
 /* A hex is "achromatic enough" to be shared code if its channels are close
    together. 12/255 tolerance allows the slightly-cool greys designers use
@@ -86,6 +87,10 @@ for (const file of files) {
     const trimmed = line.trim();
     const opens = (line.match(/\/\*/g) || []).length;
     const closes = (line.match(/\*\//g) || []).length;
+    /* `universal-ok: <reason>` on a line is the one sanctioned exception: a
+       colour that is deliberately the same on every client (the red
+       "Sample content" tag). It must state its reason. */
+    if (/universal-ok:s*S/.test(line)) return;
     const startedInComment = inBlockComment;
     if (opens > closes) inBlockComment = true;
     else if (closes > opens) inBlockComment = false;
@@ -175,8 +180,67 @@ if (!existsSync(INTAKE)) {
     }
   }
 
+  /* ── D: colours a KIT RULE uses as text ──────────────────────────────────
+     The pairs above are the ones the components paint. Kit rules in global.css
+     can also set `color`, and they outrank the utility on the markup, so they
+     need the same check. `.kit-coast .section-eyebrow` and the press one used
+     --color-highlight, a fill taken straight from style.highlight: 2.1:1 for a
+     pale highlight, on every page, while this script printed "clears AA".
+     Each token is tested on the page and the alt surface, with this client's
+     palette and again with a pale probe highlight, so a rule that goes back to
+     an unfitted token fails on every build and not only for the unlucky
+     client. A failure here is a template bug, never an intake problem. */
+  const css = readFileSync(join(root, "src", "styles", "global.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const kitText = new Map();
+  for (const rule of css.matchAll(/\.kit-([a-z]+)\b[^{}]*\{([^{}]*)\}/g)) {
+    for (const decl of rule[2].matchAll(/(?:^|;)\s*color\s*:\s*var\(\s*--color-([a-z0-9-]+)/g)) {
+      if (!kitText.has(decl[1])) kitText.set(decl[1], new Set());
+      kitText.get(decl[1]).add(rule[1]);
+    }
+  }
+  /* The same fill reaches text through the `text-highlight` utility. On an
+     <svg> it colours an icon, which is fine; on anything else it is text and
+     must be `text-highlight-ink`. (FAQ, tiers and gallery eyebrows did this
+     on every kit.) */
+  for (const file of files) {
+    if (!file.endsWith(".astro")) continue;
+    readFileSync(file, "utf8").split("\n").forEach((line, i) => {
+      if (/\btext-highlight\b(?!-)/.test(line) && !/<svg/.test(line)) {
+        failures.push(
+          `D. ${relative(root, file)}:${i + 1} — \`text-highlight\` on text. style.highlight is a fill and is not ` +
+            `fitted for text; use \`text-highlight-ink\`.`
+        );
+      }
+    });
+  }
+  kitText.set("highlight-ink", (kitText.get("highlight-ink") || new Set()).add("text-highlight-ink utility"));
+
+  const probe = resolvePalette({ ...intake, style: { ...style, highlight: "#cfe8f3" } }, surface);
+  for (const [token, kits] of kitText) {
+    for (const [which, pal] of [["this palette", p], ["a pale highlight", probe]]) {
+      const fgRaw = pal[`--c-${token}`];
+      if (!fgRaw) {
+        failures.push(`D. kit rule (${[...kits].join(", ")}) colours text with --color-${token}, but the palette has no --c-${token} to check.`);
+        break;
+      }
+      for (const [where, bg] of [["page", pal["--c-bg"]], ["alt surface", pal["--c-surface-alt"]]]) {
+        if (!bg) continue;
+        const fg = flatten(fgRaw, bg);
+        const ratio = contrast(fg, bg);
+        const pass = ratio >= 4.5;
+        if (which === "this palette") rows.push({ label: `kit text --color-${token} on ${where}`, fg, bg, ratio, min: 4.5, pass });
+        if (!pass) {
+          failures.push(
+            `D. kit rule (${[...kits].join(", ")}) colours text with --color-${token}: ${fg} on ${bg} (${where}, ${which}) = ` +
+              `${ratio.toFixed(2)}:1, needs 4.5:1. Kit text colours must use a token fitted for text in palette.mjs (an -ink token), not a fill.`
+          );
+        }
+      }
+    }
+  }
+
   if (REPORT) {
-    notes.push(`\n  Intake: ${relative(root, INTAKE)}   surface: ${surface}\n`);
+    notes.push(`\n  Intake:${relative(root, INTAKE)}   surface: ${surface}\n`);
     notes.push("  RESOLVED PALETTE");
     for (const [k, v] of Object.entries(p)) {
       if (v) notes.push(`    ${k.padEnd(26)} ${v}`);
@@ -198,7 +262,7 @@ if (failures.length) {
   console.error(`\n✗ check-universal: ${failures.length} problem(s).\n`);
   failures.forEach((f) => console.error("  • " + f));
   console.error(
-    "\n  A/B failures are TEMPLATE bugs — fix the code.\n" +
+    "\n  A/B/D failures are TEMPLATE bugs — fix the code.\n" +
       "  C failures are CLIENT palette problems — fix client-intake.json style{}.\n"
   );
   process.exit(1);

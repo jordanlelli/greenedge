@@ -1,0 +1,56 @@
+---
+/**
+ * servicesPage/stacked — DEFAULT. One service per row, the original layout.
+ *
+ * Best at 1–6 services. Rows with a photo split text / photo and alternate
+ * sides; rows WITHOUT a photo use the full width as two text columns (copy
+ * left, inclusions + CTA right). Before v3.19 a photo-less row sat in the
+ * left half with the right half empty, which is what made long catalogues
+ * zig-zag. Rows are separated by a rule, not by a full section pad each —
+ * eighteen section pads was 11,000px of mostly air.
+ */
+// @ts-ignore — plain-JS helper shared with the Node check scripts
+import { midSentence } from "../../lib/content.mjs";
+import ServiceIncludes from "./ServiceIncludes.astro";
+import Img from "../Img.astro";
+interface Props { model: any; }
+const { model } = Astro.props;
+let photoIndex = 0;
+const rows = model.items.map((it: any) => ({ ...it, flip: it.image ? (photoIndex++ % 2 === 1) : false }));
+---
+<section class="bg-bg">
+  <div class="mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+    {rows.map((s: any) => (
+      <article id={s.anchor} class="grid scroll-mt-24 gap-8 border-t border-border py-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
+        <div class:list={["min-w-0", s.image && s.flip && "lg:order-2"]}>
+          <h2 class="font-heading text-3xl leading-[1.1] tracking-tight text-brand sm:text-4xl">{s.title}</h2>
+          {s.description && <p class="mt-4 text-lg leading-relaxed text-ink">{s.description}</p>}
+          {s.longDescription && s.longDescription !== s.description && (
+            <p class="mt-4 text-base leading-relaxed text-muted">{s.longDescription}</p>
+          )}
+          {s.image && (
+            <>
+              <ServiceIncludes items={s.includes} cols class="mt-6" />
+              {s.price && <p class="mt-5 text-sm font-bold uppercase tracking-wide text-brand-secondary-ink">{s.price}</p>}
+              <a href="/#contact" class="mt-7 inline-flex min-h-[3.25rem] py-3 items-center justify-center rounded-card bg-accent px-7 font-heading text-base font-bold tracking-tight text-on-accent transition hover:brightness-95">Get a quote for {midSentence(s.title)}</a>
+            </>
+          )}
+        </div>
+        {s.image ? (
+          <div class:list={["min-w-0", s.flip && "lg:order-1"]}>
+            <div class="relative aspect-[4/3] overflow-hidden rounded-card border border-border bg-tint">
+              <Img sizes="(min-width: 1024px) 50vw, 100vw" src={s.image} alt={s.imageAlt} width="960" height="720" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+            </div>
+          </div>
+        ) : (
+          <div class="min-w-0 lg:border-l lg:border-border lg:pl-16">
+            {s.includes.length > 0 && <p class="text-[0.75rem] font-bold uppercase tracking-[0.14em] text-muted">What's included</p>}
+            <ServiceIncludes items={s.includes} class="mt-4" />
+            {s.price && <p class="mt-5 text-sm font-bold uppercase tracking-wide text-brand-secondary-ink">{s.price}</p>}
+            <a href="/#contact" class="mt-7 inline-flex min-h-[3.25rem] py-3 items-center justify-center rounded-card bg-accent px-7 font-heading text-base font-bold tracking-tight text-on-accent transition hover:brightness-95">Get a quote for {midSentence(s.title)}</a>
+          </div>
+        )}
+      </article>
+    ))}
+  </div>
+</section>

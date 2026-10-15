@@ -13,10 +13,10 @@
  * and delete the picks you want re-rolled, then run again.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { resolveSite } from "../src/lib/variants.mjs";
+import { intakePath, intakeName } from "./intake-path.mjs";
 
-const FILE = resolve(process.cwd(), "client-intake.json");
+const FILE = intakePath();
 
 const site = JSON.parse(readFileSync(FILE, "utf8"));
 const r = resolveSite(site);
@@ -62,7 +62,7 @@ if (!site._brief.sectionsLocked) {
 
 if (changed.length) {
   writeFileSync(FILE, JSON.stringify(site, null, 2) + "\n", "utf8");
-  console.log(`✓ client-intake.json updated (seed: ${r.seed})`);
+  console.log(`✓ ${intakeName()} updated (seed: ${r.seed})`);
   changed.forEach((c) => console.log(`  • ${c}`));
 } else {
   console.log("✓ Nothing to do — all picks already set.");

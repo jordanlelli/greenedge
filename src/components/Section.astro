@@ -30,6 +30,8 @@ interface Props {
   pad?: "default" | "tight" | "loose" | "none";
   class?: string;
   innerClass?: string;
+  /** "stagger": children marked data-reveal-item cascade in on scroll (Layout.astro). */
+  reveal?: "stagger";
 }
 
 const {
@@ -39,6 +41,7 @@ const {
   pad = "default",
   class: className = "",
   innerClass = "",
+  reveal,
 } = Astro.props;
 
 const bgMap: Record<string, string> = {
@@ -65,7 +68,11 @@ const widthMap: Record<string, string> = {
 };
 ---
 
-<section id={id} class:list={[bgMap[bg], padMap[pad], className]}>
+{/* `sec` is the hook the edge-collapse rules in global.css match on:
+    `.sec.bg-bg + .sec.bg-bg { padding-top: 0 }` and friends. Without it every
+    section pays a full pad on both sides of a seam and the visible gap between
+    two sections is the SUM of two tokens rather than one. */}
+<section id={id} class:list={["sec", bgMap[bg], padMap[pad], className]} data-reveal={reveal}>
   <div
     class:list={[
       "mx-auto w-full px-4 sm:px-6 lg:px-8",

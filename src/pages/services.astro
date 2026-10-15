@@ -2,157 +2,65 @@
 /**
  * /services — the "everything we do" page.
  *
- * It used to render ONLY from src/data/services.ts, which ships empty. So every
- * client got a page with a heading and nothing under it, in the nav and in the
- * sitemap. The intake block that every client DOES fill (`services.items[]`,
- * with the longDescription they wrote) fed the homepage cards and nothing else.
+ * LAYOUT is a MANUAL axis: _brief.layoutVariants.servicesPage picks one of
+ *   stacked  (default) one service per row — best at 1–6 services
+ *   grouped            services under intake-defined groups — needs groups
+ *   featured           photo cards for headline services + a catalogue
+ *   index              list + detail panel / accordion — best at 10+
+ * The seeded engine never picks it; see MANUAL in src/lib/variants.mjs and
+ * VARIANT-CHEAT-SHEET.txt §4.
  *
- * Now: rich records from services.ts win when a client warrants them; otherwise
- * the page is built from the intake. Unique copy per service is the point — a
- * services page that restates the homepage cards is a thin page, and a thin page
- * is worse than no page.
+ * CONTENT: rich records in src/data/services.ts win when a client has them;
+ * otherwise the page is built from the intake's services.items[]. Every
+ * service's full longDescription is in the HTML in every variant — compact
+ * layouts put it behind a disclosure, they never drop it.
  */
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { site, formatPhone } from "../config";
-import { services as richServices, formatServicePrice } from "../data/services";
+import ServicesPageHead from "../components/servicespage/ServicesPageHead.astro";
+import ServicesPageStacked from "../components/servicespage/ServicesPageStacked.astro";
+import ServicesPageGrouped from "../components/servicespage/ServicesPageGrouped.astro";
+import ServicesPageFeatured from "../components/servicespage/ServicesPageFeatured.astro";
+import ServicesPageIndex from "../components/servicespage/ServicesPageIndex.astro";
+import ServicesQuoteBand from "../components/servicespage/ServicesQuoteBand.astro";
+import { site, variantOf, pageSeo } from "../config";
+import { services as richServices } from "../data/services";
+import { formatServicePrice } from "../lib/data";
 // @ts-ignore — plain-JS page gate shared with the Node check scripts
 import { pageIsBuilt } from "../lib/pages.mjs";
-
-const slugify = (s: string) =>
-  String(s || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-type Entry = {
-  slug: string;
-  name: string;
-  shortLine: string;
-  body: string;
-  inclusions: string[];
-  price: string;
-  image: string;
-  imageAlt: string;
-};
-
-/* Rich records win where they exist; otherwise build from the intake block. */
-const entries: Entry[] = richServices.length
-  ? richServices.map((s) => ({
-      slug: s.slug,
-      name: s.name,
-      shortLine: s.shortLine,
-      body: s.longDescription,
-      inclusions: s.inclusions || [],
-      price: formatServicePrice(s),
-      image: "",
-      imageAlt: "",
-    }))
-  : (site.services?.items || [])
-      .filter((it: any) => it && (it.title || it.description))
-      .map((it: any) => ({
-        slug: slugify(it.slug || it.title),
-        name: it.title || "",
-        shortLine: it.description || "",
-        /* longDescription is what makes this page worth crawling. Falls back to
-           the card description rather than rendering an empty section. */
-        body: it.longDescription || it.description || "",
-        inclusions: Array.isArray(it.includes) ? it.includes : [],
-        price: it.price || "",
-        /* Per-service photos sit beside claims about work done, so they stay
-           gated on owned photography. */
-        image: site.features?.hasPhotos === true ? it.image || "" : "",
-        imageAlt: it.imageAlt || it.title || "",
-      }));
+// @ts-ignore — plain-JS normaliser shared with the Node check scripts
+import { resolveServicesPage } from "../lib/content.mjs";
 
 /* An empty page is worse than no page: a 200 with nothing on it is a soft
-   404 to a crawler and a dead end to a visitor. If there is no content,
-   send them somewhere that has some. */
+   404 to a crawler and a dead end to a visitor. */
 if (!pageIsBuilt("services", site, { serviceRecords: richServices })) return Astro.redirect("/");
 
-const pageEyebrow = site.services?.pageEyebrow || site.services?.eyebrow || "Services";
-const pageHeading = site.services?.pageHeading || "Everything we do";
-const pageSubhead = site.services?.subhead || "";
-const title = `${pageHeading} | ${site.business?.name || ""}`;
-const description = pageSubhead || site.seo?.description || site.business?.shortDescription || "";
-const phone = site.contact?.phone || "";
+const records = richServices.map((s: any) => ({ ...s, priceLabel: formatServicePrice(s) }));
+const model = resolveServicesPage(site, records);
+
+const VARIANTS: Record<string, any> = {
+  stacked: ServicesPageStacked,
+  grouped: ServicesPageGrouped,
+  featured: ServicesPageFeatured,
+  index: ServicesPageIndex,
+};
+const variant = variantOf("servicesPage", "stacked");
+const Body = VARIANTS[variant] || ServicesPageStacked;
+
+const { title, description } = pageSeo(
+  "services",
+  `${model.heading} | ${site.business?.name || ""}`,
+  model.subhead || site.seo?.description || site.business?.shortDescription || ""
+);
 ---
 
 <Layout title={title} description={description} pageType="services">
   <Header />
-
-  <section class="relative overflow-hidden bg-bg" data-no-reveal>
-    <div class="relative mx-auto max-w-[var(--w-content)] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-      <p class="text-sm font-semibold uppercase tracking-wide text-highlight">{pageEyebrow}</p>
-      <h1 class="mt-2 max-w-3xl font-heading text-4xl font-semibold tracking-tight text-brand sm:text-5xl">{pageHeading}</h1>
-      {pageSubhead && <p class="mt-4 max-w-2xl text-lg leading-relaxed text-muted">{pageSubhead}</p>}
-    </div>
-  </section>
-
-  {entries.map((service, index) => (
-    <section class="sec-pad-default bg-bg" id={service.slug}>
-      <div class="mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
-        <div class:list={[
-          "grid items-start gap-10",
-          service.image && "lg:grid-cols-2 lg:gap-16",
-          service.image && index % 2 === 0 && "lg:[&>div:first-child]:order-2",
-        ]}>
-          <div class="min-w-0">
-            <h2 class="font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">{service.name}</h2>
-            {service.shortLine && service.shortLine !== service.body && (
-              <p class="mt-3 max-w-prose text-lg leading-relaxed text-ink">{service.shortLine}</p>
-            )}
-            {service.body && (
-              <p class="mt-4 max-w-prose text-base leading-relaxed text-muted">{service.body}</p>
-            )}
-            {service.price && (
-              <p class="mt-5 text-sm font-semibold uppercase tracking-wide text-brand-secondary-ink">{service.price}</p>
-            )}
-            {service.inclusions.length > 0 && (
-              <ul class="mt-6 grid gap-2 sm:grid-cols-2">
-                {service.inclusions.map((inc) => (
-                  <li class="flex items-start gap-2 text-base leading-relaxed text-ink">
-                    <svg class="mt-1 h-4 w-4 shrink-0 text-highlight" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 111.4-1.4l3.8 3.8 6.8-6.8a1 1 0 011.4 0z" clip-rule="evenodd"></path>
-                    </svg>
-                    <span>{inc}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <a href="/#contact" class="mt-8 inline-flex min-h-11 items-center justify-center rounded-card bg-accent px-7 py-3 text-base font-semibold text-on-accent transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
-              Get a quote for {service.name.toLowerCase()}
-            </a>
-          </div>
-
-          {service.image && (
-            <div class="min-w-0">
-              <div class="relative aspect-[4/3] overflow-hidden rounded-card border border-border bg-tint">
-                <img src={service.image} alt={service.imageAlt} width="960" height="720" loading="lazy" decoding="async" class="h-full w-full object-cover" />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  ))}
-
-  <section class="sec-pad-default bg-tint">
-    <div class="mx-auto flex max-w-[var(--w-content)] flex-col gap-4 px-4 sm:px-6 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-      <div>
-        <h2 class="font-heading text-2xl font-semibold text-brand">Not sure which one you need?</h2>
-        <p class="mt-2 max-w-xl text-muted">Tell us about the job and we'll work it out with you.</p>
-      </div>
-      <div class="flex flex-col gap-3 sm:flex-row">
-        {phone && (
-          <a href={`tel:${formatPhone(phone)}`} class="inline-flex min-h-11 items-center justify-center rounded-card border border-border px-6 py-3 text-center text-sm font-semibold text-brand transition hover:bg-card">
-            {phone}
-          </a>
-        )}
-        <a href="/#contact" class="inline-flex min-h-11 items-center justify-center rounded-card bg-accent px-6 py-3 text-center text-sm font-semibold text-on-accent transition hover:brightness-95">
-          Get a free quote
-        </a>
-      </div>
-    </div>
-  </section>
-
+  <main id="main">
+    <ServicesPageHead eyebrow={model.eyebrow} heading={model.heading} subhead={model.subhead} />
+    <Body model={model} />
+    <ServicesQuoteBand heading={model.quoteHeading} body={model.quoteBody} />
+  </main>
   <Footer />
 </Layout>

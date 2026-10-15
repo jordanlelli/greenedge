@@ -2,7 +2,7 @@
 import Section from "./Section.astro";
 import RecentJobsList from "./RecentJobsList.astro";
 import RecentJobsDemoNotice from "./RecentJobsDemoNotice.astro";
-import { getRecentJobs } from "../data/recent-jobs";
+import { getRecentJobs } from "../lib/data";
 import { site } from "../config";
 
 const jobs = getRecentJobs(6);
@@ -17,7 +17,7 @@ const anyPlaceholder = jobs.some((j) => j.isPlaceholder);
   <Section id="recent-jobs" bg="bg">
     <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div class="max-w-2xl">
-        <h2 class="section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+        <h2 class="section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
           {heading}
         </h2>
         {anyPlaceholder && <RecentJobsDemoNotice />}

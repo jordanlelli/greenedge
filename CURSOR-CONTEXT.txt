@@ -9,6 +9,7 @@
 ================================================================
   1. WHAT THIS PROJECT IS
 ================================================================
+  >> Read §14 before touching layout, type, fonts or /services.
   A universal Astro + Tailwind static-site template for
   Australian tradespeople and local small businesses. One
   template, driven entirely by client-intake.json. Content lives
@@ -34,6 +35,10 @@
     astro.config.mjs as a vite plugin). There is NO
     tailwind.config.js and NO PostCSS Tailwind config. Theme
     tokens live in src/styles/global.css under @theme.
+  - Intake images render through <Img> (src/components/Img.astro,
+    v3.21), never a bare <img>: it serves src/assets files as a
+    resized WebP srcset and falls back to a plain <img> for public/.
+    Give every call site a real `sizes`.
   - Vanilla JS only for interactivity. NO React/Vue/Swiper/jQuery
     or animation libraries.
   - Deploy: Vercel, static output.
@@ -46,7 +51,10 @@
 ================================================================
   - Never run  npm audit fix --force  (force-upgrades Astro,
     breaks the build).
-  - Never run  npm update .
+  - Never run  npm update  or  npm install  in a CLIENT repo — both
+    rewrite the lockfile. Dependency updates happen in the template
+    repo only and roll out as package.json + package-lock.json
+    (README "Dependencies").
   - Respect the committed lockfile; assume  npm ci .
 
 
@@ -67,6 +75,10 @@
   - features.hasPhotos (boolean, default false) gates photo-
     dependent variants. NEVER infer photos from placeholder image
     paths — set the flag explicitly when real photos exist.
+  - MANUAL axes (v3.19): servicesPage (/services layout: stacked |
+    grouped | featured | index) is NEVER seeded. It is whatever
+    _brief.layoutVariants.servicesPage says, else "stacked". It
+    consumes no RNG. Do not add it to the seeded draw.
 
 
 ================================================================
@@ -134,10 +146,20 @@
 ================================================================
   10. SEO BASELINE (Layout.astro — keep intact)
 ================================================================
-  - Title/description/canonical/OG/Twitter from the seo block.
-  - LocalBusiness, FAQPage, Service JSON-LD generated in Layout.
-  - en-AU lang, Adelaide/SA address schema, keyword wiring.
-  - llms.txt and robots.txt routes + sitemap integration.
+  - Homepage title/description from seo.title / seo.description;
+    every other page from seo.pages.<key> via pageSeo() in
+    config.ts (v3.19). Never hardcode a page title in a page file.
+  - EVERY HEADING IS INTAKE CONTENT. Components must not hardcode
+    H1/H2 text; take it from the intake with a fallback. The
+    keyword rules for writing them are INTAKE-SPEC.txt §10.
+  - Business JSON-LD comes from resolveBusinessSchema (content.mjs):
+    trade @type (business.schemaType), E.164 phone, sameAs, hours,
+    services catalogue. FAQPage JSON-LD only on pages that SHOW the
+    FAQs. Never emit markup for content that is not on the page.
+    See INTAKE-SPEC §11.
+  - llms.txt and robots.txt routes. The sitemap lists the pages the
+    build ACTUALLY shipped (it reads dist/, v3.20) — redirect stubs
+    and noindex pages are left out automatically.
 
 
 ================================================================
@@ -176,7 +198,10 @@
     style.brand/accent. Do NOT hardcode tints; read the ramp.
   - section-head grammar -> per-KIT eyebrow/heading treatment via the hook
     classes .section-eyebrow / .section-heading (in every section head) and
-    kit-scoped rules in global.css. Do NOT restyle eyebrows inline per
+    kit-scoped rules in global.css (v3.22: sentence case, 15px, no
+    tracking, no caps, no side bars — impeccable flags each). Running
+    text is capped at 40em by a base rule; never widen a paragraph with
+    max-w-3xl / 70ch. Do NOT restyle eyebrows inline per
     client; add to the kit rules if a kit's grammar needs changing.
   - colour band -> ONE mid section inverts via the .band-dark wrapper in the
     assembler, which REMAPS --color-* tokens. Contrast-gated in the engine
@@ -191,3 +216,78 @@
 
   layoutVariants and order in resolveSite, so adding them did not shift any
   existing client's kit/variants/order. Keep new draws appended at the end.
+
+
+================================================================
+  14. v3.18–v3.20 — THINGS THAT WILL BITE IF YOU MISS THEM
+================================================================
+  - ONE LEFT EDGE. --w-content and --w-wide are both 84rem. Heroes,
+    header, sections and footer all sit on --w-content. A new
+    component must too, or it breaks the alignment everything
+    else holds.
+  - WEIGHTS COME FROM THE KIT. h1-h3 take --weight-heading and
+    .hero-display takes --weight-display (global.css, per kit).
+    Those rules are unlayered, so font-semibold/font-bold on a
+    heading does NOTHING. Change the token, not the class. Every
+    weight used must be in KIT_FONT_FACES (variants.mjs).
+  - FONTS ARE VENDORED (v3.20). astro.config.mjs loads them from
+    @fontsource/* in node_modules with the LOCAL provider. Do NOT
+    switch back to fontProviders.fontsource(): a failed fetch
+    shipped system fonts with a passing build. Adding a family =
+    npm install @fontsource/<family> + add it to KIT_FONT_FACES.
+    scripts/check-fonts.mjs runs after every build and fails if
+    the kit's fonts are not in dist/.
+  - /services PAGE is four components in src/components/
+    servicespage/ (Stacked, Grouped, Featured, Index + shared Head,
+    QuoteBand, Includes, More). Data comes from resolveServicesPage
+    in content.mjs: groups[] + items[].group + items[].anchor.
+    Every service's longDescription must stay in the HTML in every
+    layout — compact layouts use <details>, never omit it.
+  - GROUP AND SECTION HEADINGS ARE LIVE INTAKE TEXT. Never map a
+    group id to a hardcoded label in a component.
+  - BUILD GATES, in order: check-design, check-catalogue,
+    check-universal, check-intake, check-service-prices, astro
+    build, check-fonts. Fix the source, never the gate.
+
+================================================================
+  15. IMPECCABLE (v3.22) — HOW TO RUN IT HERE
+================================================================
+  - The design verdict comes from  npm run build && npm run qa .
+    It renders every built page in headless Chrome and runs
+    impeccable's URL engine; exit 0 = clean, exit 2 = findings.
+  - Do NOT judge the site by  npx impeccable detect dist  (or the
+    skill running detect on HTML files). That static engine reads
+    Tailwind v4 spacing as 0px and reports ~70 false
+    cramped-padding findings per site. Never "fix" padding because
+    the static pass says so.
+  - npx impeccable detect src  (npm run qa:src) is the right static
+    pass for source edits. It is clean at v3.22.
+  - impeccable needs Node >= 22.18 (the site itself needs 22.12).
+    Check with  node -v  before blaming the detector.
+  - Ignores live in .impeccable/config.json under "detector"
+    (see .impeccable/README.txt). Add an ignore only for a proven
+    false positive, with a reason. Never disable a rule.
+  - Critique/polish suggestions from the impeccable skill are advice,
+    not orders. They do not override this file, DESIGN-LIBRARY or
+    the intake. In particular: eyebrows stay optional and sentence
+    case, running text stays capped at 40em, the palette is derived
+    in palette.mjs, and no dependency is added to satisfy a finding.
+
+
+================================================================
+  16. TEMPLATE vs CLIENT REPOS (v3.23) — docs/SYNC.md
+================================================================
+  - One template repo (github.com/jordanlelli/universal-template)
+    owns all shared code. Each client is its own repo with a
+    `template` git remote and a .template-sync.json recording the
+    template commit it is on.
+  - Client-owned (never synced): client-intake.json, CLIENT.md,
+    src/data/**, src/assets/**, public/**. Everything else is
+    shared; the exact list is template.config.json.
+  - In a client repo, editing shared code is a TEMPLATE change:
+    say so first, keep it in its own commit, then port it back
+    (npm run template:import from the template) or revert it.
+  - Template changes ship as tagged releases (template:release +
+    TEMPLATE-CHANGES entry + tag v<x.y.z>) and reach clients via
+    npm run template:pull. Never hand-copy files between repos.
+================================================================

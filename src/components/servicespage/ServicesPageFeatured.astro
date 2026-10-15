@@ -1,0 +1,90 @@
+---
+/**
+ * servicesPage/featured — photo cards for the headline services, then a
+ * compact catalogue of everything else.
+ *
+ * Best at 7–14 services with 3–6 photos. Featured = items with featured:true
+ * AND a photo; if none are flagged, every item with a photo. Capped at six;
+ * extras fall to the catalogue. The grid never leaves a hole: on an odd
+ * count the lead card spans two columns (5 cards = 2+1 / 1+1+1).
+ *
+ * A full-bleed dark band sits between the two halves. It replaced the
+ * in-grid quote card, which read as a stray tile.
+ *
+ * With no photos at all it renders the catalogue alone.
+ */
+import ServiceIncludes from "./ServiceIncludes.astro";
+import ServiceMore from "./ServiceMore.astro";
+import ServicesQuoteBand from "./ServicesQuoteBand.astro";
+import Img from "../Img.astro";
+interface Props { model: any; }
+const { model } = Astro.props;
+
+const flagged = model.items.filter((s: any) => s.featured && s.image);
+const featured = (flagged.length ? flagged : model.withImages).slice(0, 6);
+const rest = model.items.filter((s: any) => !featured.includes(s));
+const n = featured.length;
+const cols = n === 1 ? "" : n === 2 || n === 4 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3";
+const leadSpan = n > 1 && n % 2 === 1 ? ["sm:col-span-2", n % 3 === 2 ? "lg:col-span-2" : "lg:col-span-1"] : [];
+const midHeading = model.midHeading || "Not sure what the job needs?";
+---
+{n > 0 && (
+  <section class="bg-bg pb-14 lg:pb-16">
+    <div class="mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+      <h2 class="font-heading text-2xl leading-[1.15] tracking-tight text-brand sm:text-3xl">{model.featuredHeading}</h2>
+      <div class:list={["mt-6 grid gap-5", cols]}>
+        {featured.map((s: any, i: number) => (
+          <article id={s.anchor} class:list={["flex min-w-0 scroll-mt-24 flex-col overflow-hidden rounded-card border border-border bg-card", i === 0 && leadSpan]}>
+            <div class:list={["relative overflow-hidden bg-tint", i === 0 && leadSpan.length ? "aspect-[16/9] lg:aspect-[16/8]" : "aspect-[16/10]"]}>
+              <Img sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" src={s.image} alt={s.imageAlt} width="1200" height="750" loading={i < 3 ? "eager" : "lazy"} decoding="async" class="h-full w-full object-cover" />
+            </div>
+            <div class="flex flex-1 flex-col p-5 sm:p-6">
+              <h3 class="font-heading text-xl leading-snug text-brand lg:text-2xl">{s.title}</h3>
+              {s.description && <p class="mt-2 text-[0.9375rem] leading-relaxed text-muted">{s.description}</p>}
+              <ServiceIncludes items={s.includes} class="mt-4" />
+              <ServiceMore title={s.title} body={s.longDescription !== s.description ? s.longDescription : ""} price={s.price} />
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+{n > 0 && rest.length > 0 && (
+  <ServicesQuoteBand tone="dark" compact heading={midHeading} body={model.midBody} />
+)}
+
+{rest.length > 0 && (
+  <section class:list={["bg-bg pb-12 lg:pb-16", n > 0 ? "pt-14 lg:pt-16" : ""]}>
+    <div class="mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+      {n > 0 && (
+        <>
+          <p class="section-eyebrow text-brand-secondary-ink">Also available</p>
+          <h2 class="mt-3 font-heading text-3xl leading-[1.1] tracking-tight text-brand sm:text-4xl lg:text-[2.75rem]">{model.moreHeading}</h2>
+        </>
+      )}
+      <div class:list={["grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3", n > 0 && "mt-8"]}>
+        {rest.map((s: any) => (
+          <article id={s.anchor} class="min-w-0 scroll-mt-24 border-t border-border py-5">
+            {n > 0 ? (
+              <h3 class="font-heading text-lg leading-snug text-brand lg:text-xl">{s.title}</h3>
+            ) : (
+              <h2 class="font-heading text-lg leading-snug text-brand lg:text-xl">{s.title}</h2>
+            )}
+            {s.description && <p class="mt-1.5 text-[0.9375rem] leading-relaxed text-muted">{s.description}</p>}
+            <details class="svc-more group mt-2">
+              <summary class="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-bold text-brand [&::-webkit-details-mark]:hidden">
+                <svg class="h-4 w-4 shrink-0 transition-transform group-open:rotate-45" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 4a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V5a1 1 0 011-1z"></path></svg>
+                <span>Details</span>
+              </summary>
+              {s.longDescription && s.longDescription !== s.description && <p class="mt-1 text-[0.9375rem] leading-relaxed text-muted">{s.longDescription}</p>}
+              <ServiceIncludes items={s.includes} class="mt-3" />
+              {s.price && <p class="mt-3 text-sm font-bold uppercase tracking-wide text-brand-secondary-ink">{s.price}</p>}
+            </details>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

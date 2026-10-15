@@ -8,7 +8,9 @@
  *             order, surface, bandSection }. Deterministic per
  *             client; _brief axes always win (verify:lock enforces them).
  * ================================================================ */
-import intake from "../client-intake.json";
+/* `@intake` is client-intake.json unless the INTAKE env var names another file
+   (astro.config.mjs sets the alias; scripts/intake-path.mjs resolves it). */
+import intake from "@intake";
 import { testimonials } from "./data/testimonials";
 import { services } from "./data/services";
 import { galleryEntries } from "./data/gallery";
@@ -112,6 +114,17 @@ export const fullAddress = (): string => {
 
 export const variantOf = (section: string, fallback: string): string =>
   layout.layoutVariants?.[section] || fallback;
+
+/* Per-page <title> + meta description (v3.19). `seo.pages.<key>.title` and
+   `.description` win; otherwise the page's own fallback. Every secondary page
+   used to hardcode "FAQ | Name" or "Service areas | Name" — a title with no
+   service and no city in it, on the pages most likely to rank for both. */
+export const pageSeo = (key: string, fallbackTitle: string, fallbackDescription: string) => {
+  const p = (site.seo?.pages && site.seo.pages[key]) || {};
+  const t = typeof p.title === "string" && p.title.trim() ? p.title.trim() : fallbackTitle;
+  const d = typeof p.description === "string" && p.description.trim() ? p.description.trim() : fallbackDescription;
+  return { title: t, description: d };
+};
 
 /* ── Navigation (config-driven — never hardcode links in Header/Footer).
  *    A section appears in the nav only if it is in site.sections (or has a

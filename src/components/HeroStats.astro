@@ -3,13 +3,21 @@
  * HeroStats — the strip directly under the hero.
  *
  * Lifted from the landscape reference, which is the strongest single idea in
- * the set: four hard numbers immediately below the fold, before any sales copy.
+ * the set: hard numbers immediately below the fold, before any sales copy.
  * On a trade site it is the cheapest credibility you can buy, and it works
  * without a single photograph.
  *
  * Reads `hero.stats[]` ONLY. Nothing is derived, inferred or rounded up — a
  * fabricated "200+ projects" on a site carrying a real ABN is an ACCC problem,
  * not a design flourish. No stats in the intake, no strip on the page.
+ *
+ * LAYOUT (v3.18). One row at every breakpoint; column count = stats.length.
+ * Every value renders at ONE size per breakpoint and never wraps, so the
+ * numbers share a baseline and read as a set. The size ladder is set so the
+ * longest value that fits the brief (8 characters, e.g. "35+ yrs",
+ * "3 states") still fits a third of a 390px screen. Keep values that short:
+ * a long value ("SA · WA · NT") forces the whole row down to caption size.
+ * Put the detail in the label instead — labels wrap, values do not.
  */
 import { site } from "../config";
 
@@ -17,22 +25,26 @@ type Stat = { value?: string; label?: string };
 const stats: Stat[] = (site.hero?.stats || [])
   .filter((s: Stat) => s && String(s.value || "").trim() && String(s.label || "").trim())
   .slice(0, 4);
+const n = stats.length;
+const colsClass =
+  n === 2 ? "grid-cols-2"
+  : n === 3 ? "grid-cols-3"
+  : n >= 4 ? "grid-cols-4"
+  : "grid-cols-1";
 ---
 
 {stats.length > 0 && (
-  <section class="border-y border-border bg-tint" aria-label="At a glance">
-    <div class="mx-auto max-w-[var(--w-wide)] px-4 sm:px-6 lg:px-8">
-      <dl class="grid grid-cols-2 divide-border sm:divide-x lg:grid-cols-4">
+  <section class="sec-strip border-y border-border bg-tint" aria-label="At a glance">
+    <div class="mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+      <dl class:list={["grid w-full divide-x divide-border", colsClass]}>
         {stats.map((stat) => (
-          <div class="px-2 py-7 text-center sm:px-6 lg:py-8">
+          <div class="flex min-w-0 flex-col items-center px-1.5 py-7 text-center sm:px-6 sm:py-9 lg:py-12">
             <dt class="sr-only">{stat.label}</dt>
-            <dd>
-              <span class="block font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
-                {stat.value}
-              </span>
-              <span class="mt-1 block text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-muted">
-                {stat.label}
-              </span>
+            <dd class="hero-stat-value m-0 whitespace-nowrap font-heading text-[1.5rem] leading-none text-brand min-[375px]:text-[1.625rem] min-[420px]:text-[1.875rem] sm:text-[2.5rem] md:text-5xl lg:text-[4rem]">
+              {stat.value}
+            </dd>
+            <dd class="m-0 mt-2.5 max-w-[20rem] text-balance text-[0.625rem] font-bold uppercase leading-[1.35] tracking-[0.1em] text-muted sm:mt-3 sm:text-[0.75rem] sm:tracking-[0.14em] lg:text-[0.8125rem]">
+              {stat.label}
             </dd>
           </div>
         ))}
@@ -40,3 +52,13 @@ const stats: Stat[] = (site.hero?.stats || [])
     </div>
   </section>
 )}
+
+<style>
+  /* Tracking lives here, not in a utility: the display face needs the same
+     tight setting as the hero h1 or the numbers look like a different font. */
+  .hero-stat-value {
+    font-weight: var(--weight-display, 800);
+    letter-spacing: -0.03em;
+    font-feature-settings: "kern" 1, "liga" 1, "tnum" 1;
+  }
+</style>

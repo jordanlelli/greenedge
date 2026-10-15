@@ -1,0 +1,20 @@
+---
+/**
+ * /services page heading block — shared by every servicesPage variant.
+ *
+ * The H1 is the page's primary keyword target: "<service family> in <city>",
+ * e.g. "Concrete and civil services in Adelaide". It comes from
+ * services.page.heading; the skeleton carries the guidance.
+ */
+interface Props { eyebrow: string; heading: string; subhead?: string; }
+const { eyebrow, heading, subhead = "" } = Astro.props;
+---
+<section class="bg-bg" data-no-reveal>
+  <div class="mx-auto max-w-[var(--w-content)] px-4 pb-10 pt-12 sm:px-6 sm:pt-16 lg:px-8 lg:pb-12 lg:pt-20">
+    {eyebrow && (
+      <p class="section-eyebrow text-brand-secondary-ink">{eyebrow}</p>
+    )}
+    <h1 class="hero-display mt-4 max-w-4xl font-heading text-[clamp(2.25rem,4.2vw+0.5rem,3.75rem)] text-brand hyphens-none">{heading}</h1>
+    {subhead && <p class="hero-lede mt-5 text-ink">{subhead}</p>}
+  </div>
+</section>

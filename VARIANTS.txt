@@ -62,10 +62,11 @@
       'from-brand/20','to-brand-dark/30')"
     Photo-dependent variants are gated on features.hasPhotos so
     they are never auto-selected for a no-photo client.
-  - Heading block. Most sections open with eyebrow
-    (text-sm font-semibold uppercase tracking-wide text-accent),
-    heading (font-heading ... text-brand), optional subhead
-    (text-muted).
+  - Heading block. Optional eyebrow (class `section-eyebrow`
+    + a colour utility only; size/weight/case come from
+    global.css — sentence case, 15px, untracked, v3.22), heading
+    (font-heading ... text-brand), optional subhead (text-muted).
+    Running text never exceeds 40em (global measure rule).
   - No new dependencies. Carousels/accordions/rotators use
     vanilla JS or CSS only.
 
@@ -77,18 +78,25 @@
   does NOT set colour. Defined as .kit-* classes in global.css;
   Layout adds the class to <html> and loads the kit's fonts.
 
-  ledger   — editorial/journalistic. Newsreader + Inter Tight.
+  ledger   — editorial/journalistic. Newsreader + Public Sans.
              small radius, hairline shadow, tight tracking.
   workshop — industrial trade. Archivo (heavy) + Public Sans.
              square radius, hard offset shadow.
-  coast    — soft/approachable. Bricolage Grotesque + Inter.
+  coast    — soft/approachable. Archivo + Source Sans 3.
              large radius, diffuse shadow, airy.
-  press    — classic/refined. Fraunces + Source Sans 3.
+  press    — classic/refined. Fraunces + DM Sans.
              small radius, light shadow, loose rhythm.
-  signal   — modern/geometric. Space Grotesk + Inter.
+  signal   — modern. Bricolage Grotesque + DM Sans.
              medium radius, minimal shadow.
 
   Override per client: _brief.designKit: "press".
+
+  v3.28: NO KIT LOADS INTER OR SPACE GROTESK. They are the two
+  faces a generated site reaches for first (DESIGN-LIBRARY B14).
+  The faces above are what the code loads: KIT_FONT_FACES in
+  src/lib/variants.mjs is the source of truth, and this list had
+  drifted from it on coast and press. To change one client's
+  type, set _brief.stylePicks (it overrides the kit).
 
 
 ================================================================
@@ -116,11 +124,14 @@
   fullbleed    [needs photos]  Full-viewport background image with
     a brand-dark scrim, white text. Falls back to solid bg-brand
     if no image.
-  docket       [no assets]  Copy left, ruled spec panel right —
-    services, areas, hours, licence/ABN, established. Every row
-    is sourced from the intake; a row with no value is omitted,
-    never filled with "Contact us". Under two resolved rows the
-    panel drops and the copy runs full width.
+  docket       [needs 4+ spec rows]  Copy left, ruled spec panel
+    right — services, areas, hours, licence/ABN, established.
+    Every row is sourced from the intake; a row with no value is
+    omitted, never filled with "Contact us". Needs four resolved
+    rows (v3.34): with three, the panel is half the height of the
+    copy and the right column reads as empty. Short of four, the
+    engine skips it and a forced docket renders the index hero
+    (4+ services) or typographic instead.
   index        [needs 4+ services]  Numbered service index on a
     tinted rail, copy right. Puts the service list above the
     fold. The ordinals are an INDEX, not a sequence — no rail,
@@ -143,20 +154,27 @@
   a path — a per-service photo asserts the client did THAT job.
   The hero image is not gated this way; see content.mjs.
 
-  grid-icons   [DEFAULT, no assets]  Scannable card grid, ordinal
-    + title + description + up to 4 includes. The grid WRAPS and
-    its column count is sized for services PLUS the CTA card, so
-    no row is left with a hole. On awkward totals the CTA card
-    spans two columns. A real service is never dropped to make a
-    row even.
+  grid-icons   [DEFAULT, no assets]  ONE RULED SHEET (v3.28), not
+    separate cards: icon or ordinal + title + description + up to
+    4 includes per cell, the cells sharing one frame and one
+    hairline between neighbours. The grid WRAPS; its column count
+    is sized for the services, and the last service runs to the
+    end of its row so no count leaves an empty cell. The quote
+    action closes the sheet as a FULL-WIDTH ACCENT ROW (label +
+    the phone, or opening hours on a call-first site). It is no
+    longer a service-shaped card, and it never prints the phone
+    number twice. services.showQuoteCard:false removes the row.
+    A real service is never dropped to make a row even.
   ledger       [no assets]  Ruled rows, title left / description
     right / optional "from" price. No cards. Handles very uneven
     description lengths, which is where card grids break. The
     price column disappears entirely when no service carries a
     price — never padded with "POA".
-  split-scroll [needs a photo on EVERY service]  Alternating
-    full-width image/text rows, media side flips each row on
-    desktop. Text always leads on mobile.
+  split-scroll      [needs a photo on MOST shown items: 2/3, v3.17]  Alternating
+    full-width image/text rows, media side flips each PHOTO row on
+    desktop. Text always leads on mobile. A service without a photo
+    runs as a full-width text row (copy left, inclusions + quote
+    link right) — v3.20; it used to leave an empty grey panel.
   feature-lead [needs a photo on the LEAD service]  One large
     service card with imagery, the rest stacked beside it in a
     single bordered group. Lead comes from items[].featured —
@@ -165,6 +183,46 @@
     service]  Nav list drives a detail panel on desktop,
     accordion below. Renders as a working accordion with
     JavaScript off.
+
+================================================================
+  SERVICES PAGE   (MANUAL axis — /services layout, v3.19)
+================================================================
+  Reads `services.page` (eyebrow, heading, subhead, quoteHeading,
+  quoteBody, featuredHeading, moreHeading, midHeading, midBody),
+  `services.groups[]` ({ id, heading, intro, image, imageAlt }) and
+  `services.items[]` (+ group, anchor). Built by
+  resolveServicesPage in src/lib/content.mjs.
+
+  MANUAL: the seeded engine NEVER picks this. Set
+  _brief.layoutVariants.servicesPage by hand; unset = stacked. It
+  consumes no RNG, so it shifted nothing for built clients.
+
+  Shared by all four: the page H1 block, and a full-bleed accent
+  quote band (keyworded H2, quote + phone buttons) closing the page.
+  Every service's longDescription is in the HTML in every variant.
+  Every service has an anchor (items[].anchor or its title
+  slugified) so /services#<anchor> deep-links to it.
+
+  stacked   [DEFAULT, no prerequisite]  One service per row, rule
+    between rows. Photo rows split text/photo and alternate; rows
+    without a photo run full width as two text columns, never half
+    empty. Best at 1-6 services.
+  grouped   [needs services.groups + items[].group]  Jump chips,
+    then per group a sticky rail (number, H2 group heading, intro,
+    photo, quote button) beside a 2-column card grid. Needs one photo
+    per GROUP (borrowed from its first photographed item if unset).
+    Without groups it degrades to one 3-column card grid. Best at
+    8-20 services across 2-4 kinds of work.
+  featured  [works best with 3-6 photos]  Photo cards for the
+    headline services (featured:true + photo, else every photo,
+    max 6), a full-bleed dark quote band, then a 3-column catalogue
+    of the rest with "Details" disclosures. Odd counts give the lead
+    card a double span so the grid has no hole. Best at 7-14.
+  index     [no prerequisite]  Desktop: grouped service list left,
+    one service in full right. Below 1024px: grouped accordion. Deep
+    links open the right service. No-JS renders every service in
+    full. Best at 10+ services where people arrive looking for one
+    specific job.
 
 ================================================================
   WHY US
@@ -182,8 +240,11 @@
   ruled-rows    [DEFAULT]  Hairline rows, title left / desc
     right. NO NUMBERING — the points are not a sequence and can
     be reordered without losing meaning.
-  icon-grid     Tick cards. Column count is chosen to divide the
-    item count, so the last row is never left with a hole.
+  icon-grid     Ruled checklist (v3.28): a hanging tick, the title
+    and its sentence on one left edge, a hairline above each
+    entry. NO boxes and NO tick-in-a-circle badge (DESIGN-LIBRARY
+    B10). Column count is chosen to divide the item count, so the
+    last row is never left with a hole.
   contrast-pair [needs whyUs.pairs[]]  Two columns, the shortcut
     vs what we do, x against tick. Names the competitor's corner
     cut without naming a competitor. Reads a DIFFERENT shape
@@ -196,6 +257,138 @@
     The test is whether the items can be reordered without
     losing meaning; if they can, this variant is wrong for them.
     Gated on the intake declaring a process, never inferred.
+
+================================================================
+  STORY
+================================================================
+  Reads `story`: eyebrow, heading, body, image, imageAlt, cards[],
+  process[]. credentials-panel also reads business.licence / abn /
+  established / insurance / memberships[].
+
+  The heading block and the numbered process strip are SHARED by all
+  three variants; only the body between them changes.
+
+  ruled-cards       [DEFAULT, no assets]  Copy first (v3.28): the
+    first paragraph as a lede on the left, the rest of the copy
+    beside it, then story.cards as ONE RULED STRIP: a rule above,
+    hairlines between entries, no boxes. One paragraph runs as a
+    single lede at the reading measure. Still the fallback for the
+    other two variants. (Before v3.28 this was three bordered cards
+    ABOVE the copy. credentials-panel prints the same strip under
+    its split.)
+  credentials-panel [needs 2+ resolved credential rows]  Copy left,
+    ruled spec panel right: licence, ABN, established, insurance,
+    memberships. Same grammar as hero/docket. EVERY ROW IS SOURCED —
+    a field with no value is omitted, never filled with "Contact
+    us". Under two resolved rows the panel drops and the copy runs
+    full width, because a one-row panel reads as a mistake. Rows come
+    from resolveStoryCredentials in src/lib/content.mjs, the same
+    function the engine gates on, so the gate and the render cannot
+    disagree.
+  portrait-lede     [needs features.hasPhotos AND story.image]
+    Operator portrait left, copy right, cards as a ruled pair-grid
+    beneath the copy. The frame holds a fixed ratio at every width
+    (4:5 phone, 3:2 tablet, 3:4 desktop) so it reserves its space
+    before the file loads and never collapses if it does not.
+
+================================================================
+  AREAS
+================================================================
+  Reads `usage`: eyebrow, heading, subhead, areasLine, travelLine,
+  notCoveredLine, featured[], items[], zones[]. The directory also
+  reads `serviceAreas` through collectAreas/buildableAreas in
+  src/lib/areas.mjs, so the homepage index and /areas can never
+  disagree about what is covered.
+
+  This is the HOMEPAGE summary. The full suburb list on /areas is
+  handled by Usage.astro and has no variant axis. /areas is off by
+  default in PAGE_DEFAULTS, so the homepage section is the half
+  that ships on a basic build.
+
+  NEVER INVENTS a radius, a travel fee, a zone or a suburb.
+
+  chips      [DEFAULT, no prerequisite]  Head left, coverage line
+    and the suburbs right. v3.28: the suburbs are a LINE OF PLACE
+    NAMES divided by hairlines, not outlined pill chips (zoned sets
+    its suburbs the same way, and so does /areas). The variant
+    keeps its name; usage.areaStyle: "pills" restores the chips
+    for a client who wants them. Still the fallback.
+  zoned      [needs 2+ real usage.zones]  One ruled block per zone:
+    name left, that zone's suburbs right, optional per-zone
+    travelNote beneath. A zone counts only if it is NAMED and holds
+    at least one suburb; one zone is a heading, not a grouping,
+    hence the floor of two. Zones are read from the intake and are
+    NEVER derived from suburb names — deciding that Reynella is
+    "southern" is a coverage claim the client did not make.
+    Suburbs listed but not placed in a zone render last WITHOUT a
+    label; they are never swept into an invented "Other" zone.
+  directory  [needs 12+ collected areas; renders 6]  Alphabetical ruled index,
+    2 columns at 40rem and 3 at 64rem. A suburb that clears
+    areaPageState becomes a link to /areas/<slug>; one that does not
+    renders as plain text, never as a dead link. Uses CSS
+    column-count rather than a grid (unlike faqs/open-columns):
+    each entry is one short line with no pair to split, and column
+    flow reads top-to-bottom, which is how an index is scanned.
+    Below a dozen suburbs a chip row is shorter and friendlier;
+    past a dozen the chip wall becomes a blob.
+
+================================================================
+  FAQS
+================================================================
+  Reads `faqs`: eyebrow, heading, items[{question, answer, group?}].
+  An item missing a question or an answer is DROPPED, not rendered
+  as an empty row. The FAQPage JSON-LD in Layout.astro is emitted
+  for all three variants and is unaffected by the choice.
+
+  Rendered by ONE component in two places: as a homepage section,
+  and by /faq with headingLevel="h1". The page no longer carries
+  its own copy of the markup.
+
+  accordion     [DEFAULT, no prerequisite]  Head left, <details>
+    list right. The original layout, renamed only.
+  open-columns  [needs 6+ complete items]  Every answer printed
+    open across two tracks at lg, one below. Uses a two-track GRID,
+    not CSS `column-count`, which can split a question from its
+    answer across the gutter. Better surface for assistants that
+    read the page rather than the JSON-LD; below six questions it
+    reads as a layout that ran out of content, hence the gate.
+  grouped       [needs 2+ distinct item.group values]  One ruled
+    block per category, label left, questions right. One group is
+    not a grouping, so the floor is two. Questions with no group
+    render last WITHOUT a label — they are never invented into an
+    "Other" bucket, same rule as an unsourced credential row.
+
+================================================================
+  SECTIONS WITH ONE LAYOUT  (no variant axis; revised v3.28)
+================================================================
+  TESTIMONIALS  A scrollable row of REVIEW CARDS, set the way the
+    review platforms set them: initial, name, platform mark
+    (Google or Facebook, linked to the source), stars only when
+    the item states a rating, then the text. Three or fewer share
+    one row; more than three scroll sideways with scroll-snap,
+    previous / next buttons on desktop and keyboard scrolling. A
+    long review is clamped to seven lines with "Read more" (JS
+    only, so no-JS prints it in full). The head carries a link to
+    the review profile and, ONLY when testimonials.rating states
+    it, the profile's score and count. Nothing is invented: no
+    rating in the intake means no stars. Sits on the tint
+    surface. Order matters: the first three show before scrolling.
+  GALLERY (homepage)  Mosaic. The first image leads at 2x2 and
+    the rest sit around it at a tight gap; every count from 1 to 6
+    has a shape with no hole (1 wide, 2 halves, 3 lead+2, 4 2x2,
+    5 lead+4, 6 lead+2+3). Two columns on a phone, lead full
+    width. The author picks the lead by ORDER.
+  CONTACT  The form has no box: its fields sit on the section's
+    left edge with a 3:1 field boundary. The details panel beside
+    it keeps the band surface. With no form endpoint the phone
+    number is set at display size and the panel drops the rows the
+    left column already says.
+  FOOTER  footer.columns wins when filled. Left empty, the link
+    columns are DERIVED: "Services" from services.items (deep
+    links to /services#anchor when that page is built) and "On
+    this site" from the header nav. Never invented.
+  HERO / HEADER  One call action each. When the CTA is a tel:
+    link, the plain "Call 04xx" text link beside it is dropped.
 
 ================================================================
   HEADER
@@ -240,11 +433,14 @@
   between clients with the kit. Defined in global.css. There is nothing to
   set per client — it follows the kit.
 
-  ledger    hairline lead-rule before the eyebrow.
-  workshop  heavy accent left-bar, bold eyebrow.
-  coast     filled pill eyebrow, roomier heading.
-  press     sentence-case italic eyebrow, larger serif heading.
-  signal    "+"-prefixed, wide-tracked technical tag.
+  v3.22: every kit's eyebrow is sentence case, 15px, untracked — no
+  caps, side bars, lead rules or prefixes (impeccable flags all four).
+  Kits vary it by face, weight, style and colour only:
+  ledger    italic, medium weight.
+  workshop  heading face, bold.
+  coast     highlight colour.
+  press     italic, highlight colour; larger serif heading.
+  signal    medium weight.
 
 
 ================================================================

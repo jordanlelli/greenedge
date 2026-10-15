@@ -28,18 +28,45 @@
  *   node scripts/check-intake.mjs --intake path/to/client-intake.json
  */
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { parseStylePicks } from "../src/lib/stylepicks.mjs";
+import { ICON_NAMES, iconPath } from "../src/lib/icons.mjs";
 import { dirname, join, relative } from "node:path";
 import { resolvePages, PAGE_META } from "../src/lib/pages.mjs";
+
+/* src/data/gallery.ts is a SECOND source of gallery content, alongside the
+   intake's gallery.images. pageIsBuilt() already accepts it as
+   extra.galleryEntries — but this script called resolvePages() with no extra,
+   so a client whose gallery lives entirely in the data file was told on every
+   single build that /gallery "has no content" while /gallery was sitting there
+   with six entries in it. A warning that is always wrong trains you to skim
+   the warnings, which is worse than having none. Counted by regex rather than
+   imported because this file is TypeScript with Astro image imports and Node
+   cannot load it directly. */
+function countGalleryEntries() {
+  const tsPath = new URL("../src/data/gallery.ts", import.meta.url);
+  try {
+    const src = readFileSync(tsPath, "utf8");
+    const body = src.slice(src.indexOf("galleryEntries: GalleryEntry[] = ["));
+    return (body.match(/\bid:\s*"/g) || []).length;
+  } catch {
+    return 0;
+  }
+}
+const galleryEntryCount = countGalleryEntries();
+const pageExtra = {
+  galleryEntries: galleryEntryCount ? new Array(galleryEntryCount).fill(1) : [],
+};
 import { legalPageState } from "../src/lib/legal.mjs";
 import { allAreas, areaPageState, duplicatePairs, buildableAreas } from "../src/lib/areas.mjs";
 import { fileURLToPath } from "node:url";
+import { intakePath } from "./intake-path.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const argv = process.argv.slice(2);
 const STRICT = argv.includes("--strict");
 const iArg = argv.indexOf("--intake");
-const INTAKE = iArg > -1 ? argv[iArg + 1] : join(root, "client-intake.json");
+const INTAKE = iArg > -1 ? argv[iArg + 1] : intakePath();
 
 const errors = [];
 const warnings = [];
@@ -125,6 +152,7 @@ for (const file of walk(join(root, "src"))) {
   "whyUs.pairs", "whyUs.themLabel", "whyUs.usLabel",
   "usage.items", "usage.featured", "usage.areasLine", "usage.travelLine",
   "usage.notCoveredLine", "usage.eyebrow", "usage.heading", "usage.subhead",
+  "usage.areaStyle",
   "hero.secondaryCtaLabel",
   "hero.secondaryCtaHref",
   "style",
@@ -140,6 +168,16 @@ for (const file of walk(join(root, "src"))) {
   "legal.terms.tradePack", "legal.terms.extraClauses",
   "serviceAreas",
   "contact.instagram", "contact.facebook", "contact.tiktok",
+  /* v3.19 — /services page model (resolveServicesPage) and per-page SEO
+     (pageSeo in config.ts, keyed by a variable so the scan cannot see it). */
+  "services.page", "services.page.eyebrow", "services.page.heading", "services.page.subhead",
+  "services.page.quoteHeading", "services.page.quoteBody", "services.page.featuredHeading",
+  "services.page.moreHeading", "services.page.midHeading", "services.page.midBody",
+  "services.groups", "services.pageEyebrow", "services.pageHeading",
+  "business.schemaType", "business.googleBusinessUrl", "contact.openingHoursSpec", "contact.linkedin",
+  "usage.notCoveredHeading",
+  "seo.pages",
+  ...["services", "areas", "gallery", "faq"].flatMap((k) => [`seo.pages.${k}`, `seo.pages.${k}.title`, `seo.pages.${k}.description`]),
 ].forEach(addPath);
 
 /* ── 2. walk the intake ─────────────────────────────────────────────────── */
@@ -170,12 +208,85 @@ const visit = (obj, prefix = "") => {
 };
 visit(intake);
 
+/* v3.20 — LocalBusiness schema inputs. */
+{
+  const TYPES = ["LocalBusiness", "HomeAndConstructionBusiness", "GeneralContractor", "Electrician", "Plumber",
+    "RoofingContractor", "HousePainter", "HVACBusiness", "Locksmith", "MovingCompany", "AutomotiveBusiness",
+    "AutoRepair", "ProfessionalService"];
+  const t = intake.business?.schemaType;
+  if (t && !TYPES.includes(t)) {
+    warnings.push(`business.schemaType "${t}" is not a supported schema.org type, so the schema falls back to LocalBusiness. Use one of: ${TYPES.join(", ")}.`);
+  } else if (!t) {
+    warnings.push(`business.schemaType is empty — the schema says generic LocalBusiness. Set the trade type (Plumber, Electrician, GeneralContractor, ...).`);
+  }
+  const hours = Array.isArray(intake.contact?.openingHoursSpec) ? intake.contact.openingHoursSpec : [];
+  hours.forEach((r, i) => {
+    const ok = r && Array.isArray(r.days) && r.days.length && /^([01]\d|2[0-3]):[0-5]\d$/.test(r.opens || "") && /^([01]\d|2[0-3]):[0-5]\d$/.test(r.closes || "");
+    if (!ok) warnings.push(`contact.openingHoursSpec[${i}] needs days ["Mo".."Su"], opens and closes as HH:MM (24h) — it is dropped from the schema.`);
+  });
+}
+
+/* v3.19 — /services layout sanity. Advisory only: the layout is a manual
+   choice, so this nudges rather than blocks. */
+{
+  const items = Array.isArray(intake.services?.items) ? intake.services.items.filter((it) => it && it.title) : [];
+  const layoutPick = intake._brief?.layoutVariants?.servicesPage || "stacked";
+  const groups = Array.isArray(intake.services?.groups) ? intake.services.groups.filter((g) => g && g.id && g.heading) : [];
+  const ids = new Set(groups.map((g) => String(g.id).toLowerCase()));
+  if (layoutPick === "stacked" && items.length > 6) {
+    warnings.push(
+      `services — ${items.length} services on the stacked /services layout. Stacked is built for 1-6; ` +
+        `set _brief.layoutVariants.servicesPage to grouped, featured or index (VARIANT-CHEAT-SHEET §4).`
+    );
+  }
+  if (layoutPick === "grouped" && groups.length === 0) {
+    warnings.push(`services — servicesPage is "grouped" but services.groups[] is empty, so it renders as one ungrouped card grid.`);
+  }
+  for (const it of items) {
+    if (it.group && !ids.has(String(it.group).toLowerCase())) {
+      warnings.push(`services.items "${it.title}" — group "${it.group}" matches no services.groups[].id; it will render ungrouped.`);
+    }
+  }
+}
+
 for (const path of unread) {
   warnings.push(
     `${path} — no reader in src/. This content is in the intake and will NOT ` +
       `appear on the page. Either wire it up or delete it from the intake so the ` +
       `file stops implying it does something.`
   );
+}
+
+/* ── Style Picker code (v3.24) ──────────────────────────────────────────── */
+{
+  const code = intake._brief?.stylePicks;
+  const picks = parseStylePicks(code);
+  if (picks?.unknown.length) {
+    errors.push(
+      `_brief.stylePicks "${code}" has part(s) the template does not know: ${picks.unknown.join(", ")}. ` +
+        `The picker page and src/lib/stylepicks.mjs must list the same fonts, bases and colour sets. Run "npm run picks -- <code>" to see the valid ids.`
+    );
+  }
+}
+
+/* ── service icons + sample sections (v3.27) ────────────────────────────── */
+{
+  const badIcons = (intake.services?.items || [])
+    .map((it) => (typeof it?.icon === "string" ? it.icon.trim() : ""))
+    .filter((name) => name && !iconPath(name));
+  if (badIcons.length) {
+    errors.push(
+      `services.items[].icon names ${[...new Set(badIcons)].map((n) => `"${n}"`).join(", ")}, which the icon set does not have, so those cards fall back to a number. ` +
+        `Available: ${ICON_NAMES.join(", ")}.`
+    );
+  }
+  const sample = Array.isArray(intake.demo?.sampleSections) ? intake.demo.sampleSections : [];
+  if (sample.length && intake.seo?.noindex !== true) {
+    errors.push(
+      `demo.sampleSections marks ${sample.join(", ")} as sample content, but seo.noindex is not true. ` +
+        `A page carrying sample content must not be indexable: set seo.noindex to true, or replace the sample copy and empty demo.sampleSections.`
+    );
+  }
 }
 
 /* ── 3. the silent failures ─────────────────────────────────────────────── */
@@ -198,6 +309,31 @@ if (unsourced.length) {
   );
 }
 
+/* REVIEW RATINGS (v3.28). A star row is a claim about what a reviewer gave,
+   so it renders only for a value from 1 to 5 and anything else is ignored at
+   render. Ignored is right for the page and wrong for the build log: "five"
+   or 10 would simply show no stars and nobody would know why. */
+{
+  const badStars = (v) => v !== undefined && v !== "" && v !== null && !(Number(v) >= 1 && Number(v) <= 5);
+  const badItems = tItems.filter((t) => t && badStars(t.rating));
+  if (badItems.length) {
+    errors.push(
+      `${badItems.length} testimonial(s) have a rating that is not a number from 1 to 5, so no stars render for them. ` +
+        `Use the reviewer's own star rating, or remove the field (a Facebook recommendation has no stars).`
+    );
+  }
+  const r = Array.isArray(tBlock) ? null : tBlock?.rating;
+  if (r && typeof r === "object" && (has(r.score) || has(r.count))) {
+    const countOk = Number.isInteger(Number(r.count)) && Number(r.count) > 0;
+    if (badStars(r.score) || !has(r.score) || !countOk) {
+      errors.push(
+        `testimonials.rating needs BOTH score (1 to 5) and count (a whole number), copied from the review ` +
+          `profile itself. It is the profile's rating, never an average of the reviews on this page.`
+      );
+    }
+  }
+}
+
 /* Photos in the intake with the photo gate closed. */
 if (has(intake.gallery?.images) && intake.features?.hasPhotos !== true) {
   errors.push(
@@ -206,8 +342,8 @@ if (has(intake.gallery?.images) && intake.features?.hasPhotos !== true) {
       `once the files are actually in public/images.`
   );
 }
-if (sections.includes("gallery") && !has(intake.gallery?.images)) {
-  warnings.push(`sections includes "gallery" but gallery.images is empty — the section self-hides.`);
+if (sections.includes("gallery") && !has(intake.gallery?.images) && !galleryEntryCount) {
+  warnings.push(`sections includes "gallery" but neither gallery.images nor src/data/gallery.ts has content — the section self-hides.`);
 }
 
 /* A form block with no endpoint silently degrades to the phone-first card, so
@@ -364,11 +500,34 @@ if (intake.hero?.imageIsStock === true) {
       `recent jobs, which present images as this client's completed work.`
   );
 }
-if (has(intake.hero?.image) && !/^https?:\/\//i.test(intake.hero.image) &&
-    !existsSync(join(root, "public", intake.hero.image.replace(/^\//, "")))) {
+/* v3.21: an intake image path resolves to src/assets/<path> (optimised,
+   srcset) or public/<path> (served as-is). Either location is valid. */
+const imageExists = (p) => {
+  const rel = String(p).replace(/^\//, "");
+  return existsSync(join(root, "src", "assets", rel)) || existsSync(join(root, "public", rel));
+};
+if (has(intake.hero?.image) && !/^https?:\/\//i.test(intake.hero.image) && !imageExists(intake.hero.image)) {
   errors.push(
-    `hero.image "${intake.hero.image}" does not exist in public/. It is the ` +
+    `hero.image "${intake.hero.image}" exists in neither src/assets/ nor public/. It is the ` +
       `largest element above the fold and the og:image fallback.`
+  );
+}
+/* A public/ image that could be optimised isn't. Warn above ~400 KB: that is
+   a file being sent full-size to every phone. */
+const publicHeavy = [];
+const pubImages = [intake.hero?.image, intake.story?.image, ...(intake.services?.items || []).map((it) => it?.image)]
+  .filter((p) => has(p) && !/^https?:\/\//i.test(p));
+for (const p of new Set(pubImages)) {
+  const rel = String(p).replace(/^\//, "");
+  const pub = join(root, "public", rel);
+  if (!existsSync(join(root, "src", "assets", rel)) && existsSync(pub) && statSync(pub).size > 400 * 1024) {
+    publicHeavy.push(`${p} (${Math.round(statSync(pub).size / 1024)} KB)`);
+  }
+}
+if (publicHeavy.length) {
+  warnings.push(
+    `${publicHeavy.length} image(s) are served unoptimised from public/: ${publicHeavy.join(", ")}. ` +
+      `Move each to the same path under src/assets/ (no intake change) to get a resized WebP srcset.`
   );
 }
 
@@ -377,7 +536,12 @@ if (has(intake.hero?.image) && !/^https?:\/\//i.test(intake.hero.image) &&
    takes someone to notice. */
 {
   const domain = str(intake._meta?.domain) || str(intake.seo?.siteUrl);
-  const isDemo = /vercel\.app|netlify\.app|pages\.dev|localhost/i.test(domain);
+  /* example.com(.au), example.org/net and the .example/.test/.invalid TLDs are
+     reserved for documentation: nothing live is served from them, so an intake
+     on one (the template's own client-intake.demo.json) is a demo. */
+  const isDemo =
+    /vercel\.app|netlify\.app|pages\.dev|localhost/i.test(domain) ||
+    /(^|[./])example\.(com|org|net)(\.au)?(\/|$)|\.(example|test|invalid)(\/|$)/i.test(domain);
   if (intake.seo?.noindex === true && domain && !isDemo) {
     errors.push(
       `seo.noindex is true but the domain is "${domain}", which is not a demo host. ` +
@@ -409,8 +573,123 @@ if (provider && !OFF_VALUES.includes(provider) && !["plausible", "ga4", "umami"]
    Print what this build actually ships. A page vanishing because its content
    is empty is correct behaviour, but silent correct behaviour is how the demo
    went out without a gallery — so it gets said out loud, every build. */
+/* WHY US vs ABOUT: SHARED SENTENCES. The two sections answer different
+   questions (INTAKE-SPEC.txt), and the fastest way to make a site read as
+   generated is to answer both with the same words. Facts may legitimately
+   appear in both — the same 35 years can back a method claim in Why Us and
+   be reassurance in About — so this looks for repeated PHRASING, not repeated
+   subjects: a run of five or more consecutive words present in both.
+
+   A warning, not a failure. Copy is judgement, and a five-word run can be
+   coincidence ("across Adelaide and regional South Australia"). It is there to
+   make the duplication visible while it is still cheap to fix. */
 {
-  const { built, suppressed } = resolvePages(intake);
+  const norm = (t) =>
+    String(t || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  const shingles = (t, n = 5) => {
+    const w = norm(t).split(" ").filter(Boolean);
+    const out = new Set();
+    for (let i = 0; i + n <= w.length; i++) out.add(w.slice(i, i + n).join(" "));
+    return out;
+  };
+  const whyText = [
+    ...(Array.isArray(intake.whyUs) ? intake.whyUs : intake.whyUs?.items || []),
+  ].map((i) => `${i?.title || ""} ${i?.description || ""}`).join(" ");
+  const storyText = [
+    intake.story?.body || "",
+    ...(intake.story?.cards || []).map((c) => `${c?.title || ""} ${c?.description || ""}`),
+  ].join(" ");
+
+  if (whyText && storyText) {
+    const a = shingles(whyText);
+    const shared = [...shingles(storyText)].filter((s) => a.has(s));
+    if (shared.length) {
+      warnings.push(
+        `whyUs and story share ${shared.length} phrase(s) of 5+ words, e.g. "${shared[0]}". ` +
+          `Why Us is the TECHNICAL section (method, standards, what gets checked) and About is the ` +
+          `CONVERSATIONAL one (who they are, who turns up). Shared facts are fine; shared sentences ` +
+          `mean one of the two sections is not doing its job. See INTAKE-SPEC.txt.`
+      );
+    }
+  }
+}
+
+/* HERO EYEBROW RESTATING THE HEADER (DESIGN-LIBRARY B11). The business name
+   is already in the header wordmark a few lines above the eyebrow. An eyebrow
+   that opens with it ("Hanson Fencing & Gate · Athol Park") spends the first
+   line of the page repeating the logo. The eyebrow earns its place with a
+   fact the heading does not carry: trade + suburb, a licence class, "Family
+   run since 1998". A warning, not a failure: copy is judgement. */
+{
+  const flat = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const eb = flat(intake.hero?.eyebrow);
+  const nm = flat(intake.business?.name);
+  if (eb && nm && nm.length >= 4 && eb.includes(nm)) {
+    warnings.push(
+      `hero.eyebrow repeats the business name ("${intake.hero.eyebrow}"). The header already shows it ` +
+        `directly above. Use the eyebrow for a fact the heading does not carry (trade + suburb, ` +
+        `licence class), or leave it empty.`
+    );
+  }
+}
+
+/* DEAD INTERNAL LINKS. footer.columns[].links[] and any other hand-authored
+   href in the intake is NOT validated by anything else: nav is generated from
+   resolvePages, but these are typed by hand and survive every change to what
+   the build actually ships.
+
+   Caught in the wild on A&J v3: the footer carried "About Us -> /about" from a
+   build where /about was a real page, plus five links to /services/<slug>
+   detail pages that only existed in the previous repo. Six dead links in the
+   footer of every page on the site, and nothing failed. A visitor clicking
+   "About Us" got a 2-second meta-refresh to /#story, which reads as a broken
+   site rather than a deliberate redirect. */
+{
+  const redirectOnly = new Set(["/about", "/contact", "/gallery"]);
+  const livePaths = new Set(["/", "/services", "/faq", "/areas", "/gallery", "/privacy", "/terms"]);
+  const { built: builtNow } = resolvePages(intake, pageExtra);
+  for (const k of Object.keys(PAGE_META)) {
+    if (!builtNow.includes(k)) livePaths.delete(PAGE_META[k].path);
+  }
+  if (intake.legal?.privacy?.enabled === false) livePaths.delete("/privacy");
+  if (intake.legal?.terms?.enabled !== true) livePaths.delete("/terms");
+
+  const serviceSlugs = new Set();
+  try {
+    const src = readFileSync(new URL("../src/data/services.ts", import.meta.url), "utf8");
+    for (const m of src.matchAll(/slug:\s*"([^"]+)"/g)) serviceSlugs.add(m[1]);
+  } catch {}
+
+  const hrefs = [];
+  for (const col of intake.footer?.columns || [])
+    for (const l of col.links || []) hrefs.push([`footer."${col.heading}"`, l.label, l.href]);
+
+  for (const [where, label, href] of hrefs) {
+    if (!href || !href.startsWith("/")) continue;
+    const path = href.split("#")[0].replace(/\/$/, "") || "/";
+    if (path.startsWith("/services/")) {
+      const slug = path.slice("/services/".length);
+      if (!serviceSlugs.has(slug))
+        warnings.push(
+          `${where} link "${label}" points at ${href}, but no service with slug "${slug}" exists in ` +
+            `src/data/services.ts, so that page is never built. Point it at /services or add the service.`
+        );
+      continue;
+    }
+    if (redirectOnly.has(path) && !livePaths.has(path)) {
+      warnings.push(
+        `${where} link "${label}" points at ${href}, which only redirects home. ` +
+          `Point it at the section anchor instead (e.g. /#story) so it does not read as a broken page.`
+      );
+      continue;
+    }
+    if (!livePaths.has(path))
+      warnings.push(`${where} link "${label}" points at ${href}, which this build does not ship.`);
+  }
+}
+
+{
+  const { built, suppressed } = resolvePages(intake, pageExtra);
   const lines = ["/  (home, contact section at the bottom)"];
   for (const k of built) lines.push(`${PAGE_META[k].path}  (${PAGE_META[k].label})`);
   if (intake.legal?.privacy?.enabled !== false) lines.push("/privacy  (noindex, not in sitemap)");

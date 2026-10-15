@@ -23,11 +23,11 @@ const phone = site.contact?.phone || "";
 
 <div class="svc-ledger" data-priced={anyPrice ? "true" : "false"}>
   {items.map((it: any) => (
-    <div class="svc-row">
+    <div class="svc-row" data-reveal-item>
       <div class="svc-row-title">
-        <h3 class="font-heading text-lg font-semibold leading-snug text-brand">
+        <h3 class="font-heading text-lg font-semibold leading-snug text-brand lg:text-xl">
           {it.href ? (
-            <a href={it.href} class="underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{it.title}</a>
+            <a href={it.href} class="underline-offset-4 hover:underline">{it.title}</a>
           ) : it.title}
         </h3>
       </div>
@@ -59,22 +59,25 @@ const phone = site.contact?.phone || "";
 <div class="mt-8 flex flex-wrap items-center gap-4">
   <a
     href={site.hero?.primaryCtaHref || "#contact"}
-    class="inline-flex min-h-11 items-center rounded-card bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+    class="inline-flex min-h-11 items-center rounded-card bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition hover:brightness-95"
   >{primaryLabel}</a>
   {phone && (
-    <a href={`tel:${formatPhone(phone)}`} class="font-heading text-lg font-semibold text-brand underline-offset-4 hover:underline">{phone}</a>
+    <a href={`tel:${formatPhone(phone)}`} class="font-heading text-lg font-semibold text-brand underline-offset-4 hover:underline lg:text-xl">{phone}</a>
   )}
 </div>
 
 <style>
-  .svc-ledger { border-top: 1px solid var(--color-border); }
+  /* Rules sit on TOP of each row (v3.22). Same lines on screen, but each title
+     now belongs to the row its rule opens rather than hanging under the
+     previous row's rule — impeccable heading-rhythm measures exactly that. */
+  .svc-ledger { border-bottom: 1px solid var(--color-border); }
 
   .svc-row {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.5rem;
     padding: 1.25rem 0;
-    border-bottom: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border);
   }
   .svc-row-title h3 { margin: 0; }
   .svc-row-body p { margin: 0; }
@@ -85,21 +88,19 @@ const phone = site.contact?.phone || "";
     gap: 0.5rem;
   }
   .svc-price-key {
-    font-size: 0.6875rem;
+    font-size: var(--text-small);
     font-weight: 600;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
     color: var(--color-muted);
   }
 
   @media (min-width: 48rem) {
     .svc-row {
-      grid-template-columns: 0.34fr 1fr;
+      grid-template-columns: minmax(0, 0.34fr) minmax(0, 1fr);
       gap: 1.5rem;
       align-items: baseline;
     }
     .svc-ledger[data-priced="true"] .svc-row {
-      grid-template-columns: 0.3fr 1fr 0.16fr;
+      grid-template-columns: minmax(0, 0.3fr) minmax(0, 1fr) minmax(0, 0.16fr);
     }
     .svc-row-price {
       justify-content: flex-end;

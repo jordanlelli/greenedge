@@ -1,5 +1,8 @@
 ---
-import { site, formatPhone, legalLinks } from "../config";
+import { site, formatPhone, legalLinks, headerNavLinks, builtPages } from "../config";
+// @ts-ignore - plain-JS content normaliser shared with the Node check scripts
+import { resolveServicesPage } from "../lib/content.mjs";
+import { services as serviceRecords } from "../data/services";
 // @ts-ignore - plain-JS credit resolver shared with the Node check scripts
 import { resolveCredit } from "../lib/credit.mjs";
 
@@ -8,7 +11,31 @@ const business = site.business || {};
 const contact = site.contact || {};
 const name = business.name || "";
 const tagline = footer.tagline || business.shortDescription || "";
-const columns: any[] = footer.columns || [];
+/* LINK COLUMNS. footer.columns is still the author's call and wins whenever it
+   is filled. Left empty — which is how every pipeline-built intake arrives —
+   the footer used to be one narrow block of contact details on the left and a
+   blank dark slab across the other two thirds of the page. The columns are now
+   DERIVED from what the build already knows: the services the intake lists and
+   the pages and sections this site actually ships. Nothing is invented; a
+   site with no services and no nav still gets no columns. To change a label
+   or the links, fill footer.columns: it replaces both. */
+const authored: any[] = Array.isArray(footer.columns) ? footer.columns.filter((c: any) => c && (c.links || []).length) : [];
+const servicesBuilt = builtPages().includes("services");
+/* Same resolver as the /services page, so a footer link can never point at an
+   anchor that page did not render. */
+const serviceLinks = resolveServicesPage(site, serviceRecords).items
+  .filter((it: any) => it.title)
+  .slice(0, 6)
+  .map((it: any) => ({
+    label: it.title,
+    href: servicesBuilt ? `/services#${it.anchor}` : "/#services",
+  }));
+const navLinks = headerNavLinks().map((l) => ({ label: l.label, href: l.href }));
+const derived: any[] = [
+  serviceLinks.length > 1 && { heading: "Services", links: serviceLinks },
+  navLinks.length > 1 && { heading: "On this site", links: navLinks },
+].filter(Boolean);
+const columns: any[] = authored.length > 0 ? authored : derived;
 const year = new Date().getFullYear();
 const abn = business.abn || "";
 const credit = resolveCredit(site);
@@ -30,77 +57,85 @@ const copyrightSuffix = footer.copyrightSuffix || "All rights reserved.";
     one client's brand-dark; on a lighter brand-dark they land near 3:1 and fail
     AA. --c-ondark-soft is fitted per client (see palette.mjs) so it stays as
     quiet as it can while remaining readable on any palette. */}
-<footer class="border-t border-transparent bg-brand-dark py-14 text-[var(--c-ondark-soft)]">
-  <div class="mx-auto max-w-6xl px-4 lg:px-8">
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="sm:col-span-2 lg:col-span-1">
-        <span class="font-heading text-lg font-semibold text-ondark">{name}</span>
-        {tagline && <p class="mt-2 text-sm leading-relaxed">{tagline}</p>}
-      </div>
-
-      {columns.map((col: any) => (
-        <div>
-          <p class="text-sm font-semibold text-ondark" role="presentation">{col.heading}</p>
-          <ul class="mt-3 space-y-2 text-sm">
-            {(col.links || []).map((l: any) => (
+<footer class="border-t border-transparent bg-brand-dark pb-8 pt-14 text-[var(--c-ondark-soft)] lg:pt-16">
+  {/* Same container as the header and every section, so the footer shares the
+      site's left AND right edges. Business info holds the left edge; the link
+      columns are pushed to the right edge as one group. The bottom bar repeats
+      the split: copyright left, legal + credit right. */}
+  <div class="mx-auto max-w-[var(--w-content)] px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+      <div class="max-w-sm">
+        <span class="font-heading text-lg font-bold text-ondark lg:text-xl">{name}</span>
+        {tagline && <p class="mt-3 text-sm leading-relaxed">{tagline}</p>}
+        {(contact.phone || contact.email || contact.address) && (
+          <ul class="mt-5 space-y-1.5 text-sm">
+            {contact.phone && (
+              <li><a href={`tel:${formatPhone(contact.phone)}`} class="tap-target inline-flex items-center font-semibold text-ondark transition hover:opacity-80">{contact.phone}</a></li>
+            )}
+            {contact.email && (
+              <li><a href={`mailto:${contact.email}`} class="tap-target inline-flex items-center break-all transition hover:text-ondark">{contact.email}</a></li>
+            )}
+            {contact.address && <li>{contact.address}</li>}
+          </ul>
+        )}
+        {socials.length > 0 && (
+          <ul class="mt-6 flex items-center gap-3">
+            {socials.map((s) => (
               <li>
-                <a href={l.href} class="transition hover:text-ondark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark">{l.label}</a>
+                <a
+                  href={s.href}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  aria-label={s.label}
+                  class="flex h-10 w-10 items-center justify-center rounded-full border border-ondark/20 text-[var(--c-ondark-soft)] transition hover:border-ondark/50 hover:text-ondark"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={s.d}></path></svg>
+                </a>
               </li>
             ))}
           </ul>
+        )}
+      </div>
+
+      {columns.length > 0 && (
+        <div class="grid grid-cols-2 gap-x-10 gap-y-10 sm:flex sm:gap-x-16 lg:mt-1 lg:gap-x-20">
+          {columns.map((col: any) => (
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-ondark" role="presentation">{col.heading}</p>
+              <ul class="mt-4 space-y-2.5 text-sm">
+                {(col.links || []).map((l: any) => (
+                  <li>
+                    <a href={l.href} class="tap-target inline-flex items-center transition hover:text-ondark">{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
 
-    <div class="mt-10 border-t border-white/10 pt-6 text-center text-xs">
+    <div class="mt-12 flex flex-col gap-3 border-t border-ondark/10 pt-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <p>
         © {year} {name}. {copyrightSuffix}
         {abn && <> ABN {abn}.</>}
       </p>
-      <p class="mt-2">
-        {contact.phone && (
-          <a href={`tel:${formatPhone(contact.phone)}`} class="transition hover:text-ondark">{contact.phone}</a>
-        )}
-        {contact.phone && contact.email && <> · </>}
-        {contact.email && (
-          <a href={`mailto:${contact.email}`} class="transition hover:text-ondark">{contact.email}</a>
-        )}
-      </p>
-      {contact.address && <p class="mt-1 text-[var(--c-ondark-soft)]">{contact.address}</p>}
-      {socials.length > 0 && (
-        <ul class="mt-6 flex items-center justify-center gap-4">
-          {socials.map((s) => (
-            <li>
-              <a
-                href={s.href}
-                rel="noopener noreferrer"
-                target="_blank"
-                aria-label={s.label}
-                class="flex h-10 w-10 items-center justify-center rounded-full border border-ondark/20 text-[var(--c-ondark-soft)] transition hover:border-ondark/50 hover:text-ondark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40"
-              >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={s.d}></path></svg>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {credit && (
-        <p class="mt-3 text-[var(--c-ondark-soft)]">
-          {credit.prefix}{" "}
-          <a
-            href={credit.url}
-            rel={credit.rel || undefined}
-            class="font-medium text-ondark/80 underline-offset-2 transition hover:text-ondark hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40"
-          >{credit.name}</a>
-        </p>
-      )}
-      {legalLinks.length > 0 && (
-        <p class="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
+      {(legalLinks.length > 0 || credit) && (
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-1">
           {legalLinks.map((l) => (
-            <a href={l.href} class="text-[var(--c-ondark-soft)] underline-offset-2 transition hover:text-ondark hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ondark/40">{l.label}</a>
+            <a href={l.href} class="tap-target inline-flex items-center text-[var(--c-ondark-soft)] underline-offset-2 transition hover:text-ondark hover:underline">{l.label}</a>
           ))}
-        </p>
+          {credit && (
+            <span class="text-[var(--c-ondark-soft)]">
+              {credit.prefix}{" "}
+              <a
+                href={credit.url}
+                rel={credit.rel || undefined}
+                class="font-medium text-ondark/80 underline-offset-2 transition hover:text-ondark hover:underline"
+              >{credit.name}</a>
+            </span>
+          )}
+        </div>
       )}
     </div>
   </div>

@@ -1,6 +1,6 @@
 ---
-import { Image } from "astro:assets";
-import type { GalleryEntry, GalleryImageKind, GalleryService } from "../data/gallery";
+import { Image, getImage } from "astro:assets";
+import type { GalleryEntry, GalleryImageKind, GalleryService } from "../lib/types";
 import { galleryServiceNames } from "../data/gallery";
 
 interface Props {
@@ -26,6 +26,18 @@ const titleCase = (key: string): string =>
     .replace(/\b\w/g, (c) => c.toUpperCase());
 const serviceLabel = (key: GalleryService): string =>
   galleryServiceNames[key] || titleCase(key) || "Recent work";
+
+/* "Open full image" used to link image.src.src — the untouched master, which
+   for a phone photo is 3-5 MB. It now links a 1600px WebP (v3.21): plenty for
+   a full-screen view, a tenth of the bytes. */
+const fullSize = new Map<string, string>();
+for (const entry of entries) {
+  for (const image of entry.images) {
+    if (fullSize.has(image.src.src)) continue;
+    const out = await getImage({ src: image.src, width: Math.min(1600, image.src.width), format: "webp", quality: 78 });
+    fullSize.set(image.src.src, out.src);
+  }
+}
 
 const kindLabels: Record<GalleryImageKind, string> = {
   before: "Before",
@@ -56,8 +68,8 @@ const imageSizes =
             {entry.images.map((image) => (
               <figure class="min-w-0">
                 <a
-                  href={image.src.src}
-                  class="group block overflow-hidden rounded-card border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  href={fullSize.get(image.src.src) || image.src.src}
+                  class="group block overflow-hidden rounded-card border border-border"
                   aria-label={`Open full ${kindLabels[image.kind].toLowerCase()} image for ${serviceLabel(entry.service)} in ${entry.suburb}`}
                 >
                   <div class="relative aspect-[4/3] overflow-hidden" style={`background-color:${placeholderTone}`}>
@@ -73,9 +85,13 @@ const imageSizes =
                       class="h-full w-full object-cover"
                       style={`background-color:${placeholderTone}`}
                     />
-                    <span class="absolute left-3 top-3 bg-brand-dark px-3 py-1.5 text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-white">
-                      {kindLabels[image.kind]}
-                    </span>
+                    {/* v3.22: the label only means something on a before/after pair.
+                        On a single photo it printed "PHOTO" over every job. */}
+                    {isPair && (
+                      <span class="absolute left-3 top-3 rounded-card bg-brand-dark px-3 py-1.5 text-sm font-semibold leading-[1.4] text-ondark">
+                        {kindLabels[image.kind]}
+                      </span>
+                    )}
                   </div>
                 </a>
               </figure>
@@ -83,14 +99,13 @@ const imageSizes =
           </div>
 
           <div class="mt-4">
-            <p class="text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-highlight">
-              {serviceLabel(entry.service)}
-            </p>
-            <h3 id={`gallery-${entry.id}`} class="mt-2 font-heading text-xl font-semibold text-brand">
-              {entry.suburb}
-              <span class="font-body text-base font-normal text-muted"> · {entry.monthCompleted}</span>
+            <h3 id={`gallery-${entry.id}`} class="font-heading text-xl font-semibold text-brand lg:text-2xl">
+              {(entry as any).title || `${serviceLabel(entry.service)} in ${entry.suburb}`}
+              {entry.monthCompleted && (
+                <span class="font-body text-base font-normal text-muted"> · {entry.monthCompleted}</span>
+              )}
             </h3>
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">{entry.oneLineDescription}</p>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{entry.oneLineDescription}</p>
           </div>
         </article>
       </li>

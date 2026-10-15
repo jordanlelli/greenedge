@@ -1,11 +1,34 @@
 ---
 /**
- * Story — about + service areas in one cream section, then a numbered
- * process strip. Replaces the old thin Story / Usage pair on the homepage.
+ * Story — the About section. THREE layout variants (v3.17).
+ *
+ * Until v3.17 this section had no variant axis at all: every client's About
+ * shared one set of bones. Hero had six skeletons, Services five — and the
+ * third core page type had one, which is the exact "same bones" tell
+ * DESIGN-LIBRARY exists to stop.
+ *
+ *   ruled-cards        [DEFAULT, no assets]  Lede paragraph left, the rest of
+ *                      the copy right, then the cards as one ruled strip.
+ *                      v3.28: the cards were three bordered boxes ABOVE the
+ *                      copy, so About opened with a card grid and left the
+ *                      right half of the section empty beside the text.
+ *   credentials-panel  [needs 2+ credential rows]  Copy left, ruled spec panel
+ *                      right. Same grammar as hero/docket.
+ *   portrait-lede      [needs hasPhotos AND story.image]  Operator portrait
+ *                      left, copy right.
+ *
+ * DEFENSIVE FALLBACK. An explicit _brief.layoutVariants.story SKIPS the
+ * engine's prerequisite filter (see VARIANT-CHEAT-SHEET §2), so a hand-set
+ * variant can arrive on a client whose data cannot fill it. Every branch below
+ * re-checks its own prerequisite and degrades to ruled-cards rather than
+ * rendering an empty panel or a broken image frame.
+ *
  * Usage.astro remains for /areas (full suburb list).
  */
 import { site, variantOf } from "../config";
+import { resolveStoryCredentials } from "../lib/content.mjs";
 import Section from "./Section.astro";
+import Img from "./Img.astro";
 
 const story = site.story || {};
 
@@ -20,6 +43,24 @@ const cards = (story.cards || []).map((c: any) => ({
 }));
 const body = story.body || "";
 const paragraphs = body.split(/\n\n+/).filter(Boolean).slice(0, 3);
+/* Facts strip: one row while the count allows it, otherwise rows of three. */
+const factCols = cards.length <= 4 ? Math.max(cards.length, 1) : 3;
+
+/* ── variant resolution + defensive fallback ──────────────────────────────
+   resolveStoryCredentials is the SAME function the engine gates on, so the
+   panel can never be selected for rows this component would then not render. */
+const credentials: { label: string; value: string }[] = resolveStoryCredentials(site);
+const hasPanel = credentials.length >= 2;
+
+const portraitSrc = String(story.image || "").trim();
+const hasPortrait = site.features?.hasPhotos === true && Boolean(portraitSrc);
+const portraitAlt = String(story.imageAlt || "").trim() || site.business?.name || "";
+
+const requested = variantOf("story", "ruled-cards");
+let variant = requested;
+if (variant === "credentials-panel" && !hasPanel) variant = "ruled-cards";
+else if (variant === "portrait-lede" && !hasPortrait) variant = "ruled-cards";
+else if (variant !== "credentials-panel" && variant !== "portrait-lede") variant = "ruled-cards";
 
 /* SUPPRESSION: whyUs/process-rail renders numbered steps on a rail. Printing
    this strip as well puts two numbered sequences on one page, which reads as a
@@ -33,39 +74,139 @@ const processSteps: { title: string; body: string }[] =
   whyUsIsProcessRail ? [] : story.process || [];
 
 const ordinal = (i: number) => String(i + 1).padStart(2, "0");
+
+/* Image fallback (VARIANTS.txt, non-negotiable rule). A missing file hides the
+   <img> and leaves a token-derived wash rather than a broken-image frame. */
+const IMG_FALLBACK =
+  "this.style.display='none';this.parentElement.classList.add('bg-gradient-to-br','from-brand/20','to-brand-dark/30')";
 ---
 
 <Section id="story" bg="bg" pad="tight" class="story-areas">
-  <div class="max-w-2xl">
+  <div class="story-head max-w-2xl">
     {eyebrow && (
-      <p class="section-eyebrow text-[0.6875rem] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-brand-secondary-ink">{eyebrow}</p>
+      <p class="section-eyebrow text-brand-secondary-ink">{eyebrow}</p>
     )}
-    <h2 class:list={["section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl", eyebrow && "mt-2"]}>
+    <h2 class:list={["section-heading font-heading text-3xl font-semibold tracking-tight text-brand sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]", eyebrow && "mt-2"]}>
       {heading}
     </h2>
   </div>
 
-  {cards.length > 0 && (
-    <ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {cards.map((card: any) => (
-        <li class="rounded-card border border-border bg-card p-5">
-          {card.title && <p class="font-heading font-semibold text-brand">{card.title}</p>}
-          {card.description && <p class="mt-2 text-sm leading-relaxed text-muted">{card.description}</p>}
-          {card.badges.length > 0 && (
-            <ul class="mt-3 flex flex-wrap gap-2">
-              {card.badges.map((b: string) => (
-                <li class="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted">{b}</li>
+  {variant === "ruled-cards" && (
+    <>
+      {paragraphs.length > 0 && (
+        <div class:list={["story-lede-grid mt-8", paragraphs.length > 1 && "story-lede-grid--two"]}>
+          <p class="story-lede text-pretty text-lg leading-relaxed text-ink lg:text-xl lg:leading-[1.55]">{paragraphs[0]}</p>
+          {paragraphs.length > 1 && (
+            <div class="story-copy min-w-0 space-y-4 text-base leading-relaxed text-muted">
+              {paragraphs.slice(1).map((p: string) => <p class="text-pretty">{p}</p>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {cards.length > 0 && (
+        <div class="story-facts-wrap">
+          <ul class="story-facts" style={"--facts-cols:" + factCols}>
+            {cards.map((card: any) => (
+              <li class="story-fact">
+                {card.title && <p class="story-fact-title">{card.title}</p>}
+                {card.description && <p class="story-fact-desc">{card.description}</p>}
+                {card.badges.length > 0 && (
+                  <ul class="mt-3 flex flex-wrap gap-2">
+                    {card.badges.map((b: string) => (
+                      <li class="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted">{b}</li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  )}
+
+  {variant === "credentials-panel" && (
+    <>
+      <div class="story-split mt-8">
+        <div class="story-copy min-w-0 space-y-4 text-base leading-relaxed text-muted lg:pr-14" data-reveal-from="left">
+          {paragraphs.map((p: string) => <p class="text-pretty">{p}</p>)}
+        </div>
+
+        <div class="story-panel-col min-w-0" data-reveal-from="right">
+          <dl class="story-docket">
+            {credentials.map((row) => (
+              <div class="story-docket-row">
+                <dt class="story-docket-key">{row.label}</dt>
+                <dd class="story-docket-val">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      {cards.length > 0 && (
+        <div class="story-facts-wrap">
+          <ul class="story-facts" style={"--facts-cols:" + factCols}>
+            {cards.map((card: any) => (
+              <li class="story-fact">
+                {card.title && <p class="story-fact-title">{card.title}</p>}
+                {card.description && <p class="story-fact-desc">{card.description}</p>}
+                {card.badges.length > 0 && (
+                  <ul class="mt-3 flex flex-wrap gap-2">
+                    {card.badges.map((b: string) => (
+                      <li class="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted">{b}</li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  )}
+
+  {variant === "portrait-lede" && (
+    <>
+      <div class="story-portrait-split mt-8">
+        <figure class="story-portrait min-w-0" data-reveal-from="left">
+          <Img sizes="(min-width: 1024px) 40vw, 100vw"
+            src={portraitSrc}
+            alt={portraitAlt}
+            width="1200"
+            height="1500"
+            loading="lazy"
+            decoding="async"
+            class="absolute inset-0 h-full w-full object-cover"
+            onerror={IMG_FALLBACK}
+          />
+        </figure>
+
+        <div class="story-copy min-w-0 space-y-4 text-base leading-relaxed text-muted" data-reveal-from="right">
+          {paragraphs.map((p: string) => <p class="text-pretty">{p}</p>)}
+
+          {cards.length > 0 && (
+            <ul class="story-portrait-cards">
+              {cards.map((card: any) => (
+                <li class="story-portrait-card">
+                  {card.title && <p class="font-heading font-semibold text-brand">{card.title}</p>}
+                  {card.description && <p class="mt-1 text-sm leading-relaxed text-muted">{card.description}</p>}
+                  {card.badges.length > 0 && (
+                    <ul class="mt-2 flex flex-wrap gap-2">
+                      {card.badges.map((b: string) => (
+                        <li class="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted">{b}</li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
               ))}
             </ul>
           )}
-        </li>
-      ))}
-    </ul>
+        </div>
+      </div>
+    </>
   )}
-
-  <div class="mt-8 max-w-[70ch] space-y-4 text-base leading-relaxed text-muted">
-    {paragraphs.map((p: string) => <p class="text-pretty">{p}</p>)}
-  </div>
 
   {processSteps.length > 0 && (
     <ol class="story-process mt-12" aria-label="How a job runs">
@@ -81,6 +222,230 @@ const ordinal = (i: number) => String(i + 1).padStart(2, "0");
 </Section>
 
 <style>
+  /* ── overflow floor (applies to all three variants) ────────────────────
+     A single unbreakable token — a long URL or email pasted into the About
+     copy, a joined membership list, a hyphen-free trade name — otherwise sets
+     the min-content width of its column and pushes the text past the gutter.
+     Caught at 360px in a real browser: a 548px URL inside a 328px column.
+     body carries overflow-x-clip so it never produced a visible scrollbar,
+     which is exactly why it went unnoticed — the text was simply cut off.
+     `anywhere` rather than `break-word` because only `anywhere` also shrinks
+     the min-content size, which is what a grid track actually measures. */
+  .story-head :is(h2, p),
+  .story-copy p,
+  .story-facts :is(p, li),
+  .story-portrait-cards :is(p, li),
+  .story-process-title,
+  .story-process-body {
+    overflow-wrap: anywhere;
+  }
+
+  /* NOTE for the next person: do NOT hang this off `.story-areas`. That class
+     is passed as a prop to Section.astro, so the <section> it lands on belongs
+     to Section's scope and never carries THIS component's data-astro-cid —
+     an ancestor selector built on it compiles to a rule that matches nothing.
+     Scope off classes declared in this file's own markup instead. */
+
+  /* ── ruled-cards: lede + copy ───────────────────────────────────────────
+     One paragraph: a single lede at the reading measure. Two or three: the
+     first is the lede on the left and the rest run beside it, so the section
+     uses its width instead of leaving half of it blank. */
+  .story-lede-grid { display: grid; gap: 1.25rem; }
+
+  @media (min-width: 64rem) {
+    .story-lede-grid--two {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 4rem;
+      align-items: start;
+    }
+  }
+
+  /* ── facts strip (story.cards, ruled-cards + credentials-panel) ──────────
+     One rule above, hairlines BETWEEN the entries, no boxes. The dividers are
+     each entry's own left border; the wrapper clips the first column's, which
+     keeps the strip correct for any count and any number of rows without
+     per-count selectors. */
+  .story-facts-wrap {
+    margin-top: 2.5rem;
+    padding-top: 0.25rem;
+    overflow: hidden;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .story-facts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .story-fact {
+    min-width: 0;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .story-fact:first-child { border-top: 0; }
+
+  .story-fact-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: var(--text-lead);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-brand);
+  }
+
+  .story-fact-desc {
+    margin: 0.5rem 0 0;
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 64rem) {
+    .story-facts-wrap { padding-top: 1.75rem; }
+
+    .story-facts {
+      grid-template-columns: repeat(var(--facts-cols, 3), minmax(0, 1fr));
+      row-gap: 1.75rem;
+      margin-left: calc(-2.5rem - 1px);
+    }
+
+    .story-fact,
+    .story-fact:first-child {
+      padding: 0 2.5rem;
+      border-top: 0;
+      border-left: 1px solid var(--color-border);
+    }
+  }
+
+  /* ── credentials-panel ─────────────────────────────────────────────────
+     One column below 64rem (1024px), two above — never md, per the standing
+     convention. The panel's rule moves from top (stacked) to left (side by
+     side) so the divider always sits between the two blocks, whichever way
+     they are arranged. */
+  .story-split {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 64rem) {
+    .story-split {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 0;
+    }
+  }
+
+  .story-panel-col {
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 64rem) {
+    .story-panel-col {
+      padding-top: 0;
+      padding-left: 3.5rem;
+      border-top: 0;
+      border-left: 1px solid var(--color-border);
+    }
+  }
+
+  .story-docket { margin: 0; border-top: 1px solid var(--color-border); }
+
+  .story-docket-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 1.5rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .story-docket-key {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: var(--text-eyebrow);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .story-docket-val {
+    margin: 0;
+    min-width: 0;
+    max-width: 100%;
+    font-family: var(--font-body);
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--color-brand);
+    text-align: left;
+    /* An ABN, a long insurer name or a joined membership list must wrap inside
+       the column rather than widen the grid track and push the page sideways.
+       This is the 360px guarantee. */
+    overflow-wrap: anywhere;
+    hyphens: none;
+  }
+
+  @media (min-width: 40rem) {
+    .story-docket-val { text-align: right; }
+  }
+
+  /* ── portrait-lede ────────────────────────────────────────────────────── */
+  .story-portrait-split {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 64rem) {
+    .story-portrait-split {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 3rem;
+      align-items: start;
+    }
+  }
+
+  /* A fixed ratio at every width means the frame reserves its own space before
+     the file loads: no layout shift, and no zero-height box if it never does. */
+  .story-portrait {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-card, 0);
+    background-color: var(--color-tint, var(--color-card));
+  }
+
+  @media (min-width: 40rem) {
+    /* Between 640px and 1024px the portrait is full-bleed across one column, so
+       a 4:5 frame would run past a phone-held viewport height. Widen it. */
+    .story-portrait { aspect-ratio: 3 / 2; }
+  }
+
+  @media (min-width: 64rem) {
+    .story-portrait { aspect-ratio: 3 / 4; }
+  }
+
+  .story-portrait-cards {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1.75rem 0 0;
+    padding: 1.5rem 0 0;
+    list-style: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 40rem) {
+    .story-portrait-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+  }
+
+  .story-portrait-card { margin: 0; min-width: 0; }
+
   /* Process strip: numerals + connecting hairline */
   .story-process {
     display: grid;
@@ -138,7 +503,7 @@ const ordinal = (i: number) => String(i + 1).padStart(2, "0");
     padding-right: 0.5rem;
     background: var(--color-bg);
     font-family: var(--font-body);
-    font-size: 0.875rem;
+    font-size: var(--text-small);
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: 0.08em;
@@ -148,7 +513,7 @@ const ordinal = (i: number) => String(i + 1).padStart(2, "0");
   .story-process-title {
     margin: 0;
     font-family: var(--font-heading);
-    font-size: 1.125rem;
+    font-size: var(--text-lead);
     font-weight: 600;
     line-height: 1.3;
     letter-spacing: -0.01em;
@@ -158,7 +523,7 @@ const ordinal = (i: number) => String(i + 1).padStart(2, "0");
   .story-process-body {
     margin: 0.375rem 0 0;
     font-family: var(--font-body);
-    font-size: 0.9375rem;
+    font-size: var(--text-small);
     line-height: 1.55;
     color: var(--color-muted);
   }

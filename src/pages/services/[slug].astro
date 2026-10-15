@@ -9,8 +9,9 @@ import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import GalleryEntries from "../../components/GalleryEntries.astro";
 import { site, formatPhone } from "../../config";
-import { services, getServiceBySlug, formatServicePrice } from "../../data/services";
-import { getGalleryByService, type GalleryService } from "../../data/gallery";
+import { services } from "../../data/services";
+import { getServiceBySlug, formatServicePrice, getGalleryByService } from "../../lib/data";
+import type { GalleryService } from "../../lib/types";
 
 export function getStaticPaths() {
   return services.map((service) => ({
@@ -38,7 +39,7 @@ const workEntries = getGalleryByService(service.slug as GalleryService);
 
   <section class="bg-bg" data-no-reveal>
     <div class="mx-auto max-w-[var(--w-content)] px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
-      <p class="text-sm font-semibold text-highlight">
+      <p class="text-sm font-semibold text-highlight-ink">
         <a href="/services" class="hover:underline">Services</a>
         {" "}
         <span aria-hidden="true">/</span>
@@ -106,7 +107,7 @@ const workEntries = getGalleryByService(service.slug as GalleryService);
   <section class="sec-pad-tight bg-bg">
     <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
       <h2 class="font-heading text-3xl font-semibold tracking-tight text-brand">What happens on the day</h2>
-      <ol class="mt-6 list-decimal space-y-4 pl-6 marker:font-semibold marker:text-highlight">
+      <ol class="mt-6 list-decimal space-y-4 pl-6 marker:font-semibold marker:text-highlight-ink">
         {service.process.map((step) => (
           <li class="pl-2 text-base leading-relaxed text-ink">{step}</li>
         ))}

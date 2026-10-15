@@ -1,0 +1,16 @@
+# Force LF everywhere (Windows checkouts included). CRLF drift produced
+# false full-file diffs across template and client repos.
+* text=auto eol=lf
+
+# Binary — never normalise
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.avif binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.zip binary

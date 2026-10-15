@@ -9,42 +9,10 @@
  *
  * Images: import from src/assets/images/services/ (astro:assets pipeline) and
  * attach to `images[]`. Never point at /public paths here.
+ *
+ * Data only. The record shape is `Service` in src/lib/types.ts (shared, synced).
  */
-import type { ImageMetadata } from "astro";
-
-export type PriceUnit = "per visit" | "per m²" | "per hour" | "per job";
-
-export type ServiceImage = {
-  src: ImageMetadata;
-  alt: string;
-};
-
-export type Service = {
-  slug: string;
-  name: string;
-  shortLine: string;
-  longDescription: string;
-  process: string[];
-  inclusions: string[];
-  exclusions: string[];
-  priceFrom: number;
-  priceUnit: PriceUnit;
-  priceIsPlaceholder: boolean;
-  typicalDuration: string;
-  whatCustomerNeedsToPrepare: string[];
-  images: ServiceImage[];
-};
+import type { Service } from "../lib/types";
 
 /* Empty by default. Populate per client for detailed service pages. */
 export const services: Service[] = [];
-
-export function getServiceBySlug(slug: string): Service | undefined {
-  return services.find((s) => s.slug === slug);
-}
-
-export function formatServicePrice(service: Service): string {
-  const amount = Number.isInteger(service.priceFrom)
-    ? service.priceFrom.toFixed(0)
-    : service.priceFrom.toFixed(2);
-  return `From $${amount} ${service.priceUnit}`;
-}
