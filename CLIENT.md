@@ -23,3 +23,4 @@
 
 ## Local changes to shared code
 - Commit 44a99cd "Template change: service detail pages from the intake, portrait sliders" (content.mjs, BeforeAfter.astro, services/[slug].astro, Contact.astro, check-intake.mjs). Ported into the template as v3.35.0 (branch `port/greenedge-service-detail`, 2026-10-15), which adds more on top: "More on ..." links from /services and the footer, docs, and the qa:src comment fix. GreenEdge stays on its own copy until Jordan asks for a GreenEdge update to v3.35 by name (site is locked). On that pull, the five files above take the template's version.
+- Commit "Template change: pinned hero goes transparent once covered" (HeroFullbleed.astro): the sticky hero showed through between sections on desktop. Also in template v3.35.0.
