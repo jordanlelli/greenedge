@@ -478,6 +478,8 @@
     "ogImage": "/images/hero.jpg",
     "ogImageAlt": "A mown lawn with a curved garden bed edge beside a suburban Adelaide house.",
     "noindex": false,
+    "siteUrl": "https://www.greenedgepc.com.au",
+    "_comment_siteUrl": "www is the address Vercel serves; greenedgepc.com.au 308-redirects to it (checked 2026-10-15). Canonical, og:url and the sitemap must name the served address, not the redirecting one.",
     "pages": {
       "gallery": {
         "title": "Lawn Mowing & Garden Maintenance Photos | GreenEdge Property Care",
