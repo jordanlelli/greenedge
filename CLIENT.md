@@ -15,6 +15,7 @@
 - Lawn care page: two before/after sliders (front paving, side path), chosen by Jordan. Other photo pairs and after photos are on /gallery.
 - 2026-10-17: Harrison's service list added as six garden services (homepage shows the six featured; planting and irrigation are /services only). Pressure washing and gutter cleaning kept (Jordan confirmed they are still offered). /services layout is `featured` (grouped failed qa: six cards in one group ran 152% of the viewport). Regular-visit inclusions live in the tiers section.
 - 2026-10-17: no prices anywhere on the site (services, FAQs, travel fee). Every job is quoted on site. Jordan's call, for consistency.
+- 2026-10-17: GBP primary category is Lawn care service (BrightLocal advice). Site headings lead with lawn care to match; GBP website link stays on the homepage. GBP copy pack lives in gbp/ (untracked, not part of the site).
 - 2026-10-17: new logo. `public/logo.png` is a horizontal lockup built from Harrison's white-on-black logo: leaf moved left, background removed, lettering recoloured dark green for the light header. `favicon.png` is the leaf. Palette retuned to it: forest green brand, leaf-green CTA with dark label.
 
 ## Open items

@@ -133,10 +133,10 @@
   "services": {
     "_comment": "Service list from Harrison, 2026-10-17. Six garden-maintenance services plus pressure washing and gutter cleaning (kept: not on his garden list, but still offered). Homepage shows the six featured items; planting and irrigation are on /services only. No prices on any service: removed 2026-10-17 at Jordan's request so every service is quoted on site. Lawn care keeps the lawn-mowing-adelaide slug (live page with the before/after sliders).",
     "eyebrow": "What we do",
-    "heading": "Garden maintenance, pressure washing and gutter cleaning",
+    "heading": "Lawn care, gardening, pressure washing and gutter cleaning",
     "subhead": "Regular garden maintenance or a one-off clean-up, plus pressure washing and single-storey gutter cleaning. No landscape design, paving or tree removal.",
     "pageEyebrow": "Services",
-    "pageHeading": "Garden maintenance, pressure washing and gutter cleaning in eastern Adelaide",
+    "pageHeading": "Lawn care, gardening, pressure washing and gutter cleaning in eastern Adelaide",
     "groups": [
       {
         "id": "garden-maintenance",
@@ -405,7 +405,7 @@
   },
   "tiers": {
     "eyebrow": "How it works",
-    "heading": "Regular garden maintenance or a one-off clean-up",
+    "heading": "Regular lawn and garden maintenance or a one-off clean-up",
     "subhead": "A regular visit, weekly through to monthly, covers mowing, edging, slashing, hedge trimming and shaping, hand weeding, garden bed clean-ups, shrub trimming and weed spraying. Or book a single visit when the garden has already got away from you. Both start with the same free on-site quote.",
     "items": [
       {
