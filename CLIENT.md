@@ -13,14 +13,13 @@
 - Kit coast, fullbleed hero, split-scroll services, ruled-rows why-us, areas as the dark band (`_brief`).
 - 2026-10-15: synced from a v3.16 zip copy to template v3.34.0, then locked (site is live).
 - Lawn care page: two before/after sliders (front paving, side path), chosen by Jordan. Other photo pairs and after photos are on /gallery.
-- 2026-10-17: Harrison's service list added as six garden services (homepage shows the six featured; planting and irrigation are /services only). Pressure washing and gutter cleaning kept although his list did not mention them. /services layout is `featured` (grouped failed qa: six cards in one group ran 152% of the viewport). Regular-visit inclusions live in the tiers section.
+- 2026-10-17: Harrison's service list added as six garden services (homepage shows the six featured; planting and irrigation are /services only). Pressure washing and gutter cleaning kept (Jordan confirmed they are still offered). /services layout is `featured` (grouped failed qa: six cards in one group ran 152% of the viewport). Regular-visit inclusions live in the tiers section.
+- 2026-10-17: no prices anywhere on the site (services, FAQs, travel fee). Every job is quoted on site. Jordan's call, for consistency.
 - 2026-10-17: new logo. `public/logo.png` is a horizontal lockup built from Harrison's white-on-black logo: leaf moved left, background removed, lettering recoloured dark green for the light header. `favicon.png` is the leaf. Palette retuned to it: forest green brand, leaf-green CTA with dark label.
 
 ## Open items
 - TODO (Harrison): suburb and month for each job photo; none are shown until supplied.
 - TODO (Jordan): the front verge pair on /gallery assumes the photo without the parked car is the "before". Confirm.
-- TODO (Harrison): prices are still the 2026 market estimates from the placeholder pass (`_brief.notesForCursor`). The six new garden services have no price at all.
-- TODO (Jordan): confirm pressure washing and gutter cleaning are still offered (not on Harrison's 2026-10-17 list).
 - TODO: pressure washing, gutter cleaning and the hero still use stock photos (`imageIsStock`). Lawn care, pruning, garden beds and clean-ups now use GreenEdge job photos from /gallery.
 - `business.schemaType` is empty; `faqs` has content but is not a homepage section (the /faq page still builds).
 
