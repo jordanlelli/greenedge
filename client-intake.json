@@ -11,7 +11,8 @@
       "hero": "fullbleed",
       "services": "split-scroll",
       "whyUs": "ruled-rows",
-      "header": "standard"
+      "header": "standard",
+      "servicesPage": "featured"
     },
     "designDirection": {
       "_comment": "Creative guidance only; the engine ignores this block.",
@@ -19,11 +20,11 @@
       "voice": "Direct, unembellished, second person. States what is done and what is not.",
       "audience": "Eastern-suburbs homeowners and pre-sale vendors booking a one-off or a regular schedule.",
       "palette": {
-        "mood": "Near-black ink on warm light grey. Deep forest green for chrome and headings, grey panels instead of white cards, a dark ochre reserved strictly for calls to action, and a light lime green only on dark ground.",
-        "primary": "#3B582B",
-        "secondary": "#22331A",
-        "highlight": "#4A6B36",
-        "onDarkAccent": "#8DCF74",
+        "mood": "Taken from the leaf logo: near-black ink on light grey, forest green for chrome and headings, the logo's leaf green for calls to action (dark label), its light leaf green only on dark ground, grey panels instead of white cards.",
+        "primary": "#1E5230",
+        "secondary": "#0E2618",
+        "highlight": "#6DB207",
+        "onDarkAccent": "#98D12C",
         "background": "#F0F0EC",
         "feelingWords": [
           "grounded",
@@ -35,7 +36,7 @@
       "motif": "Topographic contour lines (DESIGN-LIBRARY landscaping signature). Not wired \u2014 the divider axis was removed from the engine in v3.4.",
       "avoid": "Serif display. Any claim of years in business beyond 2025. Any wording that implies the stock photography shows GreenEdge's own completed jobs."
     },
-    "notesForCursor": "PLACEHOLDER PASS \u2014 CONFIRM BEFORE ANY LAUNCH:\n(1) PRICES are Claude's estimates from 2026 Adelaide market data (whatsthedamage.com.au, adelaidepressurecleaningpros.com.au, Airtasker), NOT Harrison's rates. Every one must be replaced or approved.\n(2) IMAGES are stock, used as service illustration. Nothing on the page claims they are GreenEdge's work. Replace with real job photos before launch and re-check the alt text, which describes what is in each stock frame.\n(3) Unused stock in public/images/services/: gardening-03.jpg, gardening-05.jpg, gardening-06.jpg, landscaping.jpg. All four show formal ornamental gardens with paving and design work that story.body explicitly disclaims \u2014 do not attach them to a service.\n(4) No testimonials exist. The section stays out of sections[] entirely.\n(5) logo.png and favicon still to be supplied.\n(6) seo.noindex is TRUE while this is a demo. Flip it to false only when Harrison has signed off the copy and the domain is live.",
+    "notesForCursor": "PLACEHOLDER PASS \u2014 CONFIRM BEFORE ANY LAUNCH:\n(1) PRICES are Claude's estimates from 2026 Adelaide market data (whatsthedamage.com.au, adelaidepressurecleaningpros.com.au, Airtasker), NOT Harrison's rates. Every one must be replaced or approved.\n(2) IMAGES are stock, used as service illustration. Nothing on the page claims they are GreenEdge's work. Replace with real job photos before launch and re-check the alt text, which describes what is in each stock frame.\n(3) Unused stock in public/images/services/: gardening-03.jpg, gardening-05.jpg, gardening-06.jpg, landscaping.jpg. All four show formal ornamental gardens with paving and design work that story.body explicitly disclaims \u2014 do not attach them to a service.\n(4) No testimonials exist. The section stays out of sections[] entirely.\n(5) Logo supplied 2026-10-17 (leaf above a stacked wordmark, white on black). public/logo.png is a horizontal lockup made from it: leaf moved left, black background removed, white lettering recoloured dark green for the light header. favicon.png is the leaf alone.\n(6) seo.noindex is TRUE while this is a demo. Flip it to false only when Harrison has signed off the copy and the domain is live.",
     "completedBy": "Claude \u2014 v3.16 placeholder pass",
     "completedAt": "2026-08-23",
     "sourceStage": "client-questionnaire",
@@ -45,7 +46,7 @@
   "_meta": {
     "domain": "greenedgepc.com.au",
     "deployTarget": "vercel",
-    "notes": "Owner-operated, established 2025. ABN 87 823 119 154. Based Newton SA 5074 (City of Campbelltown). Three services only. Single-storey gutter work only. No landscaping design, paving, tree removal or irrigation."
+    "notes": "Owner-operated, established 2025. ABN 87 823 119 154. Based Newton SA 5074 (City of Campbelltown). Services per Harrison's list of 2026-10-17: lawn care, pruning and hedging, garden bed maintenance, garden clean-ups, planting and plant care, irrigation and watering, plus pressure washing and single-storey gutter cleaning. No landscape design, paving or tree removal."
   },
   "theme": "light",
   "_comment_sections": "HAND-ORDERED and locked. hero/services pin top, faqs/contact pin bottom. whyUs sits third on purpose \u2014 it answers the objections a homeowner raises before they will read a schedule or a suburb list. The seeded shuffle had pushed it to sixth, behind story.",
@@ -93,14 +94,14 @@
     ]
   },
   "style": {
-    "_comment": "Near-black ink on warm light grey. Deep-green chrome, grey panels replace white cards, dark-ochre accent is CTA-only, lime green appears only on dark ground. Verified AA by check-universal.",
-    "brand": "#3B582B",
-    "brandDark": "#22331A",
-    "forestSecondaryInk": "#2A4020",
-    "accent": "#7A5B12",
-    "accentInk": "#5C440D",
-    "accentOndark": "#8DCF74",
-    "highlight": "#4A6B36",
+    "_comment": "Matched to the leaf logo supplied 2026-10-17. Forest green for headings, chrome and the dark band; the logo's near-black green for brandDark; the logo's leaf green as the CTA fill with dark label text; the leaf's light green only on dark ground. Neutrals unchanged. Verified AA by check-universal.",
+    "brand": "#1E5230",
+    "brandDark": "#0E2618",
+    "forestSecondaryInk": "#174126",
+    "accent": "#6DB207",
+    "accentInk": "#345E06",
+    "accentOndark": "#98D12C",
+    "highlight": "#6DB207",
     "bg": "#F0F0EC",
     "surfaceAlt": "#E6E6E1",
     "card": "#D5D5D5",
@@ -130,36 +131,141 @@
     "imageAlt": "A mown lawn with a curved garden bed edge and clipped shrubs alongside a suburban house."
   },
   "services": {
-    "_comment": "PLACEHOLDER PASS. Prices are estimates from 2026 Adelaide market data, not Harrison's rates. Images are stock service illustration. Scope is bounded by story.body, which excludes landscaping design, paving, tree removal and irrigation.",
+    "_comment": "Service list from Harrison, 2026-10-17. Six garden-maintenance services plus pressure washing and gutter cleaning (kept: not on his garden list, but still offered). Homepage shows the six featured items; planting and irrigation are on /services only. Prices other than lawn care are blank: none supplied. Lawn care keeps the lawn-mowing-adelaide slug (live page with the before/after sliders).",
     "eyebrow": "What we do",
-    "heading": "Three services, done properly",
-    "subhead": "Lawn mowing and garden maintenance, pressure washing, and gutter cleaning. \u2014 no landscaping design, no paving, no tree removal, no irrigation.",
+    "heading": "Garden maintenance, pressure washing and gutter cleaning",
+    "subhead": "Regular garden maintenance or a one-off clean-up, plus pressure washing and single-storey gutter cleaning. No landscape design, paving or tree removal.",
     "pageEyebrow": "Services",
-    "pageHeading": "Lawn mowing, pressure washing and gutter cleaning in eastern Adelaide",
+    "pageHeading": "Garden maintenance, pressure washing and gutter cleaning in eastern Adelaide",
+    "groups": [
+      {
+        "id": "garden-maintenance",
+        "heading": "Garden maintenance in Adelaide's eastern suburbs",
+        "intro": "Lawns, hedges, garden beds, planting and irrigation. Booked weekly, fortnightly or monthly, or as a one-off clean-up."
+      },
+      {
+        "id": "exterior-cleaning",
+        "heading": "Pressure washing and gutter cleaning",
+        "intro": "Hard surfaces and single-storey gutters. Most often booked before a sale or after winter."
+      }
+    ],
     "items": [
       {
-        "title": "Lawn mowing & garden maintenance",
-        "description": "Mowing, edging, weeding and hedge trimming \u2014 one-off, or on a weekly or fortnightly schedule with no lock-in contract.",
-        "longDescription": "Lawns mown and edged along every path, driveway and bed line. Beds weeded, hedges and shrubs trimmed back to shape, hard surfaces blown down, and green waste taken away with us rather than left in a pile on the nature strip. Book it as a one-off garden tidy-up, or set a weekly or fortnightly run through the growing season and drop back to monthly over winter. No lock-in contract either way \u2014 pause or stop whenever you like.",
+        "title": "Lawn care",
+        "description": "Mowing, edging and slashing, plus the renovation work that gets a thin or patchy lawn growing again.",
+        "longDescription": "Lawns mown, edged along every path, driveway and bed line, and blown down when we finish. Long grass and overgrown blocks are slashed back first. When a lawn has gone thin, spongy or patchy, we dethatch or scarify it to clear the built-up thatch, aerate compacted ground so water reaches the roots, reseed bare patches, or lay new turf where the old lawn is past saving. Mowing can be a one-off or a weekly to monthly visit, with no lock-in contract.",
         "includes": [
           "Mowing and edging",
-          "Weeding and bed tidy",
-          "Hedge and shrub trimming",
-          "Green waste removed",
-          "Paths and driveways blown down"
+          "Slashing long grass",
+          "Dethatching and scarifying",
+          "Aerating",
+          "Seeding, patch repairs and turf laying"
         ],
         "featured": true,
+        "group": "garden-maintenance",
+        "anchor": "lawn-care-adelaide",
         "price": "From $65 a visit",
-        "href": "/services/lawn-mowing-adelaide",
+        "href": "/services#lawn-care-adelaide",
         "slug": "lawn-mowing-adelaide",
-        "pageHeading": "Lawn mowing and garden maintenance in eastern Adelaide",
-        "seoTitle": "Lawn Mowing Eastern Adelaide | Mowing, Edging & Weeding | GreenEdge Property Care",
-        "seoDescription": "Lawn mowing, edging and weeding across Newton, Campbelltown, Norwood, Magill and Adelaide's eastern suburbs. One-off tidy-ups or a weekly or fortnightly run, no lock-in contract.",
+        "pageHeading": "Lawn mowing and lawn care in eastern Adelaide",
+        "seoTitle": "Lawn Mowing & Lawn Care Eastern Adelaide | GreenEdge Property Care",
+        "seoDescription": "Lawn mowing, edging, slashing, dethatching, aerating, patch repairs and turf laying across Newton, Campbelltown, Norwood, Magill and Adelaide's eastern suburbs. No lock-in contract.",
         "beforeAfterHeading": "Lawn mowing before and after",
         "beforeAfterSubhead": "Two GreenEdge jobs, photographed before and after. Drag the handle to compare.",
-        "image": "/images/services/gardening-06.jpg",
-        "imageAlt": "A freshly mown lawn beside a rendered retaining wall and planted garden bed.",
-        "imageIsStock": true
+        "image": "/images/gallery/backyard-lawn-mown-edged-concrete.jpg",
+        "imageAlt": "A backyard lawn freshly mown, with a clean edge along the concrete path.",
+        "imageIsStock": false
+      },
+      {
+        "title": "Pruning & hedging",
+        "description": "Hedges trimmed and shaped, shrubs and roses pruned, and trees thinned to keep them in shape.",
+        "longDescription": "Hedges cut back to a clean, even line and shaped to suit the garden, from a formal box hedge to a screening row along the fence. Shrubs, roses and ornamental trees are pruned, and trees are thinned and shaped to let light through and keep branches off the roof. We also trim climbers and vines before they take over a fence or pergola, remove dead palm fronds, and book seasonal pruning as a regular job. The cuttings leave on the trailer with us.",
+        "includes": [
+          "Hedge trimming and shaping",
+          "Shrub and rose pruning",
+          "Ornamental and tree pruning",
+          "Tree thinning and shaping",
+          "Climbers, vines and palm fronds"
+        ],
+        "featured": true,
+        "group": "garden-maintenance",
+        "anchor": "pruning-hedging-adelaide",
+        "price": "",
+        "href": "",
+        "image": "/images/gallery/rose-garden-bed-pruned-mulched-after.jpg",
+        "imageAlt": "A rose bed along a black front fence after pruning and tidying.",
+        "imageIsStock": false
+      },
+      {
+        "title": "Garden bed maintenance",
+        "description": "Beds weeded by hand or sprayed, cleaned up, mulched and fed so they stay tidy between visits.",
+        "longDescription": "Weeds pulled by hand from beds and between plants, with weed spraying for paths, paving and larger patches. Beds are cleaned up, shrubs trimmed back off paths and lawn edges, and fresh mulch put down to hold moisture and keep the weeds down. Plants are fertilised to suit the season, and anything dead or past its best can be removed and replaced.",
+        "includes": [
+          "Hand weeding",
+          "Weed spraying",
+          "Garden bed clean-ups and shrub trimming",
+          "Mulching",
+          "Plant fertilising, removal and replacement"
+        ],
+        "featured": true,
+        "group": "garden-maintenance",
+        "anchor": "garden-bed-maintenance-adelaide",
+        "price": "",
+        "href": "",
+        "image": "/images/gallery/front-garden-bed-path-tidy.jpg",
+        "imageAlt": "A tidied front garden bed of native plants beside a paved path.",
+        "imageIsStock": false
+      },
+      {
+        "title": "Garden clean-ups",
+        "description": "One-off clean-ups for overgrown gardens, rentals, vacant properties and homes going on the market.",
+        "longDescription": "A complete garden clean-up in one visit: overgrown lawns and beds cut back, weeds cleared, hedges and shrubs trimmed, and everything we pull out taken away. We do end-of-lease clean-ups for tenants and agents, pre-sale presentation before the photos and open inspections, and ongoing maintenance for rental and vacant properties so a house sitting empty still looks cared for. Green waste and hard rubbish are removed from site.",
+        "includes": [
+          "Overgrown garden clearing",
+          "End-of-lease clean-ups",
+          "Pre-sale garden presentation",
+          "Rental and vacant property maintenance",
+          "Green waste and hard rubbish removal"
+        ],
+        "featured": true,
+        "group": "garden-maintenance",
+        "anchor": "garden-clean-ups-adelaide",
+        "price": "",
+        "href": "",
+        "image": "/images/gallery/backyard-lawn-pergola-mown-after.jpg",
+        "imageAlt": "A back yard with the long grass mown short, seen from under a pergola.",
+        "imageIsStock": false
+      },
+      {
+        "title": "Planting & plant care",
+        "description": "New trees, shrubs and plants put in, and existing plants repotted or moved to a better spot.",
+        "longDescription": "Trees, shrubs and garden plants planted, watered in and mulched. We also repot plants that have outgrown their pots and move established plants to a spot where they will do better. Planting pairs well with a garden bed clean-up, so new plants go into a bed that has already been weeded and prepared.",
+        "includes": [
+          "Tree and shrub planting",
+          "Plant repotting",
+          "Plant relocating"
+        ],
+        "featured": false,
+        "group": "garden-maintenance",
+        "anchor": "planting-plant-care-adelaide",
+        "price": "",
+        "href": ""
+      },
+      {
+        "title": "Irrigation & watering",
+        "description": "Irrigation systems inspected and repaired, and sprinklers replaced and adjusted so water goes where it should.",
+        "longDescription": "Irrigation systems checked for leaks, blocked drippers, broken fittings and dry patches, then repaired. Worn or broken sprinkler heads are replaced, and sprinklers are adjusted to water the lawn and beds rather than the fence, the path or the side of the house. Worth booking before summer, when a fault shows up fastest as a dead patch of lawn.",
+        "includes": [
+          "Irrigation system inspections",
+          "Irrigation repairs",
+          "Sprinkler replacement",
+          "Sprinkler adjustment"
+        ],
+        "featured": false,
+        "group": "garden-maintenance",
+        "anchor": "irrigation-watering-adelaide",
+        "price": "",
+        "href": ""
       },
       {
         "title": "Pressure washing",
@@ -172,12 +278,14 @@
           "Pre-sale clean-ups",
           "All equipment supplied"
         ],
-        "featured": false,
+        "featured": true,
         "price": "From $250 a driveway",
         "href": "",
         "image": "/images/services/pressure-washing.jpg",
         "imageAlt": "A pressure washer lance cleaning a concrete driveway, leaving a clean strip beside the dirty surface.",
-        "imageIsStock": true
+        "imageIsStock": true,
+        "group": "exterior-cleaning",
+        "anchor": "pressure-washing-adelaide"
       },
       {
         "title": "Gutter cleaning",
@@ -190,12 +298,14 @@
           "Ground area left tidy",
           "Single-storey homes only"
         ],
-        "featured": false,
+        "featured": true,
         "price": "From $145 a home",
         "href": "",
         "image": "/images/services/gutter-cleaning-01.jpg",
         "imageAlt": "A roof gutter running along the edge of a tiled roof above a trimmed hedge.",
-        "imageIsStock": true
+        "imageIsStock": true,
+        "group": "exterior-cleaning",
+        "anchor": "gutter-cleaning-adelaide"
       }
     ]
   },
@@ -295,20 +405,20 @@
   },
   "tiers": {
     "eyebrow": "How it works",
-    "heading": "Regular or one-off",
-    "subhead": "Set a schedule and it never gets away from you, or book a single visit when it already has. Both start with the same free on-site quote.",
+    "heading": "Regular garden maintenance or a one-off clean-up",
+    "subhead": "A regular visit, weekly through to monthly, covers mowing, edging, slashing, hedge trimming and shaping, hand weeding, garden bed clean-ups, shrub trimming and weed spraying. Or book a single visit when the garden has already got away from you. Both start with the same free on-site quote.",
     "items": [
       {
         "title": "Weekly",
         "intensity": 3,
         "of": 3,
-        "description": "Peak growing season, October through March. Mowing, edging and a quick tidy every visit so the lawn never gets ahead of you. Best for larger blocks and couch or kikuyu lawns."
+        "description": "Peak growing season, October through March. The full maintenance visit every week so the lawn and beds never get ahead of you. Best for larger blocks and couch or kikuyu lawns."
       },
       {
-        "title": "Fortnightly",
+        "title": "Fortnightly or monthly",
         "intensity": 2,
         "of": 3,
-        "description": "The schedule most eastern-suburbs homes settle on. Keeps lawns, edges and beds consistently sharp through spring and summer, then drops back to monthly over winter."
+        "description": "The schedule most eastern-suburbs homes settle on. Fortnightly keeps lawns, edges and beds sharp through spring and summer; monthly suits winter and smaller, slower-growing gardens."
       },
       {
         "title": "One-off",
@@ -322,7 +432,7 @@
     "_comment": "Renders as the dark colour band (bandSection: story). Sets the scope boundary the rest of the page depends on. cards[] intentionally empty \u2014 nothing to put in them that is not already said better in whyUs.",
     "eyebrow": "Our story",
     "heading": "One person. Done properly.",
-    "body": "GreenEdge is one operator with a trailer, working out of Newton since 2025. We look after lawns, gardens, hard surfaces and gutters across Adelaide's eastern suburbs. Three services, done properly, rather than a list of twenty done badly \u2014 no landscaping design, no paving, no tree removal, no irrigation. If a job falls outside that, we will say so on the spot and point you to someone who does it.",
+    "body": "GreenEdge is one operator with a trailer, working out of Newton since 2025. We look after lawns, hedges, garden beds, irrigation, hard surfaces and gutters across Adelaide's eastern suburbs. Maintenance and clean-up work, done properly, rather than a list of everything done badly: no landscape design, no paving, no tree removal. If a job falls outside that, we will say so on the spot and point you to someone who does it.",
     "image": "",
     "cards": [],
     "process": [
@@ -374,7 +484,7 @@
       },
       {
         "question": "Do you do landscaping, paving or tree removal?",
-        "answer": "No. We do lawn mowing and garden maintenance, pressure washing, and gutter cleaning. Landscaping design, paving, tree removal and irrigation are outside what we do \u2014 if you need one of those, we will tell you on the spot."
+        "answer": "No. We do garden maintenance (lawn care, pruning and hedging, garden beds, clean-ups, planting and irrigation repairs), pressure washing and gutter cleaning. Landscape design, paving and tree removal are outside what we do. If you need one of those, we will tell you on the spot."
       },
       {
         "question": "Are you insured?",
@@ -430,16 +540,24 @@
         "heading": "Services",
         "links": [
           {
-            "label": "Gardening & Lawn Care",
-            "href": "/#services"
+            "label": "Lawn care",
+            "href": "/services#lawn-care-adelaide"
           },
           {
-            "label": "Pressure Washing",
-            "href": "/#services"
+            "label": "Pruning & hedging",
+            "href": "/services#pruning-hedging-adelaide"
           },
           {
-            "label": "Gutter Cleaning",
-            "href": "/#services"
+            "label": "Garden clean-ups",
+            "href": "/services#garden-clean-ups-adelaide"
+          },
+          {
+            "label": "Pressure washing",
+            "href": "/services#pressure-washing-adelaide"
+          },
+          {
+            "label": "Gutter cleaning",
+            "href": "/services#gutter-cleaning-adelaide"
           }
         ]
       },
