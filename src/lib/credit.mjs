@@ -63,6 +63,9 @@ export function resolveCredit(site = {}) {
   const cut = label.lastIndexOf(name);
   return {
     prefix: cut > 0 ? label.slice(0, cut).trimEnd() : "",
+    /* Words after the name stay outside the link too. They tell Google what the
+       linked site is about without lengthening the anchor. */
+    suffix: cut >= 0 ? label.slice(cut + name.length) : "",
     name,
     url,
     rel: cfg.rel || DEFAULTS.rel,

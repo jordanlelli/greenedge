@@ -132,7 +132,7 @@ const copyrightSuffix = footer.copyrightSuffix || "All rights reserved.";
                 href={credit.url}
                 rel={credit.rel || undefined}
                 class="font-medium text-ondark/80 underline-offset-2 transition hover:text-ondark hover:underline"
-              >{credit.name}</a>
+              >{credit.name}</a>{credit.suffix}
             </span>
           )}
         </div>

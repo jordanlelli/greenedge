@@ -679,5 +679,12 @@
         "afterAlt": "The same side path with the grass along the fence mown short."
       }
     ]
+  },
+  "agency": {
+    "credit": {
+      "enabled": true,
+      "label": "Site by Kova Digital, websites for Australian trades",
+      "url": "https://kovadigital.com.au/work/greenedge-property-care/"
+    }
   }
 }
